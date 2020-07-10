@@ -1,0 +1,12 @@
+.logo {
+  text-align: center;
+  -webkit-text-stroke: 1px #3f51b5;
+  -webkit-text-fill-color: transparent;
+}
+
+.wrapper {
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

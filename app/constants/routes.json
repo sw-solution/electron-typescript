@@ -1,0 +1,11 @@
+{
+  "LIST": "/list",
+  "CREATE": {
+    "NAME": "/",
+    "DESCRIPTION": "/create/description",
+    "TYPE": "/create/type",
+    "METHOD": "/create/method",
+    "CAMERA": "/create/camera",
+    "ATTACH_TYPE": "/create/attach-type"
+  }
+}
