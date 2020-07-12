@@ -1,6 +1,5 @@
 import React, { ReactNode } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { push } from 'connected-react-router';
 
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
@@ -10,8 +9,7 @@ import LandscapeIcon from '@material-ui/icons/Landscape';
 import PoolIcon from '@material-ui/icons/Pool';
 import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
 
-import { setSequenceType, selSequenceType } from '../slice';
-import routes from '../../../constants/routes.json';
+import { setSequenceType, selSequenceType } from './slice';
 
 export default function SequenceType() {
   const type = useSelector(selSequenceType);

@@ -25,6 +25,9 @@ import Camera from './Camera';
 import Method from './Method';
 import AttachType from './AttachType';
 import UploadImage from './UploadImage';
+import UploadGpx from './UploadGpx';
+import StartTime from './StartTime';
+import ModifyTime from './ModifyTime';
 
 import routes from '../../constants/routes.json';
 import { getPrevStep, selCurrentStep, setSequenceCurrentStep } from './slice';
@@ -127,7 +130,10 @@ export default function CreatePageWrapper() {
                 {currentStep === 'method' && <Method />}
                 {currentStep === 'camera' && <Camera />}
                 {currentStep === 'attachType' && <AttachType />}
-                {currentStep === 'attachType' && <UploadImage />}
+                {currentStep === 'imagePath' && <UploadImage />}
+                {currentStep === 'gpxPath' && <UploadGpx />}
+                {currentStep === 'startTime' && <StartTime />}
+                {currentStep === 'modifyTime' && <ModifyTime />}
               </Grid>
             </Card>
           </Box>

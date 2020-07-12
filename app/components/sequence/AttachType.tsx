@@ -8,7 +8,7 @@ import IconButton from '@material-ui/core/IconButton';
 import VideocamIcon from '@material-ui/icons/Videocam';
 import PhotoCameraIcon from '@material-ui/icons/PhotoCamera';
 
-import { setSequenceAttachType, selSequenceAttachType } from '../slice';
+import { setSequenceAttachType, selSequenceAttachType } from './slice';
 
 interface AttachTypeModel {
   component: ReactNode;

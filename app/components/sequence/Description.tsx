@@ -1,45 +1,49 @@
 import React from 'react';
-import { TextField } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
-import { push } from 'connected-react-router';
 
+import { TextField } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 
-import { setSequenceName, selSequenceName } from '../slice';
-import routes from '../../../constants/routes.json';
+import { setSequenceDescription, selSequenceDescription } from './slice';
 
-export default function SequenceName() {
-  const propsName = useSelector(selSequenceName);
-  const [name, setName] = React.useState<string>(propsName);
+export default function SequenceDescription() {
+  const propsDescription = useSelector(selSequenceDescription);
+  const [description, setDescription] = React.useState<string>(
+    propsDescription
+  );
   const dispatch = useDispatch();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setName(event.target.value);
+    setDescription(event.target.value);
   };
 
-  const storeSequenceName = () => {
-    dispatch(setSequenceName(name));
+  const storeSequenceDescription = () => {
+    dispatch(setSequenceDescription(description));
   };
 
   return (
     <>
       <Grid item xs={12}>
         <Typography variant="h6" align="center" color="textSecondary">
-          What do you want to name this sequence?
+          How would you describe this sequence?
         </Typography>
       </Grid>
       <Grid item xs={12}>
         <TextField
           id="outlined-basic"
-          label="Sequence Name"
+          label="Sequence Description"
+          fullWidth
           variant="outlined"
-          value={name}
+          multiline
+          value={description}
           onChange={handleChange}
         />
         <Typography paragraph style={{ marginTop: '30px' }}>
-          E.g. “North Downs Way: Farnham and Guildford”
+          E.g. “A Sunday morning stroll. Ended up being very muddy in places due
+          to the rain. The trees we’re just starting to bud with Spring in full
+          flow.”
         </Typography>
       </Grid>
       <Grid item xs={12}>
@@ -47,7 +51,7 @@ export default function SequenceName() {
           variant="contained"
           color="primary"
           size="large"
-          onClick={storeSequenceName}
+          onClick={storeSequenceDescription}
         >
           Next
         </Button>

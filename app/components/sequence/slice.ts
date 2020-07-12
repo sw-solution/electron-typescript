@@ -12,7 +12,10 @@ const sequenceSlice = createSlice({
     method: '',
     camera: '',
     attachType: '',
-    upload: '',
+    imagePath: [],
+    gpxPath: [],
+    startTime: '2020-01-01:00:00:01',
+    modifyTime: '0',
   },
   reducers: {
     setCurrentStep: (state, { payload }) => {
@@ -36,6 +39,18 @@ const sequenceSlice = createSlice({
     setAttachType: (state, { payload }) => {
       state.attachType = payload;
     },
+    setImagePath: (state, { payload }) => {
+      state.imagePath = payload;
+    },
+    setGpxPath: (state, { payload }) => {
+      state.gpxPath = payload;
+    },
+    setStartTime: (state, { payload }) => {
+      state.startTime = payload;
+    },
+    setModifyTime: (state, { payload }) => {
+      state.modifyTime = payload;
+    },
   },
 });
 
@@ -47,6 +62,10 @@ export const {
   setCamera,
   setAttachType,
   setCurrentStep,
+  setImagePath,
+  setGpxPath,
+  setStartTime,
+  setModifyTime,
 } = sequenceSlice.actions;
 
 export const setSequenceName = (name: string): AppThunk => {
@@ -87,13 +106,41 @@ export const setSequenceCamera = (camera: string): AppThunk => {
 export const setSequenceAttachType = (attachType: string): AppThunk => {
   return (dispatch) => {
     dispatch(setAttachType(attachType));
-    dispatch(setCurrentStep('upload'));
+    dispatch(setCurrentStep('imagePath'));
   };
 };
 
 export const setSequenceCurrentStep = (currentStep: string): AppThunk => {
   return (dispatch) => {
     dispatch(setCurrentStep(currentStep));
+  };
+};
+
+export const setSequenceImagePath = (uploadPath: string[]): AppThunk => {
+  return (dispatch) => {
+    dispatch(setImagePath(uploadPath));
+    dispatch(setCurrentStep('gpxPath'));
+  };
+};
+
+export const setSequenceGpxPath = (uploadPath: string[]): AppThunk => {
+  return (dispatch) => {
+    dispatch(setGpxPath(uploadPath));
+    dispatch(setCurrentStep('startTime'));
+  };
+};
+
+export const setSequenceStartTime = (startTime: string): AppThunk => {
+  return (dispatch) => {
+    dispatch(setGpxPath(startTime));
+    dispatch(setCurrentStep('modifyTime'));
+  };
+};
+
+export const setSequenceModifyTime = (modifyTime: string): AppThunk => {
+  return (dispatch) => {
+    dispatch(setGpxPath(modifyTime));
+    dispatch(setCurrentStep('modifySpace'));
   };
 };
 
@@ -122,5 +169,8 @@ export const getPrevStep = (state: RootState) => {
   }
   return pages[idx - 1];
 };
+
+export const selStartTime = (state: RootState) => state.sequence.startTime;
+export const selModifyTime = (state: RootState) => state.sequence.modifyTime;
 
 export const selCurrentStep = (state: RootState) => state.sequence.currentStep;

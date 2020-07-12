@@ -1,20 +1,17 @@
 import React, { ReactNode } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { push } from 'connected-react-router';
 
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 
-import { setSequenceCamera, selSequenceCamera } from '../slice';
+import { setSequenceCamera, selSequenceCamera } from './slice';
 
-import garminImg from '../../../assets/images/camera/garmin.png';
-import goprofusionImg from '../../../assets/images/camera/goprofusion.png';
-import gopromaxImg from '../../../assets/images/camera/gopromax.png';
-import insta360Img from '../../../assets/images/camera/insta360.png';
-import ricohImg from '../../../assets/images/camera/ricoh.png';
-
-import routes from '../../../constants/routes.json';
+import garminImg from '../../assets/images/camera/garmin.png';
+import goprofusionImg from '../../assets/images/camera/goprofusion.png';
+import gopromaxImg from '../../assets/images/camera/gopromax.png';
+import insta360Img from '../../assets/images/camera/insta360.png';
+import ricohImg from '../../assets/images/camera/ricoh.png';
 
 interface CameraModel {
   component: ReactNode;

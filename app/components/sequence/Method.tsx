@@ -1,6 +1,5 @@
 import React, { ReactNode } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { push } from 'connected-react-router';
 
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
@@ -15,20 +14,12 @@ import RowingIcon from '@material-ui/icons/Rowing';
 
 import AirplanemodeActiveIcon from '@material-ui/icons/AirplanemodeActive';
 
-import {
-  setSequenceMethod,
-  selSequenceMethod,
-  selSequenceType,
-} from '../slice';
-
-import routes from '../../../constants/routes.json';
+import { setSequenceMethod, selSequenceMethod, selSequenceType } from './slice';
 
 interface MethodModel {
   component: ReactNode;
   label: string;
 }
-
-type TypeModel = 'Air' | 'Land' | 'Water';
 
 type MethodsModel = {
   [key in TypeModel]: MethodModel[];
