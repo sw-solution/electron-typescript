@@ -1,6 +1,5 @@
 import React, { ReactNode } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { push } from 'connected-react-router';
 
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
@@ -9,9 +8,7 @@ import IconButton from '@material-ui/core/IconButton';
 import VideocamIcon from '@material-ui/icons/Videocam';
 import PhotoCameraIcon from '@material-ui/icons/PhotoCamera';
 
-import { setSequenceAttachType, selSequenceAttachType } from './slice';
-
-import routes from '../../../constants/routes.json';
+import { setSequenceAttachType, selSequenceAttachType } from '../slice';
 
 interface AttachTypeModel {
   component: ReactNode;
@@ -24,7 +21,6 @@ export default function SequenceAttachType() {
 
   const storeSequenceAttachType = (newAttachType: string) => {
     dispatch(setSequenceAttachType(newAttachType));
-    dispatch(push(routes.CREATE.ATTACH_TYPE));
   };
 
   const attachTypes: AttachTypeModel[] = [

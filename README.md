@@ -1,12 +1,6 @@
 # Open Path Map Desktop Uploader
 
 
-## In one sentence
+## License
 
-Windows / Mac app for tracking gps. It will provide the moving path of map from gps images / videos uploaded.
-
-## Installation
-`npm install` or `yarn`
-
-## Execution
-`npm run dev` or `yarn dev`
+OPM Desktop Uploader is licensed under a [GNU AGPLv3 License](/LICENSE.txt).

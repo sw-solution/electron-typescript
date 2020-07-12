@@ -15,8 +15,12 @@ import RowingIcon from '@material-ui/icons/Rowing';
 
 import AirplanemodeActiveIcon from '@material-ui/icons/AirplanemodeActive';
 
-import { setSequenceMethod, selSequenceMethod } from './slice';
-import { selSequenceType } from '../Type/slice';
+import {
+  setSequenceMethod,
+  selSequenceMethod,
+  selSequenceType,
+} from '../slice';
+
 import routes from '../../../constants/routes.json';
 
 interface MethodModel {
@@ -37,7 +41,6 @@ export default function SequenceMethod() {
 
   const storeSequenceMethod = (newMethod: string) => {
     dispatch(setSequenceMethod(newMethod));
-    dispatch(push(routes.CREATE.CAMERA));
   };
 
   const methods: MethodsModel = {

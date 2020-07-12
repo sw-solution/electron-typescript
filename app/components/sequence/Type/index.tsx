@@ -10,7 +10,7 @@ import LandscapeIcon from '@material-ui/icons/Landscape';
 import PoolIcon from '@material-ui/icons/Pool';
 import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
 
-import { setSequenceType, selSequenceType } from './slice';
+import { setSequenceType, selSequenceType } from '../slice';
 import routes from '../../../constants/routes.json';
 
 export default function SequenceType() {
@@ -19,7 +19,6 @@ export default function SequenceType() {
 
   const storeSequenceType = (newType: string) => {
     dispatch(setSequenceType(newType));
-    dispatch(push(routes.CREATE.METHOD));
   };
 
   const buttons = [

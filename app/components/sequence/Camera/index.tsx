@@ -6,7 +6,7 @@ import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 
-import { setSequenceCamera, selSequenceCamera } from './slice';
+import { setSequenceCamera, selSequenceCamera } from '../slice';
 
 import garminImg from '../../../assets/images/camera/garmin.png';
 import goprofusionImg from '../../../assets/images/camera/goprofusion.png';
@@ -27,7 +27,6 @@ export default function SequenceCamera() {
 
   const storeSequenceCamera = (newCamera: string) => {
     dispatch(setSequenceCamera(newCamera));
-    dispatch(push(routes.CREATE.ATTACH_TYPE));
   };
 
   const cameras: CameraModel[] = [
