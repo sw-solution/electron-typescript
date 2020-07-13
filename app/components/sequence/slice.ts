@@ -6,50 +6,75 @@ const sequenceSlice = createSlice({
   name: 'sequence',
   initialState: {
     currentStep: 'name',
-    name: '',
-    description: '',
-    type: '',
-    method: '',
-    camera: '',
-    attachType: '',
-    imagePath: [],
-    gpxPath: [],
-    startTime: '2020-01-01:00:00:01',
-    modifyTime: '0',
+    steps: {
+      name: '',
+      description: '',
+      type: '',
+      method: '',
+      camera: '',
+      attachType: '',
+      imagePath: [],
+      gpxPath: [],
+      startTime: '2020-01-01:00:00:01',
+      modifyTime: '0',
+      modifySpace: '',
+      tags: [],
+      nadir: '',
+      nadirPath: [],
+      previewNadir:
+        '/home/aa/Works/Rudy/David/Test/TIMELAPSE/MULTISHOT_9698_000001.jpg',
+      processPage: 10,
+    },
+    points: [
+      {
+        position: [51.5, -0.09],
+        image:
+          '/home/aa/Works/Rudy/David/Test/TIMELAPSE/MULTISHOT_9698_000001.jpg',
+      },
+    ],
   },
   reducers: {
     setCurrentStep: (state, { payload }) => {
       state.currentStep = payload;
     },
     setName: (state, { payload }) => {
-      state.name = payload;
+      state.steps.name = payload;
     },
     setDescription: (state, { payload }) => {
-      state.description = payload;
+      state.steps.description = payload;
     },
     setType: (state, { payload }) => {
-      state.type = payload;
+      state.steps.type = payload;
     },
     setMethod: (state, { payload }) => {
-      state.method = payload;
+      state.steps.method = payload;
     },
     setCamera: (state, { payload }) => {
-      state.camera = payload;
+      state.steps.camera = payload;
     },
     setAttachType: (state, { payload }) => {
-      state.attachType = payload;
+      state.steps.attachType = payload;
     },
     setImagePath: (state, { payload }) => {
-      state.imagePath = payload;
+      state.steps.imagePath = payload;
     },
     setGpxPath: (state, { payload }) => {
-      state.gpxPath = payload;
+      state.steps.gpxPath = payload;
     },
     setStartTime: (state, { payload }) => {
-      state.startTime = payload;
+      state.steps.startTime = payload;
     },
     setModifyTime: (state, { payload }) => {
-      state.modifyTime = payload;
+      state.steps.modifyTime = payload;
+    },
+    setTags: (state, { payload }) => {
+      state.steps.tags = payload;
+    },
+    setNadirPath: (state, { payload }) => {
+      state.steps.nadirPath = payload;
+    },
+    setProgress: (state, { payload }) => {
+      state.steps.processPage = payload;
     },
   },
 });
@@ -66,6 +91,9 @@ export const {
   setGpxPath,
   setStartTime,
   setModifyTime,
+  setTags,
+  setNadirPath,
+  setProgress,
 } = sequenceSlice.actions;
 
 export const setSequenceName = (name: string): AppThunk => {
@@ -144,24 +172,46 @@ export const setSequenceModifyTime = (modifyTime: string): AppThunk => {
   };
 };
 
+export const setSequenceNadirPath = (paths: string[]): AppThunk => {
+  return (dispatch) => {
+    dispatch(setNadirPath(paths));
+    dispatch(setCurrentStep('previewNadir'));
+  };
+};
+
+export const setSequenceTags = (tags: string[]): AppThunk => {
+  return (dispatch) => {
+    dispatch(setTags(tags));
+    dispatch(setCurrentStep('nadir'));
+  };
+};
+
+export const setSequenceProcess = (process: number): AppThunk => {
+  return (dispatch) => {
+    dispatch(setProgress(process));
+  };
+};
+
 export default sequenceSlice.reducer;
 
-export const selSequenceName = (state: RootState) => state.sequence.name;
+export const selSequenceName = (state: RootState) => state.sequence.steps.name;
 
 export const selSequenceDescription = (state: RootState) =>
-  state.sequence.description;
+  state.sequence.steps.description;
 
-export const selSequenceType = (state: RootState) => state.sequence.type;
+export const selSequenceType = (state: RootState) => state.sequence.steps.type;
 
-export const selSequenceMethod = (state: RootState) => state.sequence.method;
+export const selSequenceMethod = (state: RootState) =>
+  state.sequence.steps.method;
 
-export const selSequenceCamera = (state: RootState) => state.sequence.camera;
+export const selSequenceCamera = (state: RootState) =>
+  state.sequence.steps.camera;
 
 export const selSequenceAttachType = (state: RootState) =>
-  state.sequence.attachType;
+  state.sequence.steps.attachType;
 
 export const getPrevStep = (state: RootState) => {
-  const pages = Object.keys(state.sequence).filter((k) => k !== 'currentStep');
+  const pages = Object.keys(state.sequence.steps);
 
   const idx = pages.indexOf(state.sequence.currentStep);
   if (idx - 1 < 0) {
@@ -170,7 +220,19 @@ export const getPrevStep = (state: RootState) => {
   return pages[idx - 1];
 };
 
-export const selStartTime = (state: RootState) => state.sequence.startTime;
-export const selModifyTime = (state: RootState) => state.sequence.modifyTime;
+export const selStartTime = (state: RootState) =>
+  state.sequence.steps.startTime;
+export const selModifyTime = (state: RootState) =>
+  state.sequence.steps.modifyTime;
+
+export const selSequenceTags = (state: RootState) => state.sequence.steps.tags;
+
+export const selPoints = (state: RootState) => state.sequence.points;
+
+export const selProgress = (state: RootState) =>
+  state.sequence.steps.processPage;
+
+export const selNadirImage = (state: RootState) =>
+  state.sequence.steps.previewNadir;
 
 export const selCurrentStep = (state: RootState) => state.sequence.currentStep;

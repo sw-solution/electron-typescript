@@ -28,6 +28,12 @@ import UploadImage from './UploadImage';
 import UploadGpx from './UploadGpx';
 import StartTime from './StartTime';
 import ModifyTime from './ModifyTime';
+import ModifySpace from './ModifySpace';
+import Tags from './Tags';
+import Nadir from './Nadir';
+import UploadNadir from './UploadNadir';
+import PreviewNadir from './PreviewNadir';
+import ProcessPage from './ProcessPage';
 
 import routes from '../../constants/routes.json';
 import { getPrevStep, selCurrentStep, setSequenceCurrentStep } from './slice';
@@ -134,6 +140,12 @@ export default function CreatePageWrapper() {
                 {currentStep === 'gpxPath' && <UploadGpx />}
                 {currentStep === 'startTime' && <StartTime />}
                 {currentStep === 'modifyTime' && <ModifyTime />}
+                {currentStep === 'modifySpace' && <ModifySpace />}
+                {currentStep === 'tags' && <Tags />}
+                {currentStep === 'nadir' && <Nadir />}
+                {currentStep === 'nadirPath' && <UploadNadir />}
+                {currentStep === 'previewNadir' && <PreviewNadir />}
+                {currentStep === 'processPage' && <ProcessPage />}
               </Grid>
             </Card>
           </Box>
