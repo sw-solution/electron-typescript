@@ -1,0 +1,231 @@
+import dayjs, { Dayjs } from 'dayjs';
+import { BrowserWindow } from 'electron';
+import path from 'path';
+
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+const ffmpeg = require('fluent-ffmpeg');
+
+ffmpeg.setFfmpegPath(ffmpegPath);
+
+const { Tags, exiftool } = require('exiftool-vendored');
+
+export function getSeconds(timeStr: string) {
+  const re = /(\d+\.?\d*) s/g;
+  const m = re.exec(timeStr);
+
+  if (m) {
+    return parseInt(m[1], 10);
+  }
+  const secs = timeStr.split(':');
+  return (
+    parseInt(secs[0], 10) * 3600 +
+    parseInt(secs[1], 10) * 60 +
+    parseInt(secs[2], 10)
+  );
+}
+
+export function dms2dd(
+  degrees: string,
+  minutes: string,
+  seconds: string,
+  direction: string
+) {
+  let dd =
+    parseFloat(degrees) +
+    parseFloat(minutes) / 60 +
+    parseFloat(seconds) / (60 * 60);
+  if (direction === 'E' || direction === 'N') {
+    dd *= -1;
+  }
+  return dd;
+}
+
+export function parseDms(dms: string | number) {
+  if (typeof dms === 'number') {
+    return dms;
+  }
+  const parts = dms.split(/[deg'"]+/g);
+  return dms2dd(parts[0], parts[1], parts[2], parts[3]);
+}
+
+export function getAltudeMeters(atlStr: string) {
+  const re = /(\d+\.?\d*)/g;
+  const m = re.exec(atlStr);
+  if (m) return parseInt(m[1], 10);
+  return 0.0;
+}
+
+export interface VPGeoDataModel {
+  GPSDateTime: Dayjs;
+
+  SampleTime: number;
+
+  GPSLatitude: number;
+
+  GPSLongitude: number;
+
+  GPSAltitude: number;
+}
+
+export class VPGeoData {
+  GPSDateTime: Dayjs;
+
+  SampleTime: number;
+
+  GPSLatitude: number;
+
+  GPSLongitude: number;
+
+  GPSAltitude: number;
+
+  constructor({
+    GPSDateTime,
+    SampleTime,
+    GPSLatitude,
+    GPSLongitude,
+    GPSAltitude,
+  }: VPGeoDataModel) {
+    this.SampleTime = SampleTime;
+    this.GPSDateTime = GPSDateTime;
+    this.GPSLatitude = GPSLatitude;
+    this.GPSLongitude = GPSLongitude;
+    this.GPSAltitude = GPSAltitude;
+  }
+}
+
+export function getGPSVideoData(tags: typeof Tags) {
+  const re = /(Doc\d+):GPSLatitude/g;
+
+  const tagsText = JSON.stringify(tags);
+  const availableKeys = [];
+  let m;
+  do {
+    m = re.exec(tagsText);
+    if (m) {
+      availableKeys.push(m[1]);
+    }
+  } while (m);
+
+  const dataList: VPGeoData[] = [];
+  availableKeys.forEach((k: string) => {
+    try {
+      const sampleTime = getSeconds(tags[`${k}:SampleTime`]);
+      if (
+        dataList.filter((s: VPGeoDataModel) => s.SampleTime === sampleTime)
+          .length === 0
+      ) {
+        const item = new VPGeoData({
+          GPSDateTime: dayjs(tags[`${k}:GPSDateTime`]),
+          GPSLatitude: parseDms(tags[`${k}:GPSLatitude`]),
+          GPSLongitude: parseDms(tags[`${k}:GPSLongitude`]),
+          GPSAltitude: getAltudeMeters(tags[`${k}:GPSAltitude`]),
+          SampleTime: sampleTime,
+        });
+        dataList.push(item);
+      }
+    } catch (e) {
+      console.error('Available KEY Error: ', e);
+    }
+  });
+
+  dataList.sort((firstItem: VPGeoData, secondItem: VPGeoData) => {
+    return firstItem.SampleTime - secondItem.SampleTime;
+  });
+
+  const commonData = Object.keys(tags)
+    .filter((k: string) => !k.startsWith('Doc'))
+    .reduce((obj, key: string) => {
+      obj[key] = tags[key];
+      return obj;
+    }, {});
+
+  return {
+    dataList,
+    commonData,
+  };
+}
+
+export async function writeTags2Image(
+  outputPath: string,
+  commonData,
+  datalist: VPGeoDataModel[]
+) {
+  const strStartTime = commonData['Main:GPSDateTime'];
+  let starttime: Dayjs;
+  if (strStartTime) {
+    starttime = dayjs(strStartTime);
+  } else {
+    starttime = datalist[0].GPSDateTime;
+  }
+
+  datalist.forEach((item: VPGeoDataModel) => {
+    const filename = `${item.SampleTime}.png`;
+    const datetime = item.GPSDateTime
+      ? item.GPSDateTime
+      : starttime.add(item.SampleTime, 'second');
+    exiftool
+      .write(
+        path.join(outputPath, filename),
+        {
+          AllDates: datetime.format('YYYY-MM-DDTHH:mm:ss'),
+          GPSTimeStamp: datetime.format('HH:mm:ss'),
+          GPSDateStamp: datetime.format('YYYY-MM-DD'),
+          GPSLatitude: item.GPSLatitude,
+          GPSLongitude: item.GPSLongitude,
+          GPSAltitude: item.GPSAltitude,
+          ProjectionType: commonData['Main:ProjectionType'],
+          Make: commonData['Main:Make'],
+        },
+        ['-overwrite_original']
+      )
+      .then(() =>
+        console.log(
+          `wrote file: ${filename}, time: ${datetime.format(
+            'YYYY-MM-DDTHH:mm:ss'
+          )} `
+        )
+      )
+      .catch((error) => console.error('Error in writing tags: ', error));
+  });
+}
+
+export async function splitVideos(
+  inputPath: string,
+  splitTimes: number[],
+  outputPath: string,
+  callback: Function
+) {
+  let filenames: string[] = [];
+  ffmpeg(inputPath)
+    .on('filenames', function (fns: string[]) {
+      filenames = fns;
+    })
+    .on('end', function () {
+      callback(filenames);
+    })
+    .screenshots({
+      timestamps: splitTimes,
+      filename: '%s.png',
+      folder: outputPath,
+    });
+}
+
+export async function splitVideoToImage(
+  win: BrowserWindow,
+  tags: typeof Tags,
+  videoPath: string,
+  outputPath: string
+) {
+  const { dataList, commonData } = getGPSVideoData(tags);
+  if (dataList) {
+    splitVideos(
+      videoPath,
+      dataList.map((item: VPGeoDataModel) => item.SampleTime),
+      outputPath,
+      async (filenames: string[]) => {
+        console.log('generated: ', filenames);
+        await writeTags2Image(outputPath, commonData, dataList);
+      }
+    );
+  }
+}

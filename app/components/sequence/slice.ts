@@ -13,17 +13,20 @@ const sequenceSlice = createSlice({
       method: '',
       camera: '',
       attachType: '',
-      imagePath: [],
-      gpxPath: [],
+      imagePath: '',
+      gpxPath: '',
       startTime: '2020-01-01:00:00:01',
       modifyTime: '0',
       modifySpace: '',
       tags: [],
       nadir: '',
-      nadirPath: [],
+      nadirPath: '',
       previewNadir:
         '/home/aa/Works/Rudy/David/Test/TIMELAPSE/MULTISHOT_9698_000001.jpg',
-      processPage: 10,
+      processPage: {
+        process: 0,
+        nextStep: '',
+      },
     },
     points: [
       {
@@ -74,7 +77,17 @@ const sequenceSlice = createSlice({
       state.steps.nadirPath = payload;
     },
     setProgress: (state, { payload }) => {
-      state.steps.processPage = payload;
+      state.steps.processPage = {
+        ...state.steps.processPage,
+        process: payload,
+      };
+    },
+    setProcessStep: (state, { payload }) => {
+      state.steps.processPage = {
+        process: 0,
+        nextStep: payload,
+      };
+      state.currentStep = 'processPage';
     },
   },
 });
@@ -94,6 +107,7 @@ export const {
   setTags,
   setNadirPath,
   setProgress,
+  setProcessStep,
 } = sequenceSlice.actions;
 
 export const setSequenceName = (name: string): AppThunk => {
@@ -144,14 +158,14 @@ export const setSequenceCurrentStep = (currentStep: string): AppThunk => {
   };
 };
 
-export const setSequenceImagePath = (uploadPath: string[]): AppThunk => {
+export const setSequenceImagePath = (uploadPath: string): AppThunk => {
   return (dispatch) => {
     dispatch(setImagePath(uploadPath));
-    dispatch(setCurrentStep('gpxPath'));
+    dispatch(setProcessStep('gpxPath'));
   };
 };
 
-export const setSequenceGpxPath = (uploadPath: string[]): AppThunk => {
+export const setSequenceGpxPath = (uploadPath: string): AppThunk => {
   return (dispatch) => {
     dispatch(setGpxPath(uploadPath));
     dispatch(setCurrentStep('startTime'));
@@ -172,7 +186,7 @@ export const setSequenceModifyTime = (modifyTime: string): AppThunk => {
   };
 };
 
-export const setSequenceNadirPath = (paths: string[]): AppThunk => {
+export const setSequenceNadirPath = (paths: string): AppThunk => {
   return (dispatch) => {
     dispatch(setNadirPath(paths));
     dispatch(setCurrentStep('previewNadir'));
@@ -230,7 +244,10 @@ export const selSequenceTags = (state: RootState) => state.sequence.steps.tags;
 export const selPoints = (state: RootState) => state.sequence.points;
 
 export const selProgress = (state: RootState) =>
-  state.sequence.steps.processPage;
+  state.sequence.steps.processPage.process;
+
+export const selProgressNextStep = (state: RootState) =>
+  state.sequence.steps.processPage.nextStep;
 
 export const selNadirImage = (state: RootState) =>
   state.sequence.steps.previewNadir;

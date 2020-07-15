@@ -14,7 +14,8 @@ export default function SequenceUploadGpx() {
   const dispatch = useDispatch();
 
   const openFileDialog = async () => {
-    const result = await remote.dialog.showOpenDialogSync({
+    const parentWindow = remote.getCurrentWindow();
+    const result = await remote.dialog.showOpenDialogSync(parentWindow, {
       properties: ['openFile'],
       filters: [
         {

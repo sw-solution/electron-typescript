@@ -1,15 +1,22 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 
 import LinearProgress from '@material-ui/core/LinearProgress';
+import { IpcRendererEvent } from 'electron';
+import { selProgressNextStep, setCurrentStep } from './slice';
 
-import { selProgress } from './slice';
+const { ipcRenderer } = window.require('electron');
 
 export default function SequenceProcessPage() {
-  const progress = useSelector(selProgress);
+  const nextStep = useSelector(selProgressNextStep);
+  const dispatch = useDispatch();
+
+  ipcRenderer.on('finish', (_event: IpcRendererEvent) => {
+    dispatch(setCurrentStep(nextStep));
+  });
 
   return (
     <>
@@ -19,10 +26,7 @@ export default function SequenceProcessPage() {
         </Typography>
       </Grid>
       <Grid item xs={12} style={{ paddingBottom: '30px' }}>
-        <LinearProgress variant="determinate" value={progress} />
-        <Typography align="center" color="textSecondary">
-          {progress}% [processed]
-        </Typography>
+        <LinearProgress />
       </Grid>
       <Grid item xs={12}>
         <Typography align="center" color="textSecondary">

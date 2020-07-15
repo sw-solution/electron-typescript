@@ -9,8 +9,14 @@
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain, IpcMainEvent } from 'electron';
+import fs from 'fs';
+
 import MenuBuilder from './menu';
+
+import { splitVideoToImage } from './scripts/video';
+
+const { exiftool, Tags } = require('exiftool-vendored');
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -85,6 +91,37 @@ const createWindow = async () => {
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
 };
+
+/**
+ * Add event listeners for ipcMain
+ */
+
+ipcMain.on(
+  'load_videos',
+  (_event: IpcMainEvent, videoPath: string, outputPath: string) => {
+    exiftool
+      .read(videoPath, ['-ee', '-G3', '-s', '-api', 'largefilesupport=1'])
+      .then((tags: typeof Tags) =>
+        splitVideoToImage(mainWindow, tags, videoPath, outputPath)
+      )
+      .catch((err) => console.log('Something terrible happened: ', err));
+  }
+);
+
+ipcMain.on(
+  'load_images',
+  (_event: IpcMainEvent, dirPath: string, outputPath: string) => {
+    const files = fs.readdirSync(dirPath);
+    files.forEach((filename: string) => {
+      exiftool
+        .read(path.join(dirPath, filename))
+        .then((tags: typeof Tags) => {
+          return tags;
+        })
+        .catch((err) => console.error('Something terrible happened: ', err));
+    });
+  }
+);
 
 /**
  * Add event listeners...

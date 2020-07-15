@@ -1,24 +1,56 @@
 import React from 'react';
-import { remote } from 'electron';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 
+import { OpenDialogSyncOptions } from 'electron';
+
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 
-import { setSequenceImagePath } from './slice';
+import {
+  setSequenceImagePath,
+  selSequenceAttachType,
+  selSequenceName,
+} from './slice';
+
+const { ipcRenderer, remote } = window.require('electron');
 
 export default function SequenceUploadImage() {
   const dispatch = useDispatch();
+  const attachType = useSelector(selSequenceAttachType);
+  const seqName = useSelector(selSequenceName);
 
   const openFileDialog = async () => {
-    const result = await remote.dialog.showOpenDialogSync({
-      properties: ['openDirectory'],
-    });
+    const parentWindow = remote.getCurrentWindow();
+    let options: OpenDialogSyncOptions;
+    let channelName: string;
+    if (attachType === 'Video') {
+      channelName = 'load_videos';
+      options = {
+        properties: ['openFile'],
+        filters: [
+          {
+            name: 'video',
+            extensions: ['mp4'],
+          },
+        ],
+      };
+    } else {
+      channelName = 'load_images';
+      options = {
+        properties: ['openDirectory'],
+      };
+    }
+    const result = await remote.dialog.showOpenDialogSync(
+      parentWindow,
+      options
+    );
+
     if (result) {
-      dispatch(setSequenceImagePath(result));
+      ipcRenderer.send(channelName, result[0], seqName);
+      dispatch(setSequenceImagePath(result[0]));
     }
   };
 
