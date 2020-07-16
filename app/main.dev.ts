@@ -10,13 +10,13 @@
  */
 import path from 'path';
 import { app, BrowserWindow, ipcMain, IpcMainEvent } from 'electron';
-import fs from 'fs';
 
 import MenuBuilder from './menu';
 
-import { splitVideoToImage } from './scripts/video';
-
-const { exiftool, Tags } = require('exiftool-vendored');
+import { processVideo } from './scripts/video';
+import { loadImages } from './scripts/image';
+import { IGeoPoint } from './types/IGeoPoint';
+import { sendToClient, sendPoints } from './scripts/utils';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -99,29 +99,23 @@ const createWindow = async () => {
 ipcMain.on(
   'load_videos',
   (_event: IpcMainEvent, videoPath: string, outputPath: string) => {
-    exiftool
-      .read(videoPath, ['-ee', '-G3', '-s', '-api', 'largefilesupport=1'])
-      .then((tags: typeof Tags) =>
-        splitVideoToImage(mainWindow, tags, videoPath, outputPath)
-      )
-      .catch((err) => console.log('Something terrible happened: ', err));
+    processVideo(mainWindow, videoPath, outputPath);
   }
 );
 
-ipcMain.on(
-  'load_images',
-  (_event: IpcMainEvent, dirPath: string, outputPath: string) => {
-    const files = fs.readdirSync(dirPath);
-    files.forEach((filename: string) => {
-      exiftool
-        .read(path.join(dirPath, filename))
-        .then((tags: typeof Tags) => {
-          return tags;
-        })
-        .catch((err) => console.error('Something terrible happened: ', err));
-    });
-  }
-);
+ipcMain.on('load_images', (_event: IpcMainEvent, dirPath: string) => {
+  loadImages(dirPath, (result: IGeoPoint[]) => {
+    if (result.length) {
+      sendToClient(
+        mainWindow,
+        'start-time',
+        result[0].GPSDateTime.format('YYYY-MM-DDTHH:mm:ss')
+      );
+      sendPoints(mainWindow, result);
+    }
+    sendToClient(mainWindow, 'finish');
+  });
+});
 
 /**
  * Add event listeners...

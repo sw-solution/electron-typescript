@@ -1,6 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
+import dayjs from 'dayjs';
 // eslint-disable-next-line import/no-cycle
 import { AppThunk, RootState } from '../../store';
+import { IGeoPoint } from '../../types/IGeoPoint';
 
 const sequenceSlice = createSlice({
   name: 'sequence',
@@ -28,13 +30,7 @@ const sequenceSlice = createSlice({
         nextStep: '',
       },
     },
-    points: [
-      {
-        position: [51.5, -0.09],
-        image:
-          '/home/aa/Works/Rudy/David/Test/TIMELAPSE/MULTISHOT_9698_000001.jpg',
-      },
-    ],
+    points: [],
   },
   reducers: {
     setCurrentStep: (state, { payload }) => {
@@ -89,6 +85,18 @@ const sequenceSlice = createSlice({
       };
       state.currentStep = 'processPage';
     },
+    setPoints: (state, { payload }) => {
+      state.points = [
+        ...payload.map((item) => {
+          return {
+            GPSDateTime: item.GPSDateTime,
+            GPSLatitude: item.GPSLatitude,
+            GPSLongitude: item.GPSLongitude,
+            Image: item.Image,
+          };
+        }),
+      ];
+    },
   },
 });
 
@@ -108,6 +116,7 @@ export const {
   setNadirPath,
   setProgress,
   setProcessStep,
+  setPoints,
 } = sequenceSlice.actions;
 
 export const setSequenceName = (name: string): AppThunk => {
@@ -174,8 +183,7 @@ export const setSequenceGpxPath = (uploadPath: string): AppThunk => {
 
 export const setSequenceStartTime = (startTime: string): AppThunk => {
   return (dispatch) => {
-    dispatch(setGpxPath(startTime));
-    dispatch(setCurrentStep('modifyTime'));
+    dispatch(setStartTime(startTime));
   };
 };
 
@@ -203,6 +211,12 @@ export const setSequenceTags = (tags: string[]): AppThunk => {
 export const setSequenceProcess = (process: number): AppThunk => {
   return (dispatch) => {
     dispatch(setProgress(process));
+  };
+};
+
+export const setSequencePoints = (points: IGeoPoint): AppThunk => {
+  return (dispatch) => {
+    dispatch(setPoints(points));
   };
 };
 

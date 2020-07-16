@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -18,6 +18,8 @@ import Grid from '@material-ui/core/Grid';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import IconButton from '@material-ui/core/IconButton';
 
+import { IpcRendererEvent } from 'electron';
+
 import Name from './Name';
 import Description from './Description';
 import Type from './Type';
@@ -36,8 +38,16 @@ import PreviewNadir from './PreviewNadir';
 import ProcessPage from './ProcessPage';
 
 import routes from '../../constants/routes.json';
-import { getPrevStep, selCurrentStep, setSequenceCurrentStep } from './slice';
+import {
+  getPrevStep,
+  selCurrentStep,
+  setSequenceCurrentStep,
+  setSequencePoints,
+  setSequenceStartTime,
+} from './slice';
 import Logo from '../Logo';
+
+const { ipcRenderer } = window.require('electron');
 
 const drawerWidth = 300;
 
@@ -71,6 +81,21 @@ export default function CreatePageWrapper() {
   const goPrevStep = () => {
     dispatch(setSequenceCurrentStep(prevStep));
   };
+
+  useEffect(() => {
+    ipcRenderer.on('set-points', (_event: IpcRendererEvent, points) => {
+      dispatch(setSequencePoints(points));
+    });
+
+    ipcRenderer.on('start-time', (_event: IpcRendererEvent, starttime) => {
+      dispatch(setSequenceStartTime(starttime));
+    });
+
+    return () => {
+      ipcRenderer.removeAllListeners('start-time');
+      ipcRenderer.removeAllListeners('set-points');
+    };
+  });
 
   return (
     <div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
 import Typography from '@material-ui/core/Typography';
@@ -14,8 +14,14 @@ export default function SequenceProcessPage() {
   const nextStep = useSelector(selProgressNextStep);
   const dispatch = useDispatch();
 
-  ipcRenderer.on('finish', (_event: IpcRendererEvent) => {
-    dispatch(setCurrentStep(nextStep));
+  useEffect(() => {
+    ipcRenderer.on('finish', (_event: IpcRendererEvent) => {
+      dispatch(setCurrentStep(nextStep));
+    });
+
+    return () => {
+      ipcRenderer.removeAllListeners('finish');
+    };
   });
 
   return (
