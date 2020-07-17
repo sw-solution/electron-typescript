@@ -1,4 +1,5 @@
 import { BrowserWindow } from 'electron';
+import dayjs from 'dayjs';
 import { IGeoPoint } from '../../types/IGeoPoint';
 
 export function sendToClient(
@@ -48,4 +49,18 @@ export function getDistance(point1: any, point2: any) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const d = R * c;
   return d;
+}
+
+export function createdData2List(data: any) {
+  return {
+    tags: data.steps.tags,
+    name: data.steps.name,
+    description: data.steps.description,
+    type: data.steps.type,
+    method: data.steps.method,
+    points: data.points,
+    total_km: 0.2,
+    created: data.created,
+    captured: dayjs(data.steps.startTime).format('YYYY-MM-DD'),
+  };
 }

@@ -5,6 +5,8 @@ import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDispatch, useSelector } from 'react-redux';
 
+import { push } from 'connected-react-router';
+
 import Drawer from '@material-ui/core/Drawer';
 import { Create as CreateIcon, List as ListIcon } from '@material-ui/icons';
 import List from '@material-ui/core/List';
@@ -45,7 +47,10 @@ import {
   setSequencePoints,
   setSequenceStartTime,
   setSequenceGpxPoints,
+  setSequenceInit,
 } from './slice';
+
+import { setAddSeq } from '../list/slice';
 import Logo from '../Logo';
 
 const { ipcRenderer } = window.require('electron');
@@ -92,8 +97,10 @@ export default function CreatePageWrapper() {
       dispatch(setSequenceStartTime(starttime));
     });
 
-    ipcRenderer.on('created', (_event: IpcRendererEvent, points) => {
-      dispatch(setSequenceGpxPoints(points));
+    ipcRenderer.on('add-seq', (_event: IpcRendererEvent, seq) => {
+      dispatch(setAddSeq(seq));
+      dispatch(setSequenceInit());
+      dispatch(push(routes.LIST));
     });
 
     ipcRenderer.on('set-gpx-points', (_event: IpcRendererEvent, filename) => {
@@ -104,7 +111,7 @@ export default function CreatePageWrapper() {
       ipcRenderer.removeAllListeners('start-time');
       ipcRenderer.removeAllListeners('set-points');
       ipcRenderer.removeAllListeners('set-gpx-points');
-      ipcRenderer.removeAllListeners('created');
+      ipcRenderer.removeAllListeners('add-seq');
     };
   });
 
@@ -120,13 +127,25 @@ export default function CreatePageWrapper() {
       >
         <Logo />
         <List>
-          <ListItem button component="a" href={routes.CREATE}>
+          <ListItem
+            button
+            component="a"
+            onClick={() => {
+              dispatch(push(routes.CREATE));
+            }}
+          >
             <ListItemIcon>
               <CreateIcon />
             </ListItemIcon>
             <ListItemText>Create Sequence</ListItemText>
           </ListItem>
-          <ListItem button component="a" href={routes.LIST}>
+          <ListItem
+            button
+            component="a"
+            onClick={() => {
+              dispatch(push(routes.LIST));
+            }}
+          >
             <ListItemIcon>
               <ListIcon />
             </ListItemIcon>

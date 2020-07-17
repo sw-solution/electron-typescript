@@ -5,33 +5,37 @@ import { AppThunk, RootState } from '../../store';
 import { IGeoPoint } from '../../types/IGeoPoint';
 import { getDistance } from '../../scripts/utils';
 
+const initialState = {
+  currentStep: 'name',
+  steps: {
+    name: '',
+    description: '',
+    type: '',
+    method: '',
+    camera: '',
+    attachType: '',
+    imagePath: '',
+    gpxPath: '',
+    startTime: '',
+    modifyTime: 0,
+    modifySpace: '',
+    tags: [],
+    nadir: '',
+    nadirPath: '',
+    previewNadir:
+      '/home/aa/Works/Rudy/David/Test/TIMELAPSE/MULTISHOT_9698_000001.jpg',
+    processPage: {
+      process: 0,
+      nextStep: '',
+    },
+  },
+  points: [],
+};
+
 const createSequenceSlice = createSlice({
   name: 'create',
   initialState: {
-    currentStep: 'name',
-    steps: {
-      name: '',
-      description: '',
-      type: '',
-      method: '',
-      camera: '',
-      attachType: '',
-      imagePath: '',
-      gpxPath: '',
-      startTime: '',
-      modifyTime: 0,
-      modifySpace: '',
-      tags: [],
-      nadir: '',
-      nadirPath: '',
-      previewNadir:
-        '/home/aa/Works/Rudy/David/Test/TIMELAPSE/MULTISHOT_9698_000001.jpg',
-      processPage: {
-        process: 0,
-        nextStep: '',
-      },
-    },
-    points: [],
+    ...initialState,
   },
   reducers: {
     setCurrentStep: (state, { payload }) => {
@@ -155,6 +159,11 @@ const createSequenceSlice = createSlice({
       });
       state.points = [...points];
     },
+    setInit: (state) => {
+      state = {
+        ...initialState,
+      };
+    },
   },
 });
 
@@ -179,6 +188,7 @@ export const {
   setModifyPoints,
   smoothPoints,
   discardPoints,
+  setInit,
 } = createSequenceSlice.actions;
 
 export const setSequenceName = (name: string): AppThunk => {
@@ -301,6 +311,12 @@ export const setSequenceSmothPoints = (meters: number): AppThunk => {
 export const setSequenceDiscardPoints = (meters: number): AppThunk => {
   return (dispatch) => {
     dispatch(discardPoints(meters));
+  };
+};
+
+export const setSequenceInit = (): AppThunk => {
+  return (dispatch) => {
+    dispatch(setInit());
   };
 };
 

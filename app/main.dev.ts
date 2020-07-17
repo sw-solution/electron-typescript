@@ -12,13 +12,15 @@ import path from 'path';
 import { app, BrowserWindow, ipcMain, IpcMainEvent } from 'electron';
 
 import fs from 'fs';
+import dayjs from 'dayjs';
+import rimraf from 'rimraf';
 import MenuBuilder from './menu';
 
 import { processVideo } from './scripts/video';
 import { loadImages } from './scripts/image';
 import { IGeoPoint } from './types/IGeoPoint';
 import GPXTrackPoint from './types/GPXTrackPoint';
-import { sendToClient, sendPoints } from './scripts/utils';
+import { sendToClient, sendPoints, createdData2List } from './scripts/utils';
 import { readGPX } from './scripts/utils/gpx';
 
 let mainWindow: BrowserWindow | null = null;
@@ -137,20 +139,70 @@ ipcMain.on('load_gpx', (_event: IpcMainEvent, dirpath: string) => {
 
 ipcMain.on('upload_nadir', (_event: IpcMainEvent, nadirpath: string) => {});
 
+const log = 'result.json';
+
 ipcMain.on(
   'created',
   async (_event: IpcMainEvent, sequence: any, filename: string) => {
     let result = [];
-    if (fs.existsSync('result.json')) {
-      result = JSON.parse(fs.readFileSync('result.json'));
+    if (fs.existsSync(log)) {
+      result = JSON.parse(fs.readFileSync(log).toString());
     }
+    const data = { ...sequence, created: dayjs().format('YYYY-MM-DD') };
     result.push(filename);
-    fs.writeFileSync(`${filename}.json`, JSON.stringify(sequence));
+    fs.writeFileSync(
+      `${filename}.json`,
+      JSON.stringify({ ...sequence, created: dayjs().format('YYYY-MM-DD') })
+    );
 
-    fs.writeFileSync('result.json', JSON.stringify(result));
-    sendToClient(mainWindow, 'created', `${filename}.json`);
+    fs.writeFileSync(log, JSON.stringify(result));
+    sendToClient(mainWindow, 'add-seq', createdData2List(data));
   }
 );
+
+ipcMain.on('start-load', async (_event: IpcMainEvent) => {
+  console.log('start loading');
+  if (!fs.existsSync(log)) {
+    sendToClient(mainWindow, 'loaded_all', []);
+  } else {
+    const logdata = JSON.parse(fs.readFileSync(log).toString());
+    const result: {
+      tags: any;
+      name: any;
+      description: any;
+      type: any;
+      method: any;
+      points: any;
+      created: any;
+      captured: any;
+      total_km: number;
+    }[] = [];
+
+    logdata.forEach(async (filename: string) => {
+      const datatxt = fs.readFileSync(`${filename}.json`);
+      const data = JSON.parse(datatxt.toString());
+      result.push(createdData2List(data));
+    });
+    sendToClient(mainWindow, 'loaded_all', result);
+  }
+});
+
+ipcMain.on('remove-seq', async (_event: IpcMainEvent, name: string) => {
+  let result = [];
+  if (fs.existsSync(log)) {
+    result = JSON.parse(fs.readFileSync(log).toString());
+  }
+  if (fs.existsSync(name)) {
+    rimraf.sync(name);
+  }
+  const storefile = `${name}.json`;
+  if (fs.existsSync(storefile)) {
+    fs.unlinkSync(storefile);
+  }
+  result = result.filter((n: string) => n !== name);
+  fs.writeFileSync(log, JSON.stringify(result));
+});
+
 /**
  * Add event listeners...
  */
