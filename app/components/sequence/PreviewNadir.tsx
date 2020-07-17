@@ -7,20 +7,25 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import Box from '@material-ui/core/Box';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import { Pannellum } from 'pannellum-react';
 
-import { setSequenceCurrentStep, selNadirImage } from './slice';
+import { setSequenceCurrentStep, selPoints, selSequence } from './slice';
+
+const { ipcRenderer } = window.require('electron');
 
 export default function SequencePreviewNadir() {
   const dispatch = useDispatch();
-  const imagePath = useSelector(selNadirImage);
+  const points = useSelector(selPoints);
+  const sequence = useSelector(selSequence);
+  const name = useSelector(selSequenceName);
+  const point = points[0];
 
   const resetMode = () => {
-    dispatch(setSequenceCurrentStep('uploadNadir'));
+    dispatch(setSequenceCurrentStep('nadir'));
   };
 
   const confirmMode = () => {
-    dispatch(setSequenceCurrentStep('processPage'));
+    // dispatch(setSequenceCurrentStep('processPage'));
+    ipcRenderer.send('created', sequence, name);
   };
 
   return (
@@ -37,7 +42,16 @@ export default function SequencePreviewNadir() {
         <Typography align="center" color="textSecondary" />
       </Grid>
       <Grid item xs={12}>
-        <Pannellum image={require(`${imagePath}`)} />
+        <div
+          style={{
+            backgroundImage: `url(../${point.Image})`,
+            width: '300px',
+            height: '300px',
+            backgroundSize: '100% auto',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+          }}
+        />
       </Grid>
       <Grid item xs={12}>
         <Box mr={1} display="inline-block">

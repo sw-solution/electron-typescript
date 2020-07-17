@@ -11,6 +11,7 @@
 import path from 'path';
 import { app, BrowserWindow, ipcMain, IpcMainEvent } from 'electron';
 
+import fs from 'fs';
 import MenuBuilder from './menu';
 
 import { processVideo } from './scripts/video';
@@ -134,6 +135,22 @@ ipcMain.on('load_gpx', (_event: IpcMainEvent, dirpath: string) => {
   });
 });
 
+ipcMain.on('upload_nadir', (_event: IpcMainEvent, nadirpath: string) => {});
+
+ipcMain.on(
+  'created',
+  async (_event: IpcMainEvent, sequence: any, filename: string) => {
+    let result = [];
+    if (fs.existsSync('result.json')) {
+      result = JSON.parse(fs.readFileSync('result.json'));
+    }
+    result.push(filename);
+    fs.writeFileSync(`${filename}.json`, JSON.stringify(sequence));
+
+    fs.writeFileSync('result.json', JSON.stringify(result));
+    sendToClient(mainWindow, 'created', `${filename}.json`);
+  }
+);
 /**
  * Add event listeners...
  */

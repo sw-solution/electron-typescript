@@ -1,5 +1,5 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
@@ -8,17 +8,21 @@ import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import SkipNextIcon from '@material-ui/icons/SkipNext';
 
-import { setCurrentStep } from './slice';
+import { setCurrentStep, selSequence, selSequenceName } from './slice';
+
+const { ipcRenderer } = window.require('electron');
 
 export default function SequenceNadir() {
   const dispatch = useDispatch();
+  const sequence = useSelector(selSequence);
+  const name = useSelector(selSequenceName);
 
   const storeSequenceNadir = () => {
     dispatch(setCurrentStep('nadirPath'));
   };
 
   const processPage = () => {
-    dispatch(setCurrentStep('processPage'));
+    ipcRenderer.send('created', sequence, name);
   };
 
   return (

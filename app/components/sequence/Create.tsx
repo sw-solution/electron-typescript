@@ -92,14 +92,19 @@ export default function CreatePageWrapper() {
       dispatch(setSequenceStartTime(starttime));
     });
 
-    ipcRenderer.on('set-gpx-points', (_event: IpcRendererEvent, points) => {
+    ipcRenderer.on('created', (_event: IpcRendererEvent, points) => {
       dispatch(setSequenceGpxPoints(points));
+    });
+
+    ipcRenderer.on('set-gpx-points', (_event: IpcRendererEvent, filename) => {
+      dispatch(setSequenceGpxPoints(filename));
     });
 
     return () => {
       ipcRenderer.removeAllListeners('start-time');
       ipcRenderer.removeAllListeners('set-points');
       ipcRenderer.removeAllListeners('set-gpx-points');
+      ipcRenderer.removeAllListeners('created');
     };
   });
 

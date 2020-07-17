@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 // eslint-disable-next-line import/no-cycle
 import { AppThunk, RootState } from '../../store';
 import { IGeoPoint } from '../../types/IGeoPoint';
+import { getDistance } from '../../scripts/utils';
 
 const sequenceSlice = createSlice({
   name: 'sequence',
@@ -116,6 +117,44 @@ const sequenceSlice = createSlice({
       });
       state.points = [...points];
     },
+    smoothPoints: (state, { payload }) => {
+      const points = state.points.map((item, idx) => {
+        if (idx === 0 && idx === state.points.length - 1) {
+          return item;
+        }
+        const prevItem = state.points[idx - 2];
+        const nextItem = state.points[idx];
+        if (
+          getDistance(prevItem, item) > payload &&
+          getDistance(nextItem, item) > payload
+        ) {
+          return {
+            ...item,
+            GPSLongitude: (prevItem.GPSLongitude + nextItem.GPSLongitude) / 2,
+            GPSLatitude: (prevItem.GPSLatitude + nextItem.GPSLatitude) / 2,
+          };
+        }
+        return item;
+      });
+      state.points = [...points];
+    },
+    discardPoints: (state, { payload }) => {
+      const points = state.points.filter((item, idx) => {
+        if (idx === 0 && idx === state.points.length - 1) {
+          return true;
+        }
+        const prevItem = state.points[idx - 1];
+        const nextItem = state.points[idx + 1];
+        if (
+          getDistance(prevItem, item) > payload &&
+          getDistance(nextItem, item) > payload
+        ) {
+          return false;
+        }
+        return true;
+      });
+      state.points = [...points];
+    },
   },
 });
 
@@ -138,6 +177,8 @@ export const {
   setPoints,
   setGpxPoints,
   setModifyPoints,
+  smoothPoints,
+  discardPoints,
 } = sequenceSlice.actions;
 
 export const setSequenceName = (name: string): AppThunk => {
@@ -251,6 +292,18 @@ export const setSequenceGpxPoints = (points: any[]): AppThunk => {
   };
 };
 
+export const setSequenceSmothPoints = (meters: number): AppThunk => {
+  return (dispatch) => {
+    dispatch(smoothPoints(meters));
+  };
+};
+
+export const setSequenceDiscardPoints = (meters: number): AppThunk => {
+  return (dispatch) => {
+    dispatch(discardPoints(meters));
+  };
+};
+
 export default sequenceSlice.reducer;
 
 export const selSequenceName = (state: RootState) => state.sequence.steps.name;
@@ -298,3 +351,5 @@ export const selNadirImage = (state: RootState) =>
   state.sequence.steps.previewNadir;
 
 export const selCurrentStep = (state: RootState) => state.sequence.currentStep;
+
+export const selSequence = (state: RootState) => state.sequence;
