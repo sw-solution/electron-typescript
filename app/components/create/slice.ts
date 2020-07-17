@@ -5,8 +5,8 @@ import { AppThunk, RootState } from '../../store';
 import { IGeoPoint } from '../../types/IGeoPoint';
 import { getDistance } from '../../scripts/utils';
 
-const sequenceSlice = createSlice({
-  name: 'sequence',
+const createSequenceSlice = createSlice({
+  name: 'create',
   initialState: {
     currentStep: 'name',
     steps: {
@@ -179,7 +179,7 @@ export const {
   setModifyPoints,
   smoothPoints,
   discardPoints,
-} = sequenceSlice.actions;
+} = createSequenceSlice.actions;
 
 export const setSequenceName = (name: string): AppThunk => {
   return (dispatch) => {
@@ -304,52 +304,52 @@ export const setSequenceDiscardPoints = (meters: number): AppThunk => {
   };
 };
 
-export default sequenceSlice.reducer;
+export default createSequenceSlice.reducer;
 
-export const selSequenceName = (state: RootState) => state.sequence.steps.name;
+export const selSequenceName = (state: RootState) => state.create.steps.name;
 
 export const selSequenceDescription = (state: RootState) =>
-  state.sequence.steps.description;
+  state.create.steps.description;
 
-export const selSequenceType = (state: RootState) => state.sequence.steps.type;
+export const selSequenceType = (state: RootState) => state.create.steps.type;
 
 export const selSequenceMethod = (state: RootState) =>
-  state.sequence.steps.method;
+  state.create.steps.method;
 
 export const selSequenceCamera = (state: RootState) =>
-  state.sequence.steps.camera;
+  state.create.steps.camera;
 
 export const selSequenceAttachType = (state: RootState) =>
-  state.sequence.steps.attachType;
+  state.create.steps.attachType;
 
 export const getPrevStep = (state: RootState) => {
-  const pages = Object.keys(state.sequence.steps);
+  if (state.create.currentStep === 'processPage') return '';
+  const pages = Object.keys(state.create.steps);
 
-  const idx = pages.indexOf(state.sequence.currentStep);
+  const idx = pages.indexOf(state.create.currentStep);
   if (idx - 1 < 0) {
     return '';
   }
   return pages[idx - 1];
 };
 
-export const selStartTime = (state: RootState) =>
-  state.sequence.steps.startTime;
+export const selStartTime = (state: RootState) => state.create.steps.startTime;
 export const selModifyTime = (state: RootState) =>
-  state.sequence.steps.modifyTime;
+  state.create.steps.modifyTime;
 
-export const selSequenceTags = (state: RootState) => state.sequence.steps.tags;
+export const selSequenceTags = (state: RootState) => state.create.steps.tags;
 
-export const selPoints = (state: RootState) => state.sequence.points;
+export const selPoints = (state: RootState) => state.create.points;
 
 export const selProgress = (state: RootState) =>
-  state.sequence.steps.processPage.process;
+  state.create.steps.processPage.process;
 
 export const selProgressNextStep = (state: RootState) =>
-  state.sequence.steps.processPage.nextStep;
+  state.create.steps.processPage.nextStep;
 
 export const selNadirImage = (state: RootState) =>
-  state.sequence.steps.previewNadir;
+  state.create.steps.previewNadir;
 
-export const selCurrentStep = (state: RootState) => state.sequence.currentStep;
+export const selCurrentStep = (state: RootState) => state.create.currentStep;
 
-export const selSequence = (state: RootState) => state.sequence;
+export const selSequence = (state: RootState) => state.create;

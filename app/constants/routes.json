@@ -1,4 +1,4 @@
 {
-  "LIST": "/list",
-  "CREATE": "/"
+  "LIST": "/",
+  "CREATE": "/create"
 }
