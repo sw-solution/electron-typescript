@@ -61,7 +61,7 @@ export function loadImages(
                   GPSDateTime: gpsdatetime,
                   GPSLatitude: tags.GPSLatitude || 0,
                   GPSLongitude: tags.GPSLongitude || 0,
-                  Image: filename,
+                  Image: path.join(outputpath, filename),
                 });
                 result.push(item);
                 return cb(null);

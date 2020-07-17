@@ -27,19 +27,18 @@ import { setSequenceCurrentStep, selPoints, selSequenceName } from './slice';
 
 const useStyles = makeStyles({
   map: {
-    height: '300px',
+    height: '500px',
     overflow: 'hidden',
   },
 });
 
-function importAll(r) {
-  return r.keys().map(r);
-}
+// function importAll(r) {
+//   return r.keys().map(r);
+// }
 
 export default function SequenceModifySpace() {
   const dispatch = useDispatch();
   const points = useSelector(selPoints);
-  const seqname = useSelector(selSequenceName);
   const classes = useStyles();
 
   const resetMode = () => {
@@ -53,15 +52,10 @@ export default function SequenceModifySpace() {
   const centerPoint = () => {
     if (points.length) {
       const centerpoint = points[points.length / 2];
-      console.log(centerpoint);
       return [centerpoint.GPSLatitude, centerpoint.GPSLongitude];
     }
     return [51.5, -0.09];
   };
-  const imagepath = `../../../${seqname}`;
-  const images = importAll(
-    require.context(imagepath, false, /\.(png|jpe?g|svg)$/)
-  );
 
   return (
     <>
@@ -86,7 +80,16 @@ export default function SequenceModifySpace() {
                 position={[point.GPSLatitude, point.GPSLongitude]}
               >
                 <Popup>
-                  <img src={images[point.Image]} alt="point" />
+                  <div
+                    style={{
+                      backgroundImage: `url(../${point.Image})`,
+                      width: '200px',
+                      height: '150px',
+                      backgroundSize: '100% auto',
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'center',
+                    }}
+                  />
                 </Popup>
               </Marker>
             );
