@@ -9,7 +9,21 @@ import Box from '@material-ui/core/Box';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { makeStyles } from '@material-ui/core/styles';
 
-import { setSequenceCurrentStep, selPoints } from './slice';
+// import markerIcon from '../../assets/images/marker.png';
+
+import { setSequenceCurrentStep, selPoints, selSequenceName } from './slice';
+
+// const customIcon = Icon({
+//   iconUrl: markerIcon,
+//   iconRetinaUrl: markerIcon,
+//   iconAnchor: null,
+//   popupAnchor: null,
+//   shadowUrl: null,
+//   shadowSize: null,
+//   shadowAnchor: null,
+//   iconSize: [50, 100],
+//   className: 'leaflet-div-icon',
+// });
 
 const useStyles = makeStyles({
   map: {
@@ -18,9 +32,14 @@ const useStyles = makeStyles({
   },
 });
 
+function importAll(r) {
+  return r.keys().map(r);
+}
+
 export default function SequenceModifySpace() {
   const dispatch = useDispatch();
   const points = useSelector(selPoints);
+  const seqname = useSelector(selSequenceName);
   const classes = useStyles();
 
   const resetMode = () => {
@@ -30,6 +49,19 @@ export default function SequenceModifySpace() {
   const confirmMode = () => {
     dispatch(setSequenceCurrentStep('tags'));
   };
+
+  const centerPoint = () => {
+    if (points.length) {
+      const centerpoint = points[points.length / 2];
+      console.log(centerpoint);
+      return [centerpoint.GPSLatitude, centerpoint.GPSLongitude];
+    }
+    return [51.5, -0.09];
+  };
+  const imagepath = `../../../${seqname}`;
+  const images = importAll(
+    require.context(imagepath, false, /\.(png|jpe?g|svg)$/)
+  );
 
   return (
     <>
@@ -42,7 +74,7 @@ export default function SequenceModifySpace() {
         </Typography>
       </Grid>
       <Grid item xs={12} style={{ paddingBottom: '30px' }}>
-        <Map zoom={13} center={[51.5, -0.09]} className={classes.map}>
+        <Map zoom={18} center={centerPoint()} className={classes.map}>
           <TileLayer
             attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -51,12 +83,10 @@ export default function SequenceModifySpace() {
             return (
               <Marker
                 key={`marker-${idx.toString()}`}
-                position={point.position}
+                position={[point.GPSLatitude, point.GPSLongitude]}
               >
                 <Popup>
-                  A pretty CSS3 popup.
-                  <br />
-                  Easily customizable.
+                  <img src={images[point.Image]} alt="point" />
                 </Popup>
               </Marker>
             );

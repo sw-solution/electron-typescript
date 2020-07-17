@@ -17,8 +17,8 @@ const sequenceSlice = createSlice({
       attachType: '',
       imagePath: '',
       gpxPath: '',
-      startTime: '2020-01-01:00:00:01',
-      modifyTime: '0',
+      startTime: '',
+      modifyTime: 0,
       modifySpace: '',
       tags: [],
       nadir: '',
@@ -97,6 +97,25 @@ const sequenceSlice = createSlice({
         }),
       ];
     },
+    setGpxPoints: (state, { payload }) => {
+      const points = state.points.map((p, idx) => {
+        p.GPSDateTime = payload[idx].timestamp;
+        p.GPSLongitude = payload[idx].longitude;
+        p.GPSLatitude = payload[idx].latitude;
+        return p;
+      });
+      state.points = [...points];
+    },
+    setModifyPoints: (state, { payload }) => {
+      const points = state.points.map((item) => {
+        const updatedDate = dayjs(item.GPSDateTime)
+          .add(payload, 'second')
+          .format('YYYY-MM-DDTHH:mm:ss');
+        item.GPSDateTime = updatedDate;
+        return item;
+      });
+      state.points = [...points];
+    },
   },
 });
 
@@ -117,6 +136,8 @@ export const {
   setProgress,
   setProcessStep,
   setPoints,
+  setGpxPoints,
+  setModifyPoints,
 } = sequenceSlice.actions;
 
 export const setSequenceName = (name: string): AppThunk => {
@@ -177,7 +198,6 @@ export const setSequenceImagePath = (uploadPath: string): AppThunk => {
 export const setSequenceGpxPath = (uploadPath: string): AppThunk => {
   return (dispatch) => {
     dispatch(setGpxPath(uploadPath));
-    dispatch(setCurrentStep('startTime'));
   };
 };
 
@@ -187,9 +207,10 @@ export const setSequenceStartTime = (startTime: string): AppThunk => {
   };
 };
 
-export const setSequenceModifyTime = (modifyTime: string): AppThunk => {
+export const setSequenceModifyTime = (modifyTime: number): AppThunk => {
   return (dispatch) => {
-    dispatch(setGpxPath(modifyTime));
+    dispatch(setModifyTime(modifyTime));
+    dispatch(setModifyPoints(modifyTime));
     dispatch(setCurrentStep('modifySpace'));
   };
 };
@@ -217,6 +238,16 @@ export const setSequenceProcess = (process: number): AppThunk => {
 export const setSequencePoints = (points: IGeoPoint): AppThunk => {
   return (dispatch) => {
     dispatch(setPoints(points));
+  };
+};
+
+export const setSequenceGpxPoints = (points: any[]): AppThunk => {
+  return (dispatch) => {
+    dispatch(setGpxPoints(points));
+    if (points.length) {
+      dispatch(setStartTime(points[0].timestamp));
+    }
+    dispatch(setCurrentStep('startTime'));
   };
 };
 

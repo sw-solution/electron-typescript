@@ -16,7 +16,9 @@ import MenuBuilder from './menu';
 import { processVideo } from './scripts/video';
 import { loadImages } from './scripts/image';
 import { IGeoPoint } from './types/IGeoPoint';
+import GPXTrackPoint from './types/GPXTrackPoint';
 import { sendToClient, sendPoints } from './scripts/utils';
+import { readGPX } from './scripts/utils/gpx';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -103,17 +105,32 @@ ipcMain.on(
   }
 );
 
-ipcMain.on('load_images', (_event: IpcMainEvent, dirPath: string) => {
-  loadImages(dirPath, (result: IGeoPoint[]) => {
-    if (result.length) {
-      sendToClient(
-        mainWindow,
-        'start-time',
-        result[0].GPSDateTime.format('YYYY-MM-DDTHH:mm:ss')
-      );
-      sendPoints(mainWindow, result);
+ipcMain.on(
+  'load_images',
+  (_event: IpcMainEvent, dirPath: string, outputpath: string) => {
+    loadImages(
+      dirPath,
+      outputpath,
+      (result: IGeoPoint[], hasgpsdatetime: boolean) => {
+        if (result.length && hasgpsdatetime) {
+          sendToClient(
+            mainWindow,
+            'start-time',
+            result[0].GPSDateTime.format('YYYY-MM-DDTHH:mm:ss')
+          );
+          sendPoints(mainWindow, result);
+        }
+        sendToClient(mainWindow, 'finish');
+      }
+    );
+  }
+);
+
+ipcMain.on('load_gpx', (_event: IpcMainEvent, dirpath: string) => {
+  readGPX(dirpath, (err: any, points: GPXTrackPoint[]) => {
+    if (!err) {
+      sendToClient(mainWindow, 'set-gpx-points', points);
     }
-    sendToClient(mainWindow, 'finish');
   });
 });
 

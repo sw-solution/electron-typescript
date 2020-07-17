@@ -20,7 +20,7 @@ export default function SequenceStartTime() {
   };
 
   const correctTime = () => {
-    dispatch(setSequenceModifyTime(modifyTime));
+    dispatch(setSequenceModifyTime(parseFloat(modifyTime)));
   };
 
   return (

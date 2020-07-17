@@ -1,17 +1,24 @@
-import React from 'react';
-import { remote } from 'electron';
-import { useDispatch } from 'react-redux';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
-
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 
-import { setSequenceGpxPath } from './slice';
+import { setSequenceGpxPath, selStartTime, setCurrentStep } from './slice';
+
+const { ipcRenderer, remote } = window.require('electron');
 
 export default function SequenceUploadGpx() {
   const dispatch = useDispatch();
+  const starttime = useSelector(selStartTime);
+
+  useEffect(() => {
+    if (starttime !== '') {
+      dispatch(setCurrentStep('startTime'));
+    }
+  });
 
   const openFileDialog = async () => {
     const parentWindow = remote.getCurrentWindow();
@@ -25,7 +32,8 @@ export default function SequenceUploadGpx() {
       ],
     });
     if (result) {
-      dispatch(setSequenceGpxPath(result));
+      dispatch(setSequenceGpxPath(result[0]));
+      ipcRenderer.send('load_gpx', result[0]);
     }
   };
 

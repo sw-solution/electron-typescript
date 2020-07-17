@@ -44,6 +44,7 @@ import {
   setSequenceCurrentStep,
   setSequencePoints,
   setSequenceStartTime,
+  setSequenceGpxPoints,
 } from './slice';
 import Logo from '../Logo';
 
@@ -91,9 +92,14 @@ export default function CreatePageWrapper() {
       dispatch(setSequenceStartTime(starttime));
     });
 
+    ipcRenderer.on('set-gpx-points', (_event: IpcRendererEvent, points) => {
+      dispatch(setSequenceGpxPoints(points));
+    });
+
     return () => {
       ipcRenderer.removeAllListeners('start-time');
       ipcRenderer.removeAllListeners('set-points');
+      ipcRenderer.removeAllListeners('set-gpx-points');
     };
   });
 

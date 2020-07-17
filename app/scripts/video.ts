@@ -153,7 +153,7 @@ export async function writeTags2Image(
             GPSDateTime: item.GPSDateTime,
             GPSLatitude: item.GPSLatitude,
             GPSLongitude: item.GPSLongitude,
-            Image: path.join(outputPath, filename),
+            Image: filename,
           });
           result.push(newitem);
           return cb();
