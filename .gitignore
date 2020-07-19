@@ -51,6 +51,3 @@ npm-debug.log.*
 
 .vscode
 yarn.lock
-
-*.png
-*.mp4
