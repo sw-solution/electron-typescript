@@ -33,6 +33,8 @@ import UploadGpx from './UploadGpx';
 import StartTime from './StartTime';
 import ModifyTime from './ModifyTime';
 import ModifySpace from './ModifySpace';
+import ModifyOutlier from './ModifyOutlier';
+import ModifyFrame from './ModifyFrame';
 import Tags from './Tags';
 import Nadir from './Nadir';
 import UploadNadir from './UploadNadir';
@@ -112,6 +114,7 @@ export default function CreatePageWrapper() {
       ipcRenderer.removeAllListeners('set-points');
       ipcRenderer.removeAllListeners('set-gpx-points');
       ipcRenderer.removeAllListeners('add-seq');
+      ipcRenderer.removeAllListeners('error');
     };
   });
 
@@ -196,6 +199,8 @@ export default function CreatePageWrapper() {
                 {currentStep === 'startTime' && <StartTime />}
                 {currentStep === 'modifyTime' && <ModifyTime />}
                 {currentStep === 'modifySpace' && <ModifySpace />}
+                {currentStep === 'outlier' && <ModifyOutlier />}
+                {currentStep === 'frames' && <ModifyFrame />}
                 {currentStep === 'tags' && <Tags />}
                 {currentStep === 'nadir' && <Nadir />}
                 {currentStep === 'nadirPath' && <UploadNadir />}

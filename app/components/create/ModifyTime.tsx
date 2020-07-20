@@ -13,14 +13,14 @@ export default function SequenceStartTime() {
   const dispatch = useDispatch();
   const startTime = useSelector(selStartTime);
   const propModifyTime = useSelector(selModifyTime);
-  const [modifyTime, setModifyTime] = React.useState<string>(propModifyTime);
+  const [modifyTime, setModifyTime] = React.useState<number>(propModifyTime);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setModifyTime(event.target.value);
+    setModifyTime(parseFloat(event.target.value));
   };
 
   const correctTime = () => {
-    dispatch(setSequenceModifyTime(parseFloat(modifyTime)));
+    dispatch(setSequenceModifyTime(modifyTime));
   };
 
   return (

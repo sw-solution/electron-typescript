@@ -3,23 +3,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Map, TileLayer, Marker, Popup } from 'react-leaflet';
 
 import Typography from '@material-ui/core/Typography';
-import {
-  Grid,
-  Input,
-  Button,
-  Box,
-  InputAdornment,
-  FormControlLabel,
-} from '@material-ui/core';
+import { Grid, Button, Box } from '@material-ui/core';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { makeStyles } from '@material-ui/core/styles';
 
-import {
-  setSequenceCurrentStep,
-  selPoints,
-  setSequenceSmothPoints,
-  setSequenceDiscardPoints,
-} from './slice';
+import { setSequenceCurrentStep, selPoints } from './slice';
 
 const useStyles = makeStyles({
   map: {
@@ -32,7 +20,6 @@ export default function SequenceModifySpace() {
   const dispatch = useDispatch();
   const points = useSelector(selPoints);
   const classes = useStyles();
-  const [meters, setMeters] = React.useState<string>('0');
 
   const resetMode = () => {
     dispatch(setSequenceCurrentStep('tags'));
@@ -42,36 +29,22 @@ export default function SequenceModifySpace() {
     dispatch(setSequenceCurrentStep('tags'));
   };
 
-  const smoothMode = () => {
-    const m = parseFloat(meters);
-    if (m > 0) dispatch(setSequenceSmothPoints(parseFloat(meters)));
+  const editOutliers = () => {
+    dispatch(setSequenceCurrentStep('outlier'));
   };
 
-  const removeMode = () => {
-    const m = parseFloat(meters);
-    if (m > 0) dispatch(setSequenceDiscardPoints(parseFloat(meters)));
-  };
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setMeters(event.target.value);
+  const editFrames = () => {
+    dispatch(setSequenceCurrentStep('frames'));
   };
 
   const centerPoint = () => {
     if (points.length) {
-      const centerpoint = points[points.length / 2];
+      const centerIdx = Math.floor(points.length / 2);
+      const centerpoint = points[centerIdx];
       return [centerpoint.GPSLatitude, centerpoint.GPSLongitude];
     }
     return [51.5, -0.09];
   };
-
-  const meterInputElem = (
-    <Input
-      id="outlined-basic"
-      endAdornment={<InputAdornment position="end">M</InputAdornment>}
-      value={meters}
-      onChange={handleChange}
-    />
-  );
 
   return (
     <>
@@ -81,24 +54,30 @@ export default function SequenceModifySpace() {
         </Typography>
       </Grid>
       <Grid item xs={12}>
-        <Box mb={1}>
-          <FormControlLabel
-            value="start"
-            control={meterInputElem}
-            label="Meters"
-            labelPlacement="start"
-          />
-        </Box>
-        <Box mb={1}>
-          <Box mr={1} display="inline-block">
-            <Button onClick={smoothMode} variant="contained" size="small">
-              Smooth outliers greater than meters
-            </Button>
-          </Box>
-          <Button onClick={removeMode} variant="contained" size="small">
-            Remove outliers greater than meters
+        <Box mb={3} display="flex" style={{ justifyContent: 'center' }}>
+          <Button
+            onClick={editOutliers}
+            variant="contained"
+            size="small"
+            style={{ marginRight: '20px' }}
+          >
+            Edit Outliers
+          </Button>
+
+          <Button
+            onClick={editFrames}
+            variant="contained"
+            size="small"
+            style={{ marginRight: '20px' }}
+          >
+            Edit Frames
+          </Button>
+
+          <Button onClick={editFrames} variant="contained" size="small">
+            Edit Direction
           </Button>
         </Box>
+
         <Map zoom={18} center={centerPoint()} className={classes.map}>
           <TileLayer
             attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'

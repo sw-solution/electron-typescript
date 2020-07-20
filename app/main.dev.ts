@@ -111,21 +111,23 @@ ipcMain.on(
 ipcMain.on(
   'load_images',
   (_event: IpcMainEvent, dirPath: string, outputpath: string) => {
-    loadImages(
-      dirPath,
-      outputpath,
-      (result: IGeoPoint[], hasgpsdatetime: boolean) => {
-        if (result.length && hasgpsdatetime) {
-          sendToClient(
-            mainWindow,
-            'start-time',
-            result[0].GPSDateTime.format('YYYY-MM-DDTHH:mm:ss')
-          );
-          sendPoints(mainWindow, result);
-        }
-        sendToClient(mainWindow, 'finish');
+    loadImages(dirPath, outputpath, (error: any, result: IGeoPoint[]) => {
+      if (error) {
+        sendToClient(mainWindow, 'error', error.message);
       }
-    );
+
+      if (result.length) {
+        sendToClient(
+          mainWindow,
+          'start-time',
+          result[0].GPSDateTime
+            ? result[0].GPSDateTime.format('YYYY-MM-DDTHH:mm:ss')
+            : result[0].OriginalDate.format('YYYY-MM-DDTHH:mm:ss')
+        );
+        sendPoints(mainWindow, result);
+      }
+      sendToClient(mainWindow, 'finish');
+    });
   }
 );
 

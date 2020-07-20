@@ -19,13 +19,18 @@ const initialState = {
     startTime: '',
     modifyTime: 0,
     modifySpace: '',
+    outlier: {
+      meters: 0,
+      mode: '',
+    },
+    frames: 1,
     tags: [],
     nadir: '',
     nadirPath: '',
     previewNadir:
       '/home/aa/Works/Rudy/David/Test/TIMELAPSE/MULTISHOT_9698_000001.jpg',
     processPage: {
-      process: 0,
+      prevStep: '',
       nextStep: '',
     },
   },
@@ -77,30 +82,16 @@ const createSequenceSlice = createSlice({
     setNadirPath: (state, { payload }) => {
       state.steps.nadirPath = payload;
     },
-    setProgress: (state, { payload }) => {
-      state.steps.processPage = {
-        ...state.steps.processPage,
-        process: payload,
-      };
-    },
     setProcessStep: (state, { payload }) => {
       state.steps.processPage = {
-        process: 0,
+        ...state.steps.processPage,
         nextStep: payload,
+        prevStep: state.currentStep,
       };
       state.currentStep = 'processPage';
     },
     setPoints: (state, { payload }) => {
-      state.points = [
-        ...payload.map((item) => {
-          return {
-            GPSDateTime: item.GPSDateTime,
-            GPSLatitude: item.GPSLatitude,
-            GPSLongitude: item.GPSLongitude,
-            Image: item.Image,
-          };
-        }),
-      ];
+      state.points = [...payload];
     },
     setGpxPoints: (state, { payload }) => {
       const points = state.points.map((p, idx) => {
@@ -122,42 +113,55 @@ const createSequenceSlice = createSlice({
       state.points = [...points];
     },
     smoothPoints: (state, { payload }) => {
-      const points = state.points.map((item, idx) => {
-        if (idx === 0 && idx === state.points.length - 1) {
-          return item;
-        }
-        const prevItem = state.points[idx - 2];
-        const nextItem = state.points[idx];
-        if (
-          getDistance(prevItem, item) > payload &&
-          getDistance(nextItem, item) > payload
-        ) {
-          return {
-            ...item,
-            GPSLongitude: (prevItem.GPSLongitude + nextItem.GPSLongitude) / 2,
-            GPSLatitude: (prevItem.GPSLatitude + nextItem.GPSLatitude) / 2,
-          };
-        }
-        return item;
-      });
-      state.points = [...points];
+      // const points = state.points.map((item, idx) => {
+      //   if (idx === 0 && idx === state.points.length - 1) {
+      //     return item;
+      //   }
+      //   const prevItem = state.points[idx - 2];
+      //   const nextItem = state.points[idx];
+      //   if (
+      //     getDistance(prevItem, item) > payload &&
+      //     getDistance(nextItem, item) > payload
+      //   ) {
+      //     return {
+      //       ...item,
+      //       GPSLongitude: (prevItem.GPSLongitude + nextItem.GPSLongitude) / 2,
+      //       GPSLatitude: (prevItem.GPSLatitude + nextItem.GPSLatitude) / 2,
+      //     };
+      //   }
+      //   return item;
+      // });
+      // state.points = [...points];
+      state.steps.outlier = {
+        ...state.steps.outlier,
+        mode: 'S',
+        meters: payload,
+      };
     },
     discardPoints: (state, { payload }) => {
-      const points = state.points.filter((item, idx) => {
-        if (idx === 0 && idx === state.points.length - 1) {
-          return true;
-        }
-        const prevItem = state.points[idx - 1];
-        const nextItem = state.points[idx + 1];
-        if (
-          getDistance(prevItem, item) > payload &&
-          getDistance(nextItem, item) > payload
-        ) {
-          return false;
-        }
-        return true;
-      });
-      state.points = [...points];
+      // const points = state.points.filter((item, idx) => {
+      //   if (idx === 0 && idx === state.points.length - 1) {
+      //     return true;
+      //   }
+      //   const prevItem = state.points[idx - 1];
+      //   const nextItem = state.points[idx + 1];
+      //   if (
+      //     getDistance(prevItem, item) > payload &&
+      //     getDistance(nextItem, item) > payload
+      //   ) {
+      //     return false;
+      //   }
+      //   return true;
+      // });
+      // state.points = [...points];
+      state.steps.outlier = {
+        ...state.steps.outlier,
+        mode: 'D',
+        meters: payload,
+      };
+    },
+    setFrame: (state, { payload }) => {
+      state.steps.frames = payload;
     },
     setInit: (state) => {
       state = {
@@ -181,13 +185,13 @@ export const {
   setModifyTime,
   setTags,
   setNadirPath,
-  setProgress,
   setProcessStep,
   setPoints,
   setGpxPoints,
   setModifyPoints,
   smoothPoints,
   discardPoints,
+  setFrame,
   setInit,
 } = createSequenceSlice.actions;
 
@@ -261,7 +265,6 @@ export const setSequenceStartTime = (startTime: string): AppThunk => {
 export const setSequenceModifyTime = (modifyTime: number): AppThunk => {
   return (dispatch) => {
     dispatch(setModifyTime(modifyTime));
-    dispatch(setModifyPoints(modifyTime));
     dispatch(setCurrentStep('modifySpace'));
   };
 };
@@ -277,12 +280,6 @@ export const setSequenceTags = (tags: string[]): AppThunk => {
   return (dispatch) => {
     dispatch(setTags(tags));
     dispatch(setCurrentStep('nadir'));
-  };
-};
-
-export const setSequenceProcess = (process: number): AppThunk => {
-  return (dispatch) => {
-    dispatch(setProgress(process));
   };
 };
 
@@ -314,6 +311,18 @@ export const setSequenceDiscardPoints = (meters: number): AppThunk => {
   };
 };
 
+export const setSequenceFrame = (frame: number): AppThunk => {
+  return (dispatch) => {
+    dispatch(setFrame(frame));
+  };
+};
+
+export const setSequence = (meters: number): AppThunk => {
+  return (dispatch) => {
+    dispatch(discardPoints(meters));
+  };
+};
+
 export const setSequenceInit = (): AppThunk => {
   return (dispatch) => {
     dispatch(setInit());
@@ -339,6 +348,7 @@ export const selSequenceAttachType = (state: RootState) =>
   state.create.steps.attachType;
 
 export const getPrevStep = (state: RootState) => {
+  if (state.create.currentStep === 'frames') return 'modifySpace';
   if (state.create.currentStep === 'processPage') return '';
   const pages = Object.keys(state.create.steps);
 
@@ -357,11 +367,11 @@ export const selSequenceTags = (state: RootState) => state.create.steps.tags;
 
 export const selPoints = (state: RootState) => state.create.points;
 
-export const selProgress = (state: RootState) =>
-  state.create.steps.processPage.process;
-
 export const selProgressNextStep = (state: RootState) =>
   state.create.steps.processPage.nextStep;
+
+export const selProgressPrevStep = (state: RootState) =>
+  state.create.steps.processPage.prevStep;
 
 export const selNadirImage = (state: RootState) =>
   state.create.steps.previewNadir;
@@ -369,3 +379,8 @@ export const selNadirImage = (state: RootState) =>
 export const selCurrentStep = (state: RootState) => state.create.currentStep;
 
 export const selSequence = (state: RootState) => state.create;
+
+export const selSequenceOutlierMeter = (state: RootState) =>
+  state.create.steps.outlier.meters;
+
+export const selSequenceFrame = (state: RootState) => state.create.steps.frames;

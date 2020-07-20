@@ -6,6 +6,7 @@ import { BrowserWindow } from 'electron';
 import { VGeoPoint, VGeoPointModel } from '../types/VGeoPoint';
 import { IGeoPoint } from '../types/IGeoPoint';
 import { sendPoints, sendToClient } from './utils';
+import { calculatePoints } from './image';
 
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
@@ -114,7 +115,7 @@ export function getGPSVideoData(tags: typeof Tags) {
 
 export async function writeTags2Image(
   outputPath: string,
-  commonData,
+  commonData: any,
   datalist: VGeoPoint[],
   callback: any
 ) {
@@ -153,6 +154,7 @@ export async function writeTags2Image(
             GPSDateTime: item.GPSDateTime,
             GPSLatitude: item.GPSLatitude,
             GPSLongitude: item.GPSLongitude,
+            GPSAltitude: item.GPSAltitude,
             Image: path.join(outputPath, filename),
           });
           result.push(newitem);
@@ -230,8 +232,16 @@ export function splitVideoToImage(
             'start-time',
             starttime.format('YYYY-MM-DDTHH:mm:ss')
           );
-          sendPoints(win, datalist);
-          sendToClient(win, 'finish');
+          calculatePoints(datalist, function (err, result) {
+            if (!err) {
+              sendPoints(win, result);
+              sendToClient(win, 'finish');
+            } else {
+              sendToClient(win, 'error', err);
+            }
+          });
+        } else {
+          sendToClient(win, 'error', err);
         }
       }
     );
