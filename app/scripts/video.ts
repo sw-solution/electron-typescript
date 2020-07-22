@@ -155,7 +155,13 @@ export async function writeTags2Image(
             GPSLatitude: item.GPSLatitude,
             GPSLongitude: item.GPSLongitude,
             GPSAltitude: item.GPSAltitude,
-            Image: path.join(outputPath, filename),
+            Image: filename,
+            origin_GPSDateTime: item.GPSDateTime.format('YYYY-MM-DDTHH:mm:ss'),
+            origin_GPSLatitude: item.GPSLatitude,
+            origin_GPSLongitude: item.GPSLongitude,
+            origin_GPSAltitude: item.GPSAltitude,
+            camera_model: commonData['Main:Model'],
+            camera_make: commonData['Main:Make'],
           });
           result.push(newitem);
           return cb();
@@ -232,9 +238,9 @@ export function splitVideoToImage(
             'start-time',
             starttime.format('YYYY-MM-DDTHH:mm:ss')
           );
-          calculatePoints(datalist, function (err, result) {
+          calculatePoints(datalist, [], function (err, result: any) {
             if (!err) {
-              sendPoints(win, result);
+              sendPoints(win, result.points);
               sendToClient(win, 'finish');
             } else {
               sendToClient(win, 'error', err);
@@ -256,7 +262,7 @@ export function loadVideo(videoPath: string, callback: CallableFunction) {
 }
 
 export function processVideo(
-  win: BrowserWindow,
+  win: BrowserWindow | null,
   videoPath: string,
   outputPath: string
 ) {

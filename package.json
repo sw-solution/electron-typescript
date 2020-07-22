@@ -162,6 +162,7 @@
     "@types/react-test-renderer": "^16.9.2",
     "@types/redux-logger": "^3.0.8",
     "@types/rimraf": "^3.0.0",
+    "@types/uuid": "^8.0.0",
     "@types/webpack": "^4.41.17",
     "@types/webpack-env": "^1.15.2",
     "@types/xml2js": "^0.4.5",

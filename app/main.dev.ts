@@ -12,14 +12,10 @@ import path from 'path';
 import { app, BrowserWindow, ipcMain, IpcMainEvent } from 'electron';
 
 import fs from 'fs';
-import dayjs from 'dayjs';
 import rimraf from 'rimraf';
-import MenuBuilder from './menu';
 
 import { processVideo } from './scripts/video';
-import { loadImages } from './scripts/image';
-import { IGeoPoint } from './types/IGeoPoint';
-import GPXTrackPoint from './types/GPXTrackPoint';
+import { loadImages, updateImages } from './scripts/image';
 import { sendToClient, sendPoints, createdData2List } from './scripts/utils';
 import { readGPX } from './scripts/utils/gpx';
 
@@ -93,8 +89,8 @@ const createWindow = async () => {
     mainWindow = null;
   });
 
-  const menuBuilder = new MenuBuilder(mainWindow);
-  menuBuilder.buildMenu();
+  // const menuBuilder = new MenuBuilder(mainWindow);
+  // menuBuilder.buildMenu();
 };
 
 /**
@@ -111,58 +107,56 @@ ipcMain.on(
 ipcMain.on(
   'load_images',
   (_event: IpcMainEvent, dirPath: string, outputpath: string) => {
-    loadImages(dirPath, outputpath, (error: any, result: IGeoPoint[]) => {
+    loadImages(dirPath, outputpath, (error: any, result: any) => {
       if (error) {
         sendToClient(mainWindow, 'error', error.message);
-      }
+      } else {
+        const { points, removedfiles } = result;
+        if (points.length) {
+          sendToClient(mainWindow, 'start-time', points[0].getDateStr());
+          sendPoints(mainWindow, points);
+        }
 
-      if (result.length) {
-        sendToClient(
-          mainWindow,
-          'start-time',
-          result[0].GPSDateTime
-            ? result[0].GPSDateTime.format('YYYY-MM-DDTHH:mm:ss')
-            : result[0].OriginalDate.format('YYYY-MM-DDTHH:mm:ss')
-        );
-        sendPoints(mainWindow, result);
+        if (removedfiles.length) {
+          sendToClient(mainWindow, 'removed_files', removedfiles);
+        }
+
+        sendToClient(mainWindow, 'finish');
       }
-      sendToClient(mainWindow, 'finish');
     });
   }
 );
 
-ipcMain.on('load_gpx', (_event: IpcMainEvent, dirpath: string) => {
-  readGPX(dirpath, (err: any, points: GPXTrackPoint[]) => {
+ipcMain.on('load_gpx', (_event: IpcMainEvent, gpxpath: string) => {
+  readGPX(gpxpath, (err: any, points) => {
     if (!err) {
-      sendToClient(mainWindow, 'set-gpx-points', points);
+      sendToClient(mainWindow, 'load_gpx_points', points);
     }
   });
 });
 
-ipcMain.on('upload_nadir', (_event: IpcMainEvent, nadirpath: string) => {});
-
 const log = 'result.json';
 
-ipcMain.on(
-  'created',
-  async (_event: IpcMainEvent, sequence: any, filename: string) => {
-    let result = [];
-    if (fs.existsSync(log)) {
-      result = JSON.parse(fs.readFileSync(log).toString());
-    }
-    const data = { ...sequence, created: dayjs().format('YYYY-MM-DD') };
-    result.push(filename);
-    fs.writeFileSync(
-      `${filename}.json`,
-      JSON.stringify({ ...sequence, created: dayjs().format('YYYY-MM-DD') })
-    );
-
-    fs.writeFileSync(log, JSON.stringify(result));
-    sendToClient(mainWindow, 'add-seq', createdData2List(data));
+ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
+  let result = {};
+  if (fs.existsSync(log)) {
+    result = JSON.parse(fs.readFileSync(log).toString());
   }
-);
 
-ipcMain.on('start-load', async (_event: IpcMainEvent) => {
+  updateImages(sequence.points, sequence.steps)
+    .then((resultjson: any) => {
+      const sequenceid = resultjson.sequence.id;
+      result[sequenceid] = resultjson;
+      fs.writeFileSync(log, JSON.stringify(result));
+
+      return sendToClient(mainWindow, 'add-seq', createdData2List(resultjson));
+    })
+    .catch((err) => {
+      sendToClient(mainWindow, 'error', err);
+    });
+});
+
+ipcMain.on('sequences', async (_event: IpcMainEvent) => {
   console.log('start loading');
   if (!fs.existsSync(log)) {
     sendToClient(mainWindow, 'loaded_all', []);
@@ -180,11 +174,10 @@ ipcMain.on('start-load', async (_event: IpcMainEvent) => {
       total_km: number;
     }[] = [];
 
-    logdata.forEach(async (filename: string) => {
-      const datatxt = fs.readFileSync(`${filename}.json`);
-      const data = JSON.parse(datatxt.toString());
-      result.push(createdData2List(data));
+    Object.keys(logdata).forEach(async (id: string) => {
+      result.push(createdData2List(logdata[id]));
     });
+    console.log('result:', result);
     sendToClient(mainWindow, 'loaded_all', result);
   }
 });

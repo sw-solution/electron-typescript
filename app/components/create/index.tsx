@@ -35,6 +35,7 @@ import ModifyTime from './ModifyTime';
 import ModifySpace from './ModifySpace';
 import ModifyOutlier from './ModifyOutlier';
 import ModifyFrame from './ModifyFrame';
+import ModifyAzimuth from './ModifyAzimuth';
 import Tags from './Tags';
 import Nadir from './Nadir';
 import UploadNadir from './UploadNadir';
@@ -105,14 +106,18 @@ export default function CreatePageWrapper() {
       dispatch(push(routes.LIST));
     });
 
-    ipcRenderer.on('set-gpx-points', (_event: IpcRendererEvent, filename) => {
-      dispatch(setSequenceGpxPoints(filename));
+    ipcRenderer.on('load_gpx_points', (_event: IpcRendererEvent, points) => {
+      dispatch(setSequenceGpxPoints(points));
+    });
+
+    ipcRenderer.on('error', (_event: IpcRendererEvent, error) => {
+      console.error(error);
     });
 
     return () => {
       ipcRenderer.removeAllListeners('start-time');
       ipcRenderer.removeAllListeners('set-points');
-      ipcRenderer.removeAllListeners('set-gpx-points');
+      ipcRenderer.removeAllListeners('load_gpx_points');
       ipcRenderer.removeAllListeners('add-seq');
       ipcRenderer.removeAllListeners('error');
     };
@@ -195,12 +200,13 @@ export default function CreatePageWrapper() {
                 {currentStep === 'camera' && <Camera />}
                 {currentStep === 'attachType' && <AttachType />}
                 {currentStep === 'imagePath' && <UploadImage />}
-                {currentStep === 'gpxPath' && <UploadGpx />}
+                {currentStep === 'gpx' && <UploadGpx />}
                 {currentStep === 'startTime' && <StartTime />}
                 {currentStep === 'modifyTime' && <ModifyTime />}
                 {currentStep === 'modifySpace' && <ModifySpace />}
                 {currentStep === 'outlier' && <ModifyOutlier />}
                 {currentStep === 'frames' && <ModifyFrame />}
+                {currentStep === 'azimuth' && <ModifyAzimuth />}
                 {currentStep === 'tags' && <Tags />}
                 {currentStep === 'nadir' && <Nadir />}
                 {currentStep === 'nadirPath' && <UploadNadir />}

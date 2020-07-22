@@ -5,7 +5,7 @@ export default class TrackPoint {
 
   public longitude: number;
 
-  public timestamp: string | null;
+  public timestamp: string;
 
   public heartrate: any;
 
@@ -15,7 +15,7 @@ export default class TrackPoint {
     el: string | null,
     lat: string | null,
     lng: string | null,
-    time: string | null
+    time: string
   ) {
     this.elevation = el ? parseFloat(el) : 0;
     this.latitude = lat ? parseFloat(lat) : 0;

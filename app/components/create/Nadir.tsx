@@ -8,21 +8,21 @@ import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import SkipNextIcon from '@material-ui/icons/SkipNext';
 
-import { setCurrentStep, selSequence, selSequenceName } from './slice';
+import { setCurrentStep, selSequence } from './slice';
 
 const { ipcRenderer } = window.require('electron');
 
 export default function SequenceNadir() {
   const dispatch = useDispatch();
   const sequence = useSelector(selSequence);
-  const name = useSelector(selSequenceName);
 
   const storeSequenceNadir = () => {
     dispatch(setCurrentStep('nadirPath'));
   };
 
   const processPage = () => {
-    ipcRenderer.send('created', sequence, name);
+    ipcRenderer.send('update_images', sequence);
+    dispatch(setCurrentStep('processPage'));
   };
 
   return (

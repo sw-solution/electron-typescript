@@ -1,36 +1,23 @@
 import { BrowserWindow } from 'electron';
-import dayjs from 'dayjs';
 import { IGeoPoint } from '../../types/IGeoPoint';
 
 export function sendToClient(
-  win: BrowserWindow,
+  win: BrowserWindow | null,
   channelname: string,
   ...args: any[]
 ) {
   // eslint-disable-next-line global-require
-
-  win.webContents.send(channelname, ...args);
+  if (win) win.webContents.send(channelname, ...args);
 }
 
-export function sendPoints(win: BrowserWindow, points: IGeoPoint[]) {
+export function sendPoints(win: BrowserWindow | null, points: IGeoPoint[]) {
   sendToClient(
     win,
     'set-points',
-    points.map((item: IGeoPoint) => ({
-      GPSDateTime: item.GPSDateTime
-        ? item.GPSDateTime.format('YYYY-MM-DDTHH:mm:ss')
-        : '',
-      OriginalDate: item.OriginalDate
-        ? item.OriginalDate.format('YYYY-MM-DDTHH:mm:ss')
-        : '',
-      GPSLongitude: item.GPSLongitude,
-      GPSLatitude: item.GPSLatitude,
-      GPSAltitude: item.GPSAltitude,
-      Distance: item.Distance,
-      Azimuth: item.Azimuth,
-      Pitch: item.Pitch,
-      Image: item.Image,
-    }))
+    points.map((item: IGeoPoint) => {
+      item.convertDateToStr();
+      return item;
+    })
   );
 }
 
@@ -62,16 +49,17 @@ export function getDistance(point1: any, point2: any) {
 }
 
 export function createdData2List(data: any) {
+  const { sequence, photo } = data;
   return {
-    tags: data.steps.tags,
-    name: data.steps.name,
-    description: data.steps.description,
-    type: data.steps.type,
-    method: data.steps.method,
-    points: data.points,
-    total_km: 0.2,
-    created: data.created,
-    captured: dayjs(data.steps.startTime).format('YYYY-MM-DD'),
+    tags: sequence.uploader_tags,
+    name: sequence.uploader_sequence_name,
+    description: sequence.uploader_sequence_description,
+    type: sequence.type,
+    method: sequence.uploader_transport_type,
+    points: Object.values(photo),
+    total_km: sequence.distance_km,
+    created: sequence.created,
+    captured: sequence.earliest_time,
   };
 }
 
@@ -88,4 +76,14 @@ export function getBearing(point1: IGeoPoint, point2: IGeoPoint) {
     Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
   const brng = deg2rad(Math.atan2(y, x));
   return 360 - ((brng + 360) % 360);
+}
+
+export function getPitch(
+  point1: IGeoPoint,
+  point2: IGeoPoint,
+  distance: number
+) {
+  return distance !== 0
+    ? (point2.GPSAltitude - point1.GPSAltitude) / distance
+    : 0;
 }

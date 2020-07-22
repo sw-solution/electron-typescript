@@ -3,7 +3,6 @@ import dayjs from 'dayjs';
 // eslint-disable-next-line import/no-cycle
 import { AppThunk, RootState } from '../../store';
 import { IGeoPoint } from '../../types/IGeoPoint';
-import { getDistance } from '../../scripts/utils';
 
 const initialState = {
   currentStep: 'name',
@@ -15,7 +14,11 @@ const initialState = {
     camera: '',
     attachType: '',
     imagePath: '',
-    gpxPath: '',
+    gpx: {
+      path: '',
+      points: {},
+      import: false,
+    },
     startTime: '',
     modifyTime: 0,
     modifySpace: '',
@@ -24,6 +27,7 @@ const initialState = {
       mode: '',
     },
     frames: 1,
+    azimuth: 0,
     tags: [],
     nadir: '',
     nadirPath: '',
@@ -68,13 +72,31 @@ const createSequenceSlice = createSlice({
       state.steps.imagePath = payload;
     },
     setGpxPath: (state, { payload }) => {
-      state.steps.gpxPath = payload;
+      state.steps.gpx = {
+        ...state.steps.gpx,
+        path: payload,
+      };
+    },
+    setGpxPoints: (state, { payload }) => {
+      state.steps.gpx = {
+        ...state.steps.gpx,
+        points: { ...payload },
+      };
+    },
+    setImportGpxPoints: (state) => {
+      state.steps.gpx = {
+        ...state.steps.gpx,
+        import: true,
+      };
     },
     setStartTime: (state, { payload }) => {
       state.steps.startTime = payload;
     },
     setModifyTime: (state, { payload }) => {
       state.steps.modifyTime = payload;
+    },
+    setAzimuth: (state, { payload }) => {
+      state.steps.azimuth = payload;
     },
     setTags: (state, { payload }) => {
       state.steps.tags = payload;
@@ -93,15 +115,7 @@ const createSequenceSlice = createSlice({
     setPoints: (state, { payload }) => {
       state.points = [...payload];
     },
-    setGpxPoints: (state, { payload }) => {
-      const points = state.points.map((p, idx) => {
-        p.GPSDateTime = payload[idx].timestamp;
-        p.GPSLongitude = payload[idx].longitude;
-        p.GPSLatitude = payload[idx].latitude;
-        return p;
-      });
-      state.points = [...points];
-    },
+
     setModifyPoints: (state, { payload }) => {
       const points = state.points.map((item) => {
         const updatedDate = dayjs(item.GPSDateTime)
@@ -113,25 +127,6 @@ const createSequenceSlice = createSlice({
       state.points = [...points];
     },
     smoothPoints: (state, { payload }) => {
-      // const points = state.points.map((item, idx) => {
-      //   if (idx === 0 && idx === state.points.length - 1) {
-      //     return item;
-      //   }
-      //   const prevItem = state.points[idx - 2];
-      //   const nextItem = state.points[idx];
-      //   if (
-      //     getDistance(prevItem, item) > payload &&
-      //     getDistance(nextItem, item) > payload
-      //   ) {
-      //     return {
-      //       ...item,
-      //       GPSLongitude: (prevItem.GPSLongitude + nextItem.GPSLongitude) / 2,
-      //       GPSLatitude: (prevItem.GPSLatitude + nextItem.GPSLatitude) / 2,
-      //     };
-      //   }
-      //   return item;
-      // });
-      // state.points = [...points];
       state.steps.outlier = {
         ...state.steps.outlier,
         mode: 'S',
@@ -139,21 +134,6 @@ const createSequenceSlice = createSlice({
       };
     },
     discardPoints: (state, { payload }) => {
-      // const points = state.points.filter((item, idx) => {
-      //   if (idx === 0 && idx === state.points.length - 1) {
-      //     return true;
-      //   }
-      //   const prevItem = state.points[idx - 1];
-      //   const nextItem = state.points[idx + 1];
-      //   if (
-      //     getDistance(prevItem, item) > payload &&
-      //     getDistance(nextItem, item) > payload
-      //   ) {
-      //     return false;
-      //   }
-      //   return true;
-      // });
-      // state.points = [...points];
       state.steps.outlier = {
         ...state.steps.outlier,
         mode: 'D',
@@ -183,6 +163,7 @@ export const {
   setGpxPath,
   setStartTime,
   setModifyTime,
+  setAzimuth,
   setTags,
   setNadirPath,
   setProcessStep,
@@ -246,7 +227,7 @@ export const setSequenceCurrentStep = (currentStep: string): AppThunk => {
 export const setSequenceImagePath = (uploadPath: string): AppThunk => {
   return (dispatch) => {
     dispatch(setImagePath(uploadPath));
-    dispatch(setProcessStep('gpxPath'));
+    dispatch(setProcessStep('gpx'));
   };
 };
 
@@ -266,6 +247,12 @@ export const setSequenceModifyTime = (modifyTime: number): AppThunk => {
   return (dispatch) => {
     dispatch(setModifyTime(modifyTime));
     dispatch(setCurrentStep('modifySpace'));
+  };
+};
+
+export const setSequenceAzimuth = (azimuth: number): AppThunk => {
+  return (dispatch) => {
+    dispatch(setAzimuth(azimuth));
   };
 };
 
@@ -289,11 +276,11 @@ export const setSequencePoints = (points: IGeoPoint): AppThunk => {
   };
 };
 
-export const setSequenceGpxPoints = (points: any[]): AppThunk => {
+export const setSequenceGpxPoints = (points: any): AppThunk => {
   return (dispatch) => {
     dispatch(setGpxPoints(points));
-    if (points.length) {
-      dispatch(setStartTime(points[0].timestamp));
+    if (points) {
+      dispatch(setStartTime(points[Object.keys(points)[0]].timestamp));
     }
     dispatch(setCurrentStep('startTime'));
   };
@@ -348,7 +335,11 @@ export const selSequenceAttachType = (state: RootState) =>
   state.create.steps.attachType;
 
 export const getPrevStep = (state: RootState) => {
-  if (state.create.currentStep === 'frames') return 'modifySpace';
+  if (
+    state.create.currentStep === 'frames' ||
+    state.create.currentStep === 'azimuth'
+  )
+    return 'modifySpace';
   if (state.create.currentStep === 'processPage') return '';
   const pages = Object.keys(state.create.steps);
 
@@ -384,3 +375,6 @@ export const selSequenceOutlierMeter = (state: RootState) =>
   state.create.steps.outlier.meters;
 
 export const selSequenceFrame = (state: RootState) => state.create.steps.frames;
+
+export const selSequenceAzimuth = (state: RootState) =>
+  state.create.steps.azimuth;

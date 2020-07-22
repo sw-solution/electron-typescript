@@ -8,7 +8,12 @@ import Button from '@material-ui/core/Button';
 import Box from '@material-ui/core/Box';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
-import { setSequenceCurrentStep, selPoints, selSequence } from './slice';
+import {
+  setSequenceCurrentStep,
+  selPoints,
+  selSequence,
+  selSequenceName,
+} from './slice';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -24,8 +29,8 @@ export default function SequencePreviewNadir() {
   };
 
   const confirmMode = () => {
-    // dispatch(setSequenceCurrentStep('processPage'));
-    ipcRenderer.send('created', sequence, name);
+    ipcRenderer.send('update_images', sequence);
+    dispatch(setSequenceCurrentStep('processPage'));
   };
 
   return (
@@ -44,7 +49,7 @@ export default function SequencePreviewNadir() {
       <Grid item xs={12}>
         <div
           style={{
-            backgroundImage: `url(../${point.Image})`,
+            backgroundImage: `url(../${name}/${point.Image})`,
             width: '300px',
             height: '300px',
             backgroundSize: '100% auto',

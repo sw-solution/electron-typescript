@@ -77,10 +77,10 @@ export default function Sequence({ data }) {
   const { points } = data;
 
   const centerPoint = () => {
-    if (points.length) {
-      const centerpoint = points[points.length / 2];
-      return [centerpoint.GPSLatitude, centerpoint.GPSLongitude];
-    }
+    // if (points.length) {
+    //   const centerpoint = points[points.length / 2];
+    //   return [centerpoint.GPSLatitude, centerpoint.GPSLongitude];
+    // }
     return [51.5, -0.09];
   };
 
@@ -105,14 +105,14 @@ export default function Sequence({ data }) {
               attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            {points.map((point, idx) => {
+            {/* {points.map((point, idx) => {
               return (
                 <Marker
                   key={`marker-${idx.toString()}`}
                   position={[point.GPSLatitude, point.GPSLongitude]}
                 />
               );
-            })}
+            })} */}
           </Map>
         </Grid>
         <Grid xs={5} item>

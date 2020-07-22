@@ -7,7 +7,7 @@ import { Grid, Button, Box } from '@material-ui/core';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { makeStyles } from '@material-ui/core/styles';
 
-import { setSequenceCurrentStep, selPoints } from './slice';
+import { setSequenceCurrentStep, selPoints, selSequenceName } from './slice';
 
 const useStyles = makeStyles({
   map: {
@@ -19,6 +19,7 @@ const useStyles = makeStyles({
 export default function SequenceModifySpace() {
   const dispatch = useDispatch();
   const points = useSelector(selPoints);
+  const seqname = useSelector(selSequenceName);
   const classes = useStyles();
 
   const resetMode = () => {
@@ -35,6 +36,10 @@ export default function SequenceModifySpace() {
 
   const editFrames = () => {
     dispatch(setSequenceCurrentStep('frames'));
+  };
+
+  const editDirection = () => {
+    dispatch(setSequenceCurrentStep('azimuth'));
   };
 
   const centerPoint = () => {
@@ -73,7 +78,7 @@ export default function SequenceModifySpace() {
             Edit Frames
           </Button>
 
-          <Button onClick={editFrames} variant="contained" size="small">
+          <Button onClick={editDirection} variant="contained" size="small">
             Edit Direction
           </Button>
         </Box>
@@ -92,7 +97,7 @@ export default function SequenceModifySpace() {
                 <Popup>
                   <div
                     style={{
-                      backgroundImage: `url(../${point.Image})`,
+                      backgroundImage: `url(../${seqname}/${point.Image})`,
                       width: '200px',
                       height: '150px',
                       backgroundSize: '100% auto',

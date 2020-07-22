@@ -59,7 +59,7 @@ export default function ListPageWrapper() {
   const dispatch = useDispatch();
 
   if (!loaded) {
-    ipcRenderer.send('start-load');
+    ipcRenderer.send('sequences');
   }
   ipcRenderer.on('loaded_all', (_event: IpcRendererEvent, points) => {
     dispatch(setEndLoad(points));
