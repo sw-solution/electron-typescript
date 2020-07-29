@@ -9,7 +9,7 @@
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, ipcMain, IpcMainEvent } from 'electron';
+import { app, BrowserWindow, ipcMain, IpcMainEvent, dialog } from 'electron';
 
 import fs from 'fs';
 import rimraf from 'rimraf';
@@ -89,6 +89,18 @@ const createWindow = async () => {
     mainWindow = null;
   });
 
+  mainWindow.on('close', async (e) => {
+    const response = dialog.showMessageBoxSync(mainWindow, {
+      type: 'question',
+      buttons: ['Yes', 'No'],
+      title: 'Confirm',
+      message: 'Are you sure you want to quit?',
+    });
+    if (response === 1) {
+      e.preventDefault();
+    }
+  });
+
   // const menuBuilder = new MenuBuilder(mainWindow);
   // menuBuilder.buildMenu();
 };
@@ -145,6 +157,7 @@ ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
 
   updateImages(sequence.points, sequence.steps)
     .then((resultjson: any) => {
+      console.log('result: ', resultjson);
       const sequenceid = resultjson.sequence.id;
       result[sequenceid] = resultjson;
       fs.writeFileSync(log, JSON.stringify(result));
@@ -177,7 +190,6 @@ ipcMain.on('sequences', async (_event: IpcMainEvent) => {
     Object.keys(logdata).forEach(async (id: string) => {
       result.push(createdData2List(logdata[id]));
     });
-    console.log('result:', result);
     sendToClient(mainWindow, 'loaded_all', result);
   }
 });

@@ -1,26 +1,16 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Map, TileLayer, Marker, Popup } from 'react-leaflet';
+import ReactMapboxGl, { Layer, Feature, Marker } from 'react-mapbox-gl';
 
 import Typography from '@material-ui/core/Typography';
 import { Grid, Button, Box } from '@material-ui/core';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import { makeStyles } from '@material-ui/core/styles';
 
-import { setSequenceCurrentStep, selPoints, selSequenceName } from './slice';
-
-const useStyles = makeStyles({
-  map: {
-    height: '300px',
-    overflow: 'hidden',
-  },
-});
+import { setSequenceCurrentStep, selPoints } from './slice';
 
 export default function SequenceModifySpace() {
   const dispatch = useDispatch();
   const points = useSelector(selPoints);
-  const seqname = useSelector(selSequenceName);
-  const classes = useStyles();
 
   const resetMode = () => {
     dispatch(setSequenceCurrentStep('tags'));
@@ -46,10 +36,21 @@ export default function SequenceModifySpace() {
     if (points.length) {
       const centerIdx = Math.floor(points.length / 2);
       const centerpoint = points[centerIdx];
-      return [centerpoint.GPSLatitude, centerpoint.GPSLongitude];
+      return [centerpoint.GPSLongitude, centerpoint.GPSLatitude];
     }
     return [51.5, -0.09];
   };
+
+  const fitBounds = () => {
+    return points.map((point) => {
+      return [point.GPSLongitude, point.GPSLatitude];
+    });
+  };
+
+  const Map = ReactMapboxGl({
+    accessToken:
+      'pk.eyJ1IjoidHJla3ZpZXciLCJhIjoiY2tjeWdubXdnMDluYzMwcGdpaXkyZ3JxdyJ9.Lt90NQ1VErfUm8wRyGizGA',
+  });
 
   return (
     <>
@@ -83,29 +84,30 @@ export default function SequenceModifySpace() {
           </Button>
         </Box>
 
-        <Map zoom={18} center={centerPoint()} className={classes.map}>
-          <TileLayer
-            attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+        <Map
+          style="mapbox://styles/mapbox/streets-v8"
+          containerStyle={{
+            height: '400px',
+          }}
+          center={centerPoint()}
+          fitBounds={fitBounds()}
+        >
           {points.map((point, idx) => {
             return (
               <Marker
                 key={`marker-${idx.toString()}`}
-                position={[point.GPSLatitude, point.GPSLongitude]}
+                coordinates={[point.GPSLongitude, point.GPSLatitude]}
+                anchor="bottom"
               >
-                <Popup>
-                  <div
-                    style={{
-                      backgroundImage: `url(../${seqname}/${point.Image})`,
-                      width: '200px',
-                      height: '150px',
-                      backgroundSize: '100% auto',
-                      backgroundRepeat: 'no-repeat',
-                      backgroundPosition: 'center',
-                    }}
-                  />
-                </Popup>
+                <div
+                  style={{
+                    borderBottom: 'solid 10px #3f51b5',
+                    borderLeft: 'solid 10px transparent',
+                    borderRight: 'solid 10px transparent',
+                    height: '20px',
+                    width: '20px',
+                  }}
+                />
               </Marker>
             );
           })}

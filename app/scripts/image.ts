@@ -1,10 +1,19 @@
 import fs from 'fs';
-import Async, { reject } from 'async';
+import Async from 'async';
 import path from 'path';
 import dayjs from 'dayjs';
 import { v4 as uuidv4 } from 'uuid';
 import jimp from 'jimp';
 import { IGeoPoint } from '../types/IGeoPoint';
+import {
+  Result,
+  Sequence,
+  Photo,
+  Connections,
+  Connection,
+  Descriptions,
+  Description,
+} from '../types/Result';
 
 import { getBearing, getDistance, getPitch } from './utils';
 
@@ -23,6 +32,7 @@ export const filterCorruptImages = (
       jimp
         .read(path.join(dirPath, filename))
         .then((image: any) => {
+          // eslint-disable-next-line no-underscore-dangle
           if (image._rgba) {
             newfiles.push(filename);
           }
@@ -244,13 +254,142 @@ export async function addLogo(imageurl: string, logourl: string) {
   const X = image.bitmap.width - logo.bitmap.width - xMargin;
   const Y = image.bitmap.height - logo.bitmap.height - yMargin;
 
-  return image.composite(logo, X, Y, [
-    {
-      mode: jimp.BLEND_SCREEN,
-      opacitySource: 0.1,
-      opacityDest: 1,
-    },
-  ]);
+  const blendmode: any = {
+    mode: jimp.BLEND_SCREEN,
+    opacitySource: 0.1,
+    opacityDest: 1,
+  };
+
+  return image.composite(logo, X, Y, blendmode);
+}
+
+export function writeExifTags(
+  input_file: string,
+  item: IGeoPoint,
+  description: Description,
+  outputfile: any = false
+) {
+  return new Promise((resolve, reject) => {
+    const datetime = dayjs(item.GPSDateTime);
+    console.log(`Start Updating Exiftool: filename ${input_file}`);
+    const options: string[] = outputfile
+      ? ['-o', outputfile]
+      : ['-overwrite_original'];
+
+    exiftool
+      .write(
+        input_file,
+        {
+          AllDates: datetime.format('YYYY-MM-DDTHH:mm:ss'),
+          GPSTimeStamp: datetime.format('HH:mm:ss'),
+          GPSDateStamp: datetime.format('YYYY-MM-DD'),
+          GPSLatitude: item.GPSLatitude,
+          GPSLongitude: item.GPSLongitude,
+          GPSAltitude: item.GPSAltitude,
+          PoseHeadingDegrees: item.Azimuth,
+          GPSImgDirection: item.Azimuth,
+          CameraElevationAngle: item.Pitch,
+          PosePitchDegrees: item.Pitch,
+          ImageDescription: JSON.stringify(description),
+        },
+        options
+      )
+      .then(() => {
+        console.log(`End Updating Exiftool: filename ${input_file}`);
+        return resolve();
+      })
+      .catch((error: any) => {
+        console.error(`Error in writing tags: ${input_file} - `, error);
+        return resolve();
+      });
+  });
+}
+
+export function writeNadirImages(
+  item: IGeoPoint,
+  settings: any,
+  description: Description
+) {
+  return new Promise((resolve, reject) => {
+    if (settings.nadirPath !== '') {
+      const filename = item.Image || '';
+      const existingfile = path.join(settings.name, filename);
+      const outputfile = path.join(
+        settings.name,
+        'final_unblurred',
+        `${filename}`
+      );
+      console.log(`Start Adding Logo: filename ${filename}`);
+
+      const addLogoAsync = addLogo(existingfile, settings.nadirPath)
+        .then((image) => {
+          return image.writeAsync(outputfile);
+        })
+        .catch((err) => {
+          console.log(`Read File Error in Jimp: ${filename} - `, err);
+          return reject();
+        });
+      const writeExifAsync = addLogoAsync
+        .then(() =>
+          writeExifTags(outputfile, item, {
+            ...description,
+            photo: { ...description.photo, uploader_nadir_added: true },
+          })
+        )
+        .catch((err) => {
+          console.error(`Add Logo Error:  ${filename} - `, err);
+          return reject();
+        });
+      writeExifAsync
+        .then(() => resolve())
+        .catch((err) => {
+          console.log(
+            `Writing ExifTags for Image added Nadir: ${outputfile} - `,
+            err
+          );
+          reject(err);
+        });
+    } else {
+      return resolve();
+    }
+  });
+}
+
+export function writeBlurredImage(
+  item: IGeoPoint,
+  settings: any,
+  description: Description
+) {
+  return new Promise((resolve, reject) => {
+    const filename = item.Image || '';
+    const inputfile = path.join(settings.name, filename);
+    const outputfile = path.join(settings.name, 'final_burred', filename);
+    console.log(`Start Updating Jimp: filename ${inputfile}`);
+    const jimpAsync = jimp
+      .read(inputfile)
+      .then((image) => {
+        return image.blur(10).writeAsync(outputfile);
+      })
+      .catch((err) => {
+        console.log(`Read Error in Jimp: ${filename} - `, err);
+        return reject(err);
+      });
+    const writeExifAsync = jimpAsync
+      .then(() => writeExifTags(outputfile, item, description))
+      .catch((err) => {
+        console.log(`Write Error in Jimp: ${filename} - `, err);
+        return reject(err);
+      });
+    writeExifAsync
+      .then(() => resolve())
+      .catch((err) => {
+        console.log(
+          `Writing ExifTags for Blurred Image: ${outputfile} - `,
+          err
+        );
+        reject(err);
+      });
+  });
 }
 
 export function updateImages(points: IGeoPoint[], settings: any) {
@@ -362,6 +501,7 @@ export function updateImages(points: IGeoPoint[], settings: any) {
 
     const totaldistance = updatedPoints.reduce(
       (res: number, item: IGeoPoint) => {
+        // eslint-disable-next-line no-param-reassign
         res += item.Distance || 0;
         return res;
       },
@@ -369,6 +509,7 @@ export function updateImages(points: IGeoPoint[], settings: any) {
     );
 
     if (updatedPoints.length === 0) {
+      // eslint-disable-next-line prefer-promise-reject-errors
       return reject('There are not images after calculating');
     }
 
@@ -376,7 +517,7 @@ export function updateImages(points: IGeoPoint[], settings: any) {
       .getDate()
       .diff(updatedPoints[0].getDate(), 'second');
 
-    const resultjson = {
+    const resultjson: Result = {
       sequence: {
         id: sequenceId,
         distance_km: totaldistance / 1000,
@@ -396,37 +537,37 @@ export function updateImages(points: IGeoPoint[], settings: any) {
       photo: {},
     };
 
-    const descriptions = {};
+    const descriptions: Descriptions = {};
 
     updatedPoints.forEach((p: IGeoPoint, idx: number) => {
-      const connections = {};
+      const connections: Connections = {};
       if (idx !== 0) {
         const prevItem = updatedPoints[idx - 1];
         const deltatime = p.getDate().diff(prevItem.getDate(), 'second');
+        const distance = p.Distance || 0;
         connections[prevItem.id] = {
-          distance_mtrs: prevItem.Distance,
-          heading_deg: prevItem.Azimuth,
-          pitch_deg: prevItem.Pitch,
+          distance_mtrs: distance,
+          heading_deg: prevItem.Azimuth || 0,
+          pitch_deg: prevItem.Pitch || 0,
           time_sec: deltatime,
           speed_kmh:
-            deltatime !== 0
-              ? (prevItem.Distance * 3600) / (deltatime * 1000)
-              : 0,
+            deltatime !== 0 ? (distance * 3600) / (deltatime * 1000) : 0,
         };
       }
       if (idx < updatedPoints.length - 1) {
         const nextItem = updatedPoints[idx + 1];
         const deltatime = p.getDate().diff(nextItem.getDate(), 'second');
+        const distance = p.Distance || 0;
         connections[nextItem.id] = {
-          distance_mtrs: p.Distance,
-          heading_deg: p.Azimuth,
-          pitch_deg: p.Pitch,
+          distance_mtrs: distance,
+          heading_deg: p.Azimuth || 0,
+          pitch_deg: p.Pitch || 0,
           time_sec: deltatime,
           speed_kmh:
-            deltatime !== 0 ? (p.Distance * 3600) / (deltatime * 1000) : 0,
+            deltatime !== 0 ? (distance * 3600) / (deltatime * 1000) : 0,
         };
       }
-      const photodict = {
+      const photodict: Photo = {
         id: p.id,
         cli_frame_rate_set: '',
         original_GPSDateTime: p.origin_GPSDateTime,
@@ -443,7 +584,7 @@ export function updateImages(points: IGeoPoint[], settings: any) {
         connections,
       };
 
-      resultjson.photo[`${idx + 1}`] = photodict;
+      resultjson.photo[(idx + 1).toString()] = photodict;
 
       descriptions[p.id] = {
         photo: photodict,
@@ -454,77 +595,30 @@ export function updateImages(points: IGeoPoint[], settings: any) {
     Async.each(
       updatedPoints,
       (item: IGeoPoint, next: any) => {
-        const filename = item.Image;
-        const filepath = path.join(settings.name, filename);
-        const datetime = dayjs(item.GPSDateTime);
-        Async.waterfall(
+        const desc: Description = descriptions[item.id];
+        Async.parallel(
           [
-            // (cb: CallableFunction) => {
-            //   const newfile = path.join(settings.name, filename);
-            //   fs.copyFile(filepath, newfile, (err) => {
-            //     if (err) cb(err);
-            //     else {
-            //       cb(null, newfile);
-            //     }
-            //   });
-            // },
             (cb: CallableFunction) => {
-              const newfile = path.join(settings.name, filename);
-              exiftool
-                .write(
-                  newfile,
-                  {
-                    AllDates: datetime.format('YYYY-MM-DDTHH:mm:ss'),
-                    GPSTimeStamp: datetime.format('HH:mm:ss'),
-                    GPSDateStamp: datetime.format('YYYY-MM-DD'),
-                    GPSLatitude: item.GPSLatitude,
-                    GPSLongitude: item.GPSLongitude,
-                    GPSAltitude: item.GPSAltitude,
-                    PoseHeadingDegrees: item.Azimuth,
-                    GPSImgDirection: item.Azimuth,
-                    CameraElevationAngle: item.Pitch,
-                    PosePitchDegrees: item.Pitch,
-                    ImageDescription: JSON.stringify(descriptions[item.id]),
-                  },
-                  ['-overwrite_original']
-                )
-                .then(() => {
-                  return cb(null, newfile);
-                })
-                .catch((error: any) => {
-                  console.error('Error in writing tags: ', error);
-                  cb(error);
-                });
+              const filename = item.Image || '';
+              const inputfile = path.join(settings.name, filename);
+              const outputfile = path.join(
+                settings.name,
+                'final_raw',
+                filename
+              );
+              writeExifTags(inputfile, item, desc, outputfile)
+                .then(() => cb(null))
+                .catch((err) => cb(err));
             },
-            (exiffile: string, cb: CallableFunction) => {
-              if (settings.nadirPath !== '') {
-                addLogo(exiffile, settings.nadirPath)
-                  .then((image) => {
-                    image.write(
-                      path.join(settings.name, `unblurred_${filename}`)
-                    );
-                    return cb(null, exiffile);
-                  })
-                  .catch((err) => {
-                    console.log(`JIMP ADD NADIR ${filename} - `, err);
-                    cb(err);
-                  });
-              } else {
-                cb(null, exiffile);
-              }
+            (cb: CallableFunction) => {
+              writeNadirImages(item, settings, desc)
+                .then(() => cb(null))
+                .catch((err) => cb(err));
             },
-            (exiffile: string, cb: CallableFunction) => {
-              jimp
-                .read(exiffile)
-                .then((image) => {
-                  return image
-                    .blur(10)
-                    .write(path.join(settings.name, `blurred_${filename}`));
-                })
-                .catch((err) => {
-                  console.log(`JIMP BLUR: ${filename} - `, err);
-                  cb(err);
-                });
+            (cb: CallableFunction) => {
+              writeBlurredImage(item, settings, desc)
+                .then(() => cb(null))
+                .catch((err) => cb(err));
             },
           ],
           (err) => {
