@@ -1,5 +1,4 @@
 import React from 'react';
-import { IpcRendererEvent } from 'electron';
 import LandscapeIcon from '@material-ui/icons/Landscape';
 import PoolIcon from '@material-ui/icons/Pool';
 import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
@@ -24,9 +23,8 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import Chip from '@material-ui/core/Chip';
 
-import { Map, TileLayer, Marker } from 'react-leaflet';
-
 import { setRemoveSeq } from './slice';
+import { Summary } from '../../types/Result';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -55,11 +53,15 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Sequence({ data }) {
+interface Props {
+  data: Summary;
+}
+
+export default function Sequence({ data }: Props) {
   const dispatch = useDispatch();
   const classes = useStyles();
 
-  const type = {
+  const types = {
     Land: <LandscapeIcon color="primary" />,
     Water: <PoolIcon color="primary" />,
     Air: <FlightTakeoffIcon color="primary" />,
@@ -77,44 +79,25 @@ export default function Sequence({ data }) {
   const { points } = data;
 
   const centerPoint = () => {
-    // if (points.length) {
-    //   const centerpoint = points[points.length / 2];
-    //   return [centerpoint.GPSLatitude, centerpoint.GPSLongitude];
-    // }
     return [51.5, -0.09];
   };
 
-  const removeSeq = (name: string) => {
-    dispatch(setRemoveSeq(name));
+  const removeSeq = (id: string) => {
+    dispatch(setRemoveSeq(id));
 
-    ipcRenderer.send('remove-seq', name);
+    ipcRenderer.send('remove-seq', id);
   };
 
   return (
     <Grid xs={12} item className={classes.container}>
       <IconButton
         className={classes.removeButton}
-        onClick={() => removeSeq(data.name)}
+        onClick={() => removeSeq(data.id)}
       >
         <DeleteOutlineIcon />
       </IconButton>
       <Grid container alignItems="center" spacing={3}>
-        <Grid xs={4} item>
-          <Map zoom={18} center={centerPoint()} className={classes.map}>
-            <TileLayer
-              attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            {/* {points.map((point, idx) => {
-              return (
-                <Marker
-                  key={`marker-${idx.toString()}`}
-                  position={[point.GPSLatitude, point.GPSLongitude]}
-                />
-              );
-            })} */}
-          </Map>
-        </Grid>
+        <Grid xs={4} item />
         <Grid xs={5} item>
           <Typography variant="h5" color="primary" align="left">
             {data.name}
@@ -124,7 +107,7 @@ export default function Sequence({ data }) {
           </Typography>
           <Box className={classes.information}>
             <div>
-              {type[data.type]}
+              {types[data.type]}
               <Typography color="primary" variant="caption" display="block">
                 {data.type}
               </Typography>

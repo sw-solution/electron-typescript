@@ -3,13 +3,23 @@ import { useDispatch, useSelector } from 'react-redux';
 import ReactMapboxGl, { Layer, Feature, Marker } from 'react-mapbox-gl';
 
 import Typography from '@material-ui/core/Typography';
-import { Grid, Button, Box } from '@material-ui/core';
+import { Grid, Button, Box, Slider } from '@material-ui/core';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import { IGeoPoint } from '../../types/IGeoPoint';
 
-import { setSequenceCurrentStep, selPoints } from './slice';
+import {
+  setSequenceCurrentStep,
+  selPoints,
+  selSequenceFrame,
+  setSequenceFrame,
+} from './slice';
 
 export default function SequenceModifySpace() {
   const dispatch = useDispatch();
+  const propframe = useSelector(selSequenceFrame);
+
+  const [frames, setFrame] = React.useState<number>(propframe);
+
   const points = useSelector(selPoints);
 
   const resetMode = () => {
@@ -17,20 +27,25 @@ export default function SequenceModifySpace() {
   };
 
   const confirmMode = () => {
-    dispatch(setSequenceCurrentStep('tags'));
-  };
-
-  const editOutliers = () => {
+    dispatch(setSequenceFrame(frames));
     dispatch(setSequenceCurrentStep('outlier'));
   };
 
-  const editFrames = () => {
-    dispatch(setSequenceCurrentStep('frames'));
+  const handleSliderChange = (_event: any, newValue: number) => {
+    setFrame(newValue);
   };
 
-  const editDirection = () => {
-    dispatch(setSequenceCurrentStep('azimuth'));
-  };
+  // const editOutliers = () => {
+  //   dispatch(setSequenceCurrentStep('outlier'));
+  // };
+
+  // const editFrames = () => {
+  //   dispatch(setSequenceCurrentStep('frames'));
+  // };
+
+  // const editDirection = () => {
+  //   dispatch(setSequenceCurrentStep('azimuth'));
+  // };
 
   const centerPoint = () => {
     if (points.length) {
@@ -48,8 +63,30 @@ export default function SequenceModifySpace() {
   };
 
   const Map = ReactMapboxGl({
-    accessToken:
-      'pk.eyJ1IjoidHJla3ZpZXciLCJhIjoiY2tjeWdubXdnMDluYzMwcGdpaXkyZ3JxdyJ9.Lt90NQ1VErfUm8wRyGizGA',
+    accessToken: process.env.MAPBOX_TOKEN || '',
+  });
+
+  const markers = points.map((point: IGeoPoint, idx: number) => {
+    return (
+      <Marker
+        key={`marker-${idx.toString()}`}
+        coordinates={[point.GPSLongitude || 0, point.GPSLatitude || 0]}
+        anchor="center"
+      >
+        <div
+          style={{
+            borderBottom: 'solid 10px #3f51b5',
+            borderLeft: 'solid 10px transparent',
+            borderRight: 'solid 10px transparent',
+            boxSizing: 'border-box',
+            display: 'inline-block',
+            height: '20px',
+            width: '20px',
+            transform: `rotate(${point.Azimuth}deg)`,
+          }}
+        />
+      </Marker>
+    );
   });
 
   return (
@@ -58,32 +95,13 @@ export default function SequenceModifySpace() {
         <Typography variant="h6" align="center" color="textSecondary">
           Modify GPS
         </Typography>
+        <Slider
+          value={frames}
+          onChange={handleSliderChange}
+          aria-labelledby="input-slider"
+        />
       </Grid>
       <Grid item xs={12}>
-        <Box mb={3} display="flex" style={{ justifyContent: 'center' }}>
-          <Button
-            onClick={editOutliers}
-            variant="contained"
-            size="small"
-            style={{ marginRight: '20px' }}
-          >
-            Edit Outliers
-          </Button>
-
-          <Button
-            onClick={editFrames}
-            variant="contained"
-            size="small"
-            style={{ marginRight: '20px' }}
-          >
-            Edit Frames
-          </Button>
-
-          <Button onClick={editDirection} variant="contained" size="small">
-            Edit Direction
-          </Button>
-        </Box>
-
         <Map
           style="mapbox://styles/mapbox/streets-v8"
           containerStyle={{
@@ -92,25 +110,7 @@ export default function SequenceModifySpace() {
           center={centerPoint()}
           fitBounds={fitBounds()}
         >
-          {points.map((point, idx) => {
-            return (
-              <Marker
-                key={`marker-${idx.toString()}`}
-                coordinates={[point.GPSLongitude, point.GPSLatitude]}
-                anchor="bottom"
-              >
-                <div
-                  style={{
-                    borderBottom: 'solid 10px #3f51b5',
-                    borderLeft: 'solid 10px transparent',
-                    borderRight: 'solid 10px transparent',
-                    height: '20px',
-                    width: '20px',
-                  }}
-                />
-              </Marker>
-            );
-          })}
+          {markers}
         </Map>
       </Grid>
       <Grid item xs={12}>

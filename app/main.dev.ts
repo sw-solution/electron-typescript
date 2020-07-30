@@ -13,13 +13,16 @@ import { app, BrowserWindow, ipcMain, IpcMainEvent, dialog } from 'electron';
 
 import fs from 'fs';
 import rimraf from 'rimraf';
+import dotenv from 'dotenv';
 
 import { processVideo } from './scripts/video';
 import { loadImages, updateImages } from './scripts/image';
 import { sendToClient, sendPoints, createdData2List } from './scripts/utils';
 import { readGPX } from './scripts/utils/gpx';
+import { Results, Summary } from './types/Result';
 
 let mainWindow: BrowserWindow | null = null;
+dotenv.config();
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -150,7 +153,7 @@ ipcMain.on('load_gpx', (_event: IpcMainEvent, gpxpath: string) => {
 const log = 'result.json';
 
 ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
-  let result = {};
+  let result: Results = {};
   if (fs.existsSync(log)) {
     result = JSON.parse(fs.readFileSync(log).toString());
   }
@@ -170,22 +173,11 @@ ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
 });
 
 ipcMain.on('sequences', async (_event: IpcMainEvent) => {
-  console.log('start loading');
   if (!fs.existsSync(log)) {
     sendToClient(mainWindow, 'loaded_all', []);
   } else {
     const logdata = JSON.parse(fs.readFileSync(log).toString());
-    const result: {
-      tags: any;
-      name: any;
-      description: any;
-      type: any;
-      method: any;
-      points: any;
-      created: any;
-      captured: any;
-      total_km: number;
-    }[] = [];
+    const result: Summary[] = [];
 
     Object.keys(logdata).forEach(async (id: string) => {
       result.push(createdData2List(logdata[id]));
@@ -194,20 +186,23 @@ ipcMain.on('sequences', async (_event: IpcMainEvent) => {
   }
 });
 
-ipcMain.on('remove-seq', async (_event: IpcMainEvent, name: string) => {
-  let result = [];
+ipcMain.on('remove-seq', async (_event: IpcMainEvent, id: string) => {
+  let result: Results = {};
   if (fs.existsSync(log)) {
     result = JSON.parse(fs.readFileSync(log).toString());
   }
-  if (fs.existsSync(name)) {
-    rimraf.sync(name);
+  if (result[id]) {
+    const name = result[id].sequence.uploader_sequence_name;
+    if (fs.existsSync(name)) {
+      rimraf.sync(name);
+    }
+    const storefile = `${name}.json`;
+    if (fs.existsSync(storefile)) {
+      fs.unlinkSync(storefile);
+    }
+    delete result[id];
+    fs.writeFileSync(log, JSON.stringify(result));
   }
-  const storefile = `${name}.json`;
-  if (fs.existsSync(storefile)) {
-    fs.unlinkSync(storefile);
-  }
-  result = result.filter((n: string) => n !== name);
-  fs.writeFileSync(log, JSON.stringify(result));
 });
 
 /**

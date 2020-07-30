@@ -1,5 +1,6 @@
 import { BrowserWindow } from 'electron';
 import { IGeoPoint } from '../../types/IGeoPoint';
+import { Result, Summary } from '../../types/Result';
 
 export function sendToClient(
   win: BrowserWindow | null,
@@ -48,14 +49,15 @@ export function getDistance(point1: any, point2: any) {
   return d;
 }
 
-export function createdData2List(data: any) {
+export function createdData2List(data: Result): Summary {
   const { sequence, photo } = data;
   return {
+    id: sequence.id,
     tags: sequence.uploader_tags,
     name: sequence.uploader_sequence_name,
     description: sequence.uploader_sequence_description,
-    type: sequence.type,
-    method: sequence.uploader_transport_type,
+    type: sequence.uploader_transport_type,
+    method: sequence.uploader_transport_method,
     points: Object.values(photo),
     total_km: sequence.distance_km,
     created: sequence.created,
@@ -69,13 +71,17 @@ export function getBearing(point1: IGeoPoint, point2: IGeoPoint) {
   const lng2 = point2.GPSLongitude;
   const lat2 = point2.GPSLatitude;
 
+  console.log('POINT1: ', lng1, lat1);
+  console.log('POINT2: ', lng2, lat2);
+
   const dLon = lng2 - lng1;
   const y = Math.sin(dLon) * Math.cos(lat2);
   const x =
     Math.cos(lat1) * Math.sin(lat2) -
     Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-  const brng = deg2rad(Math.atan2(y, x));
-  return 360 - ((brng + 360) % 360);
+  const brng = (Math.atan2(y, x) * 180) / Math.PI;
+  console.log('Azimuth: ', brng);
+  return brng;
 }
 
 export function getPitch(

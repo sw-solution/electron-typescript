@@ -1,14 +1,22 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import Typography from '@material-ui/core/Typography';
-import { Grid, Button, Box, TextField } from '@material-ui/core';
+import {
+  Grid,
+  Button,
+  Box,
+  TextField,
+  Tooltip,
+  Typography,
+} from '@material-ui/core';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
 import {
   selSequenceOutlierMeter,
   setSequenceCurrentStep,
-  setSequenceSmothPoints,
-  setSequenceDiscardPoints,
+  setSequenceSmooth,
+  setSequenceDiscard,
+  setSequenceOutlierMeters,
 } from './slice';
 
 export default function SequenceModifyOutlier() {
@@ -18,17 +26,21 @@ export default function SequenceModifyOutlier() {
   const [meters, setMeters] = React.useState<number>(propMeters);
 
   const smoothMode = () => {
-    if (meters > 0) {
-      dispatch(setSequenceSmothPoints(meters));
-      dispatch(setSequenceCurrentStep('modifySpace'));
-    }
+    dispatch(setSequenceSmooth());
   };
 
   const removeMode = () => {
-    if (meters > 0) {
-      dispatch(setSequenceDiscardPoints(meters));
-      dispatch(setSequenceCurrentStep('modifySpace'));
-    }
+    dispatch(setSequenceDiscard());
+  };
+
+  const resetMode = () => {
+    dispatch(setSequenceOutlierMeters(0));
+    dispatch(setSequenceCurrentStep('modifySpace'));
+  };
+
+  const confirmMode = () => {
+    dispatch(setSequenceOutlierMeters(meters));
+    dispatch(setSequenceCurrentStep('azimuth'));
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,32 +54,55 @@ export default function SequenceModifyOutlier() {
           Edit Photo Outliers
         </Typography>
       </Grid>
-      <Grid item xs={12}>
-        <Box mb={1}>
-          <TextField label="Meters" placeholder="0" onChange={handleChange} />
-        </Box>
-      </Grid>
       <Grid item xs={12} style={{ paddingBottom: '30px' }}>
         <Box mb={1} display="flex" style={{ justifyContent: 'center' }}>
-          <Box mr={4} display="inline-block">
+          <Box mr={2} display="inline-block">
+            <TextField label="Meters" placeholder="0" onBlur={handleChange} />
+          </Box>
+
+          <Box mr={2} display="inline-block">
+            <Tooltip title={`Smooth outliers greater than ${meters} meters`}>
+              <Button
+                onClick={smoothMode}
+                variant="contained"
+                size="small"
+                color="primary"
+              >
+                Smooth
+              </Button>
+            </Tooltip>
+          </Box>
+          <Tooltip title={`Remove outliers greater than ${meters} meters`}>
             <Button
-              onClick={smoothMode}
+              onClick={removeMode}
               variant="contained"
               size="small"
               color="primary"
             >
-              Smooth outliers greater than meters
+              Remove
             </Button>
-          </Box>
+          </Tooltip>
+        </Box>
+      </Grid>
+      <Grid item xs={12}>
+        <Box mr={1} display="inline-block">
           <Button
-            onClick={removeMode}
+            endIcon={<ChevronRightIcon />}
+            color="secondary"
+            onClick={resetMode}
             variant="contained"
-            size="small"
-            color="primary"
           >
-            Remove outliers greater than meters
+            Reset Mods
           </Button>
         </Box>
+        <Button
+          endIcon={<ChevronRightIcon />}
+          color="primary"
+          onClick={confirmMode}
+          variant="contained"
+        >
+          Confirm Mods
+        </Button>
       </Grid>
     </>
   );

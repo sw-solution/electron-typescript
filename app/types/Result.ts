@@ -9,7 +9,7 @@ export interface Sequence {
   uploader_sequence_description: string;
   uploader_transport_type: string;
   uploader_transport_method: string;
-  uploader_tags: string;
+  uploader_tags: string[];
   created: string;
 }
 
@@ -58,4 +58,21 @@ export interface Description {
 
 export interface Descriptions {
   [key: string]: Description;
+}
+
+export interface Results {
+  [key: string]: Result;
+}
+
+export interface Summary {
+  id: string;
+  tags: string[];
+  name: string;
+  description: string;
+  type: string;
+  method: string;
+  points: Photo[];
+  created: string;
+  captured: string;
+  total_km: number;
 }

@@ -21,12 +21,14 @@ const initialState = {
     },
     startTime: '',
     modifyTime: 0,
-    modifySpace: '',
+    modifySpace: {
+      frame: 0,
+      position: 0,
+    },
     outlier: {
       meters: 0,
       mode: '',
     },
-    frames: 1,
     azimuth: 0,
     tags: [],
     nadir: '',
@@ -126,22 +128,30 @@ const createSequenceSlice = createSlice({
       });
       state.points = [...points];
     },
-    smoothPoints: (state, { payload }) => {
+    setSmooth: (state) => {
       state.steps.outlier = {
         ...state.steps.outlier,
         mode: 'S',
-        meters: payload,
       };
     },
-    discardPoints: (state, { payload }) => {
+
+    setDiscard: (state) => {
       state.steps.outlier = {
         ...state.steps.outlier,
         mode: 'D',
+      };
+    },
+    setOutlierMeters: (state, { payload }) => {
+      state.steps.outlier = {
+        ...state.steps.outlier,
         meters: payload,
       };
     },
     setFrame: (state, { payload }) => {
-      state.steps.frames = payload;
+      state.steps.modifySpace = {
+        ...state.steps.modifySpace,
+        frame: payload,
+      };
     },
     setInit: (state) => {
       state = {
@@ -170,8 +180,9 @@ export const {
   setPoints,
   setGpxPoints,
   setModifyPoints,
-  smoothPoints,
-  discardPoints,
+  setDiscard,
+  setSmooth,
+  setOutlierMeters,
   setFrame,
   setInit,
 } = createSequenceSlice.actions;
@@ -286,27 +297,27 @@ export const setSequenceGpxPoints = (points: any): AppThunk => {
   };
 };
 
-export const setSequenceSmothPoints = (meters: number): AppThunk => {
+export const setSequenceSmooth = (): AppThunk => {
   return (dispatch) => {
-    dispatch(smoothPoints(meters));
+    dispatch(setSmooth());
   };
 };
 
-export const setSequenceDiscardPoints = (meters: number): AppThunk => {
+export const setSequenceDiscard = (): AppThunk => {
   return (dispatch) => {
-    dispatch(discardPoints(meters));
+    dispatch(setDiscard());
+  };
+};
+
+export const setSequenceOutlierMeters = (meters: number): AppThunk => {
+  return (dispatch) => {
+    dispatch(setOutlierMeters(meters));
   };
 };
 
 export const setSequenceFrame = (frame: number): AppThunk => {
   return (dispatch) => {
     dispatch(setFrame(frame));
-  };
-};
-
-export const setSequence = (meters: number): AppThunk => {
-  return (dispatch) => {
-    dispatch(discardPoints(meters));
   };
 };
 
@@ -335,11 +346,6 @@ export const selSequenceAttachType = (state: RootState) =>
   state.create.steps.attachType;
 
 export const getPrevStep = (state: RootState) => {
-  if (
-    state.create.currentStep === 'frames' ||
-    state.create.currentStep === 'azimuth'
-  )
-    return 'modifySpace';
   if (state.create.currentStep === 'processPage') return '';
   const pages = Object.keys(state.create.steps);
 
@@ -374,7 +380,8 @@ export const selSequence = (state: RootState) => state.create;
 export const selSequenceOutlierMeter = (state: RootState) =>
   state.create.steps.outlier.meters;
 
-export const selSequenceFrame = (state: RootState) => state.create.steps.frames;
+export const selSequenceFrame = (state: RootState) =>
+  state.create.steps.modifySpace.frame;
 
 export const selSequenceAzimuth = (state: RootState) =>
   state.create.steps.azimuth;

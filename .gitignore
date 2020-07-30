@@ -55,3 +55,4 @@ yarn.lock
 *.jpg
 *.JPG
 *.png
+.env

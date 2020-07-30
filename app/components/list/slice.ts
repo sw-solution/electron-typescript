@@ -1,12 +1,20 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { RootState, AppThunk } from '../../store';
+import { Summary } from '../../types/Result';
+
+interface State {
+  seqs: Summary[];
+  loaded: boolean;
+}
+
+const initialState: State = {
+  seqs: [],
+  loaded: false,
+};
 
 const listSlice = createSlice({
   name: 'list',
-  initialState: {
-    seqs: [],
-    loaded: false,
-  },
+  initialState,
   reducers: {
     startLoad(state) {
       state.loaded = false;
@@ -19,7 +27,7 @@ const listSlice = createSlice({
       state.seqs = [...state.seqs, payload];
     },
     removeSeq(state, { payload }) {
-      state.seqs = state.seqs.filter((s) => s.name !== payload);
+      state.seqs = state.seqs.filter((s) => s.id !== payload);
     },
   },
 });
@@ -31,20 +39,20 @@ export default listSlice.reducer;
 export const selLoaded = (state: RootState) => state.list.loaded;
 export const selSeqs = (state: RootState) => state.list.seqs;
 
-export const setEndLoad = (seqs: any[]): AppThunk => {
+export const setEndLoad = (seqs: Summary[]): AppThunk => {
   return (dispatch) => {
     dispatch(endLoad(seqs));
   };
 };
 
-export const setAddSeq = (seq: any): AppThunk => {
+export const setAddSeq = (seq: Summary): AppThunk => {
   return (dispatch) => {
     dispatch(addSeq(seq));
   };
 };
 
-export const setRemoveSeq = (name: string): AppThunk => {
+export const setRemoveSeq = (id: string): AppThunk => {
   return (dispatch) => {
-    dispatch(removeSeq(name));
+    dispatch(removeSeq(id));
   };
 };

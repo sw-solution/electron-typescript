@@ -25,6 +25,7 @@ import Logo from '../Logo';
 import { selLoaded, selSeqs, setEndLoad } from './slice';
 
 import routes from '../../constants/routes.json';
+import { Summary } from '../../types/Result';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -61,9 +62,12 @@ export default function ListPageWrapper() {
   if (!loaded) {
     ipcRenderer.send('sequences');
   }
-  ipcRenderer.on('loaded_all', (_event: IpcRendererEvent, points) => {
-    dispatch(setEndLoad(points));
-  });
+  ipcRenderer.on(
+    'loaded_all',
+    (_event: IpcRendererEvent, sequences: Summary[]) => {
+      dispatch(setEndLoad(sequences));
+    }
+  );
 
   useEffect(() => {
     return () => {
@@ -71,8 +75,8 @@ export default function ListPageWrapper() {
     };
   });
 
-  const items = seqs.map((item) => {
-    return <Sequence data={item} key={item.name} />;
+  const items = seqs.map((item: Summary) => {
+    return <Sequence data={item} key={item.id} />;
   });
 
   return (

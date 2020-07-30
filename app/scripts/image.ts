@@ -7,10 +7,8 @@ import jimp from 'jimp';
 import { IGeoPoint } from '../types/IGeoPoint';
 import {
   Result,
-  Sequence,
   Photo,
   Connections,
-  Connection,
   Descriptions,
   Description,
 } from '../types/Result';

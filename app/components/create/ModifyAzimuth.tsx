@@ -4,11 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import Typography from '@material-ui/core/Typography';
 import { Grid, Button, Box, TextField } from '@material-ui/core';
 
-import {
-  setSequenceCurrentStep,
-  selSequenceAzimuth,
-  setSequenceAzimuth,
-} from './slice';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import { setSequenceCurrentStep, selSequenceAzimuth } from './slice';
 
 export default function SequenceModifyAzimuth() {
   const dispatch = useDispatch();
@@ -20,11 +17,12 @@ export default function SequenceModifyAzimuth() {
     if (event.target.value) setAzimuth(parseFloat(event.target.value));
   };
 
-  const confirm = () => {
-    if (azimuth !== 0) {
-      dispatch(setSequenceAzimuth(azimuth));
-    }
-    dispatch(setSequenceCurrentStep('modifySpace'));
+  const resetMode = () => {
+    dispatch(setSequenceCurrentStep('outlier'));
+  };
+
+  const confirmMode = () => {
+    dispatch(setSequenceCurrentStep('tags'));
   };
 
   return (
@@ -54,17 +52,25 @@ export default function SequenceModifyAzimuth() {
           onChange={handleChange}
         />
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
-        <Box mb={1} display="flex" style={{ justifyContent: 'center' }}>
+      <Grid item xs={12}>
+        <Box mr={1} display="inline-block">
           <Button
-            onClick={confirm}
+            endIcon={<ChevronRightIcon />}
+            color="secondary"
+            onClick={resetMode}
             variant="contained"
-            size="small"
-            color="primary"
           >
-            OK
+            Reset Mods
           </Button>
         </Box>
+        <Button
+          endIcon={<ChevronRightIcon />}
+          color="primary"
+          onClick={confirmMode}
+          variant="contained"
+        >
+          Confirm Mods
+        </Button>
       </Grid>
     </>
   );
