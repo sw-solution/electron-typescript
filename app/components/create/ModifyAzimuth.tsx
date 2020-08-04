@@ -5,16 +5,30 @@ import Typography from '@material-ui/core/Typography';
 import { Grid, Button, Box, TextField } from '@material-ui/core';
 
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import { setSequenceCurrentStep, selSequenceAzimuth } from './slice';
+import Map from './Map';
+import { setSequenceCurrentStep, selSequenceAzimuth, selPoints } from './slice';
+import { IGeoPoint } from '../../types/IGeoPoint';
 
 export default function SequenceModifyAzimuth() {
   const dispatch = useDispatch();
   const propazimuth = useSelector(selSequenceAzimuth);
+  const proppoints = useSelector(selPoints);
 
   const [azimuth, setAzimuth] = React.useState<number>(propazimuth);
+  const [points, setPoints] = React.useState<IGeoPoint[]>(proppoints);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.value) setAzimuth(parseFloat(event.target.value));
+    if (event.target.value) {
+      const newazimuth = parseFloat(event.target.value);
+      setAzimuth(newazimuth);
+      const newpoints = points.map((p: IGeoPoint) => {
+        return new IGeoPoint({
+          ...p,
+          Azimuth: (p.Azimuth || 0) + newazimuth,
+        });
+      });
+      setPoints(newpoints);
+    }
   };
 
   const resetMode = () => {
@@ -31,19 +45,6 @@ export default function SequenceModifyAzimuth() {
         <Typography variant="h6" align="center" color="textSecondary">
           Modify Heading
         </Typography>
-        <Typography paragraph align="center" color="textSecondary">
-          Edit the direction images are facing
-        </Typography>
-      </Grid>
-      <Grid
-        item
-        xs={12}
-        style={{
-          paddingBottom: '30px',
-          display: 'flex',
-          justifyContent: 'center',
-        }}
-      >
         <TextField
           id="outlined-basic"
           label="Azimuth"
@@ -51,6 +52,9 @@ export default function SequenceModifyAzimuth() {
           value={azimuth}
           onChange={handleChange}
         />
+      </Grid>
+      <Grid item xs={12}>
+        <Map points={points} />
       </Grid>
       <Grid item xs={12}>
         <Box mr={1} display="inline-block">

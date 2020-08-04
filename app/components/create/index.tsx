@@ -34,7 +34,6 @@ import StartTime from './StartTime';
 import ModifyTime from './ModifyTime';
 import ModifySpace from './ModifySpace';
 import ModifyOutlier from './ModifyOutlier';
-import ModifyFrame from './ModifyFrame';
 import ModifyAzimuth from './ModifyAzimuth';
 import Tags from './Tags';
 import Nadir from './Nadir';
@@ -205,7 +204,6 @@ export default function CreatePageWrapper() {
                 {currentStep === 'modifyTime' && <ModifyTime />}
                 {currentStep === 'modifySpace' && <ModifySpace />}
                 {currentStep === 'outlier' && <ModifyOutlier />}
-                {currentStep === 'frames' && <ModifyFrame />}
                 {currentStep === 'azimuth' && <ModifyAzimuth />}
                 {currentStep === 'tags' && <Tags />}
                 {currentStep === 'nadir' && <Nadir />}

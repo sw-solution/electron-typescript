@@ -128,6 +128,7 @@ const createSequenceSlice = createSlice({
       });
       state.points = [...points];
     },
+
     setSmooth: (state) => {
       state.steps.outlier = {
         ...state.steps.outlier,
@@ -151,6 +152,12 @@ const createSequenceSlice = createSlice({
       state.steps.modifySpace = {
         ...state.steps.modifySpace,
         frame: payload,
+      };
+    },
+    setPosition: (state, { payload }) => {
+      state.steps.modifySpace = {
+        ...state.steps.modifySpace,
+        position: payload,
       };
     },
     setInit: (state) => {
@@ -184,6 +191,7 @@ export const {
   setSmooth,
   setOutlierMeters,
   setFrame,
+  setPosition,
   setInit,
 } = createSequenceSlice.actions;
 
@@ -321,6 +329,12 @@ export const setSequenceFrame = (frame: number): AppThunk => {
   };
 };
 
+export const setSequencePosition = (position: number): AppThunk => {
+  return (dispatch) => {
+    dispatch(setPosition(position));
+  };
+};
+
 export const setSequenceInit = (): AppThunk => {
   return (dispatch) => {
     dispatch(setInit());
@@ -380,8 +394,14 @@ export const selSequence = (state: RootState) => state.create;
 export const selSequenceOutlierMeter = (state: RootState) =>
   state.create.steps.outlier.meters;
 
+export const selSequenceOutlierMode = (state: RootState) =>
+  state.create.steps.outlier.mode;
+
 export const selSequenceFrame = (state: RootState) =>
   state.create.steps.modifySpace.frame;
+
+export const selSequencePosition = (state: RootState) =>
+  state.create.steps.modifySpace.position;
 
 export const selSequenceAzimuth = (state: RootState) =>
   state.create.steps.azimuth;

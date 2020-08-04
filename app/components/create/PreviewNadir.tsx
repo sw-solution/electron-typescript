@@ -7,6 +7,7 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import Box from '@material-ui/core/Box';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import { Pannellum } from '360-react-pannellum';
 
 import {
   setSequenceCurrentStep,
@@ -47,15 +48,14 @@ export default function SequencePreviewNadir() {
         <Typography align="center" color="textSecondary" />
       </Grid>
       <Grid item xs={12}>
-        <div
-          style={{
-            backgroundImage: `url(../${name}/${point.Image})`,
-            width: '300px',
-            height: '300px',
-            backgroundSize: '100% auto',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-          }}
+        <Pannellum
+          width="100%"
+          height="200px"
+          imagePath="https://pannellum.org/images/alma.jpg"
+          closeButtonTitle="Close"
+          showZoomCtrl={false}
+          showFullscreenCtrl={false}
+          autoLoad
         />
       </Grid>
       <Grid item xs={12}>

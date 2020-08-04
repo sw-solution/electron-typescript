@@ -39,7 +39,10 @@
   "build": {
     "productName": "OpmDesktopUploader",
     "appId": "org.develar.OpmDesktopUploader",
-    "asarUnpack": ["node_modules/exiftool-vendored.*/**/*", "node_modules/@ffmpeg-installer/**/*"],
+    "asarUnpack": [
+      "node_modules/exiftool-vendored.*/**/*",
+      "node_modules/@ffmpeg-installer/**/*"
+    ],
     "files": [
       "dist/",
       "node_modules/",
@@ -232,6 +235,7 @@
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
+    "360-react-pannellum": "^0.0.3",
     "@ffmpeg-installer/ffmpeg": "^1.0.20",
     "@fortawesome/fontawesome-free": "^5.13.1",
     "@hot-loader/react-dom": "^16.13.0",

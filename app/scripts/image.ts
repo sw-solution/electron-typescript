@@ -246,15 +246,12 @@ export async function addLogo(imageurl: string, logourl: string) {
 
   logo.resize(image.bitmap.width / 10, jimp.AUTO);
 
-  const xMargin = (image.bitmap.width * 6) / 100;
-  const yMargin = (image.bitmap.width * 6) / 100;
-
-  const X = image.bitmap.width - logo.bitmap.width - xMargin;
-  const Y = image.bitmap.height - logo.bitmap.height - yMargin;
+  const X = (image.bitmap.width - logo.bitmap.width) / 2;
+  const Y = (image.bitmap.height - logo.bitmap.height) / 2;
 
   const blendmode: any = {
-    mode: jimp.BLEND_SCREEN,
-    opacitySource: 0.1,
+    mode: jimp.BLEND_SOURCE_OVER,
+    opacitySource: 1,
     opacityDest: 1,
   };
 

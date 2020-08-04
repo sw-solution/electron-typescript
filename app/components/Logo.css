@@ -5,8 +5,9 @@
 }
 
 .wrapper {
-  min-height: 100px;
+  min-height: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #28a745;
 }

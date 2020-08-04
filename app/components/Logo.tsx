@@ -1,14 +1,12 @@
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
+import logoImg from '../assets/images/logo.png';
 
 import styles from './Logo.css';
 
 export default function Logo() {
   return (
     <div className={styles.wrapper}>
-      <Typography className={styles.logo} variant="h5">
-        TrekView
-      </Typography>
+      <img src={logoImg} alt="TrekView" width="200" />
     </div>
   );
 }

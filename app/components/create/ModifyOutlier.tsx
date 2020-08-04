@@ -9,7 +9,15 @@ import {
   Tooltip,
   Typography,
 } from '@material-ui/core';
+
+import { makeStyles } from '@material-ui/core/styles';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+
+import Map from './Map';
+
+import { getDistance } from '../../utils';
+
+import { IGeoPoint } from '../../types/IGeoPoint';
 
 import {
   selSequenceOutlierMeter,
@@ -17,20 +25,76 @@ import {
   setSequenceSmooth,
   setSequenceDiscard,
   setSequenceOutlierMeters,
+  selSequenceOutlierMode,
+  selPoints,
 } from './slice';
+
+const useStyles = makeStyles((theme) => ({
+  wrapper: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    '& > *': {
+      margin: theme.spacing(2),
+    },
+  },
+}));
 
 export default function SequenceModifyOutlier() {
   const dispatch = useDispatch();
-  const propMeters = useSelector(selSequenceOutlierMeter);
+  const propmeters = useSelector(selSequenceOutlierMeter);
+  const mode = useSelector(selSequenceOutlierMode);
 
-  const [meters, setMeters] = React.useState<number>(propMeters);
+  const [metersStr, setMeters] = React.useState<string>(propmeters.toString());
+
+  const proppoints = useSelector(selPoints);
+  const [points, setPoints] = React.useState<IGeoPoint[]>(proppoints);
+
+  const classes = useStyles();
+
+  const updatePoints = () => {
+    const meters = parseFloat(metersStr);
+    if (meters > 0 && mode !== '') {
+      const newpoints: IGeoPoint[] = [];
+      proppoints.forEach((point: IGeoPoint, idx: number) => {
+        if (idx > 0 && idx < points.length - 1) {
+          const prevpoint = points[idx - 1];
+          const nextpoint = points[idx + 1];
+          if (
+            (prevpoint.Distance || 0) > meters &&
+            (point.Distance || 0) > meters
+          ) {
+            if (mode === 'S') {
+              newpoints.push(
+                new IGeoPoint({
+                  ...point,
+                  GPSLongitude:
+                    (prevpoint.GPSLongitude + nextpoint.GPSLongitude) / 2,
+                  GPSLatitude:
+                    (prevpoint.GPSLatitude + nextpoint.GPSLatitude) / 2,
+                })
+              );
+            }
+          } else {
+            newpoints.push(point);
+          }
+        } else {
+          newpoints.push(point);
+        }
+      });
+      setPoints(newpoints);
+    }
+  };
 
   const smoothMode = () => {
     dispatch(setSequenceSmooth());
+    updatePoints();
   };
 
   const removeMode = () => {
     dispatch(setSequenceDiscard());
+    updatePoints();
   };
 
   const resetMode = () => {
@@ -39,12 +103,18 @@ export default function SequenceModifyOutlier() {
   };
 
   const confirmMode = () => {
+    const meters = parseFloat(metersStr);
     dispatch(setSequenceOutlierMeters(meters));
     dispatch(setSequenceCurrentStep('azimuth'));
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setMeters(parseFloat(event.target.value));
+    setMeters(event.target.value);
+  };
+
+  const handleBlur = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setMeters(event.target.value);
+    updatePoints();
   };
 
   return (
@@ -53,36 +123,41 @@ export default function SequenceModifyOutlier() {
         <Typography variant="h6" align="center" color="textSecondary">
           Edit Photo Outliers
         </Typography>
-      </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
-        <Box mb={1} display="flex" style={{ justifyContent: 'center' }}>
-          <Box mr={2} display="inline-block">
-            <TextField label="Meters" placeholder="0" onBlur={handleChange} />
-          </Box>
+        <Box mb={1} className={classes.wrapper}>
+          <TextField
+            label="Meters"
+            placeholder="0"
+            onBlur={handleBlur}
+            onChange={handleChange}
+            value={metersStr.toString()}
+          />
 
-          <Box mr={2} display="inline-block">
-            <Tooltip title={`Smooth outliers greater than ${meters} meters`}>
-              <Button
-                onClick={smoothMode}
-                variant="contained"
-                size="small"
-                color="primary"
-              >
-                Smooth
-              </Button>
-            </Tooltip>
-          </Box>
-          <Tooltip title={`Remove outliers greater than ${meters} meters`}>
+          <Tooltip
+            title={`Smooth outliers greater than ${metersStr} metersStr`}
+          >
+            <Button
+              onClick={smoothMode}
+              color={mode === 'S' ? 'secondary' : 'primary'}
+              variant="contained"
+            >
+              Smooth
+            </Button>
+          </Tooltip>
+          <Tooltip
+            title={`Remove outliers greater than ${metersStr} metersStr`}
+          >
             <Button
               onClick={removeMode}
+              color={mode === 'D' ? 'secondary' : 'primary'}
               variant="contained"
-              size="small"
-              color="primary"
             >
               Remove
             </Button>
           </Tooltip>
         </Box>
+      </Grid>
+      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+        <Map points={points} />
       </Grid>
       <Grid item xs={12}>
         <Box mr={1} display="inline-block">

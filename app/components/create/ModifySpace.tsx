@@ -1,29 +1,57 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import ReactMapboxGl, { Layer, Feature, Marker } from 'react-mapbox-gl';
 
 import Typography from '@material-ui/core/Typography';
-import { Grid, Button, Box, Slider } from '@material-ui/core';
+import { Grid, Button, Box, Slider, TextField, Input } from '@material-ui/core';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import { makeStyles } from '@material-ui/core/styles';
 import { IGeoPoint } from '../../types/IGeoPoint';
+import Map from './Map';
 
 import {
   setSequenceCurrentStep,
+  setSequencePosition,
+  setSequenceFrame,
   selPoints,
   selSequenceFrame,
-  setSequenceFrame,
+  selSequencePosition,
 } from './slice';
+
+const useStyles = makeStyles((theme) => ({
+  sliderHeader: {
+    width: 80,
+  },
+  slider: {
+    width: 180,
+  },
+  sliderInput: {
+    width: 42,
+  },
+  sliderWrapper: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    '& > *': {
+      margin: theme.spacing(1),
+    },
+  },
+}));
 
 export default function SequenceModifySpace() {
   const dispatch = useDispatch();
   const propframe = useSelector(selSequenceFrame);
+  const propposition = useSelector(selSequencePosition);
 
   const [frames, setFrame] = React.useState<number>(propframe);
+  const [position, setPosition] = React.useState<number>(propposition);
 
   const points = useSelector(selPoints);
 
+  const classes = useStyles();
+
   const resetMode = () => {
-    dispatch(setSequenceCurrentStep('tags'));
+    dispatch(setSequenceFrame(0));
+    dispatch(setSequencePosition(0));
   };
 
   const confirmMode = () => {
@@ -31,63 +59,20 @@ export default function SequenceModifySpace() {
     dispatch(setSequenceCurrentStep('outlier'));
   };
 
-  const handleSliderChange = (_event: any, newValue: number) => {
+  const handleFrameSliderChange = (
+    _event: React.ChangeEvent,
+    newValue: number
+  ) => {
     setFrame(newValue);
   };
 
-  // const editOutliers = () => {
-  //   dispatch(setSequenceCurrentStep('outlier'));
-  // };
-
-  // const editFrames = () => {
-  //   dispatch(setSequenceCurrentStep('frames'));
-  // };
-
-  // const editDirection = () => {
-  //   dispatch(setSequenceCurrentStep('azimuth'));
-  // };
-
-  const centerPoint = () => {
-    if (points.length) {
-      const centerIdx = Math.floor(points.length / 2);
-      const centerpoint = points[centerIdx];
-      return [centerpoint.GPSLongitude, centerpoint.GPSLatitude];
-    }
-    return [51.5, -0.09];
+  const handleFrameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFrame(parseInt(event.target.value, 10));
   };
 
-  const fitBounds = () => {
-    return points.map((point) => {
-      return [point.GPSLongitude, point.GPSLatitude];
-    });
+  const handlePositionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPosition(parseFloat(event.target.value));
   };
-
-  const Map = ReactMapboxGl({
-    accessToken: process.env.MAPBOX_TOKEN || '',
-  });
-
-  const markers = points.map((point: IGeoPoint, idx: number) => {
-    return (
-      <Marker
-        key={`marker-${idx.toString()}`}
-        coordinates={[point.GPSLongitude || 0, point.GPSLatitude || 0]}
-        anchor="center"
-      >
-        <div
-          style={{
-            borderBottom: 'solid 10px #3f51b5',
-            borderLeft: 'solid 10px transparent',
-            borderRight: 'solid 10px transparent',
-            boxSizing: 'border-box',
-            display: 'inline-block',
-            height: '20px',
-            width: '20px',
-            transform: `rotate(${point.Azimuth}deg)`,
-          }}
-        />
-      </Marker>
-    );
-  });
 
   return (
     <>
@@ -95,23 +80,49 @@ export default function SequenceModifySpace() {
         <Typography variant="h6" align="center" color="textSecondary">
           Modify GPS
         </Typography>
-        <Slider
-          value={frames}
-          onChange={handleSliderChange}
-          aria-labelledby="input-slider"
-        />
+        <Box mb={2}>
+          <Grid container spacing={3}>
+            <Grid item xs={9} className={classes.sliderWrapper}>
+              <Typography align="right" className={classes.sliderHeader}>
+                Frames
+              </Typography>
+              <Slider
+                value={frames}
+                onChange={handleFrameSliderChange}
+                aria-labelledby="input-slider"
+                step={1}
+                min={1}
+                max={20}
+                className={classes.slider}
+              />
+              <Input
+                style={{ width: 42 }}
+                value={frames}
+                margin="dense"
+                onChange={handleFrameChange}
+                inputProps={{
+                  step: 1,
+                  min: 1,
+                  max: 20,
+                  type: 'number',
+                  'aria-labelledby': 'input-slider',
+                }}
+              />
+            </Grid>
+            <Grid item xs={3}>
+              <TextField
+                id="outlined-basic"
+                label="Position"
+                variant="outlined"
+                value={position}
+                onBlur={handlePositionChange}
+              />
+            </Grid>
+          </Grid>
+        </Box>
       </Grid>
       <Grid item xs={12}>
-        <Map
-          style="mapbox://styles/mapbox/streets-v8"
-          containerStyle={{
-            height: '400px',
-          }}
-          center={centerPoint()}
-          fitBounds={fitBounds()}
-        >
-          {markers}
-        </Map>
+        <Map points={points} />
       </Grid>
       <Grid item xs={12}>
         <Box mr={1} display="inline-block">
