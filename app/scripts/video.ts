@@ -8,7 +8,10 @@ import { IGeoPoint } from '../types/IGeoPoint';
 import { sendPoints, sendToClient } from './utils';
 import { calculatePoints } from './image';
 
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path.replace(
+  'app.asar',
+  'app.asar.unpacked'
+);
 const ffmpeg = require('fluent-ffmpeg');
 
 ffmpeg.setFfmpegPath(ffmpegPath);

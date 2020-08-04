@@ -14,5 +14,8 @@
     "postinstall": "yarn electron-rebuild"
   },
   "license": "MIT",
-  "dependencies": {}
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.0.20",
+    "exiftool-vendored": "^11.5.0"
+  }
 }
