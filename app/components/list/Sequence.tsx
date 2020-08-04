@@ -23,6 +23,8 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import Chip from '@material-ui/core/Chip';
 
+import Map from '../create/Map';
+
 import { setRemoveSeq } from './slice';
 import { Summary } from '../../types/Result';
 
@@ -48,8 +50,8 @@ const useStyles = makeStyles((theme) => ({
   },
   removeButton: {
     position: 'absolute',
-    right: '20px',
-    top: '20px',
+    right: 0,
+    top: 0,
   },
 }));
 
@@ -78,10 +80,6 @@ export default function Sequence({ data }: Props) {
 
   const { points } = data;
 
-  const centerPoint = () => {
-    return [51.5, -0.09];
-  };
-
   const removeSeq = (id: string) => {
     dispatch(setRemoveSeq(id));
 
@@ -97,7 +95,9 @@ export default function Sequence({ data }: Props) {
         <DeleteOutlineIcon />
       </IconButton>
       <Grid container alignItems="center" spacing={3}>
-        <Grid xs={4} item />
+        <Grid xs={4} item>
+          <Map points={points} height={200} />
+        </Grid>
         <Grid xs={5} item>
           <Typography variant="h5" color="primary" align="left">
             {data.name}
@@ -121,7 +121,7 @@ export default function Sequence({ data }: Props) {
             <div>
               <ShowChartIcon color="primary" />
               <Typography color="primary" variant="caption" display="block">
-                {data.total_km}
+                {data.total_km.toFixed(2)}
                 <span>KM</span>
               </Typography>
             </div>

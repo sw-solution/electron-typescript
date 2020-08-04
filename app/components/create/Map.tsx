@@ -1,15 +1,15 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 import ReactMapboxGl, { Marker } from 'react-mapbox-gl';
 
 import { IGeoPoint } from '../../types/IGeoPoint';
 
 interface Props {
   points: IGeoPoint[];
+  height?: number;
 }
 
 export default function Map(props: Props) {
-  const { points } = props;
+  const { points, height } = props;
 
   const centerPoint = () => {
     if (points.length) {
@@ -56,7 +56,7 @@ export default function Map(props: Props) {
     <MapBox
       style="mapbox://styles/mapbox/streets-v8"
       containerStyle={{
-        height: '350px',
+        height: `${height.toString()}px`,
       }}
       center={centerPoint()}
       fitBounds={fitBounds()}
@@ -65,3 +65,7 @@ export default function Map(props: Props) {
     </MapBox>
   );
 }
+
+Map.defaultProps = {
+  height: 350,
+};

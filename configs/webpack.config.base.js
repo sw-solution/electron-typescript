@@ -4,10 +4,15 @@
 
 import path from 'path';
 import webpack from 'webpack';
+import dotenv from 'dotenv';
 import { dependencies as externals } from '../app/package.json';
 
+dotenv.config();
+
 export default {
-  externals: [...Object.keys(externals || {})],
+  externals: [
+    ...Object.keys(externals || {}).filter((x) => x !== 'react-map-gl'),
+  ],
 
   module: {
     rules: [
@@ -41,6 +46,7 @@ export default {
   plugins: [
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'production',
+      MAPBOX_TOKEN: process.env.MAPBOX_TOKEN,
     }),
 
     new webpack.NamedModulesPlugin(),

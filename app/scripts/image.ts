@@ -271,6 +271,8 @@ export function writeExifTags(
       ? ['-o', outputfile]
       : ['-overwrite_original'];
 
+    const azimuth = (item.Azimuth || 0) > 0 ? item.Azimuth : 360 + item.Azimuth;
+
     exiftool
       .write(
         input_file,
@@ -281,8 +283,8 @@ export function writeExifTags(
           GPSLatitude: item.GPSLatitude,
           GPSLongitude: item.GPSLongitude,
           GPSAltitude: item.GPSAltitude,
-          PoseHeadingDegrees: item.Azimuth,
-          GPSImgDirection: item.Azimuth,
+          PoseHeadingDegrees: azimuth,
+          GPSImgDirection: azimuth,
           CameraElevationAngle: item.Pitch,
           PosePitchDegrees: item.Pitch,
           ImageDescription: JSON.stringify(description),
@@ -569,6 +571,12 @@ export function updateImages(points: IGeoPoint[], settings: any) {
         original_altitude: p.origin_GPSAltitude,
         original_latitude: p.origin_GPSLatitude,
         original_longitude: p.origin_GPSLatitude,
+
+        GPSDateTime: p.getDateStr(),
+        GPSAltitude: p.GPSAltitude,
+        GPSLatitude: p.GPSLatitude,
+        GPSLongitude: p.GPSLongitude,
+        Azimuth: p.Azimuth,
         software_version: 1.0,
 
         uploader_photo_from_video: settings.type === 'Video',

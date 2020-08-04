@@ -134,7 +134,7 @@ ipcMain.on(
 );
 
 ipcMain.on('load_gpx', (_event: IpcMainEvent, gpxpath: string) => {
-  readGPX(gpxpath, (err: any, points) => {
+  readGPX(gpxpath, (err: any, points: any) => {
     if (!err) {
       sendToClient(mainWindow, 'load_gpx_points', points);
     }

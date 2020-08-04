@@ -28,6 +28,12 @@ export interface Connections {
 export interface Photo {
   id: string;
   cli_frame_rate_set: '';
+  GPSDateTime?: string;
+  GPSAltitude?: number;
+  GPSLatitude?: number;
+  GPSLongitude?: number;
+  Azimuth?: number;
+
   original_GPSDateTime?: string;
   original_altitude?: number;
   original_latitude?: number;

@@ -71,16 +71,12 @@ export function getBearing(point1: IGeoPoint, point2: IGeoPoint) {
   const lng2 = point2.GPSLongitude;
   const lat2 = point2.GPSLatitude;
 
-  console.log('POINT1: ', lng1, lat1);
-  console.log('POINT2: ', lng2, lat2);
-
   const dLon = lng2 - lng1;
   const y = Math.sin(dLon) * Math.cos(lat2);
   const x =
     Math.cos(lat1) * Math.sin(lat2) -
     Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
   const brng = (Math.atan2(y, x) * 180) / Math.PI;
-  console.log('Azimuth: ', brng);
   return brng;
 }
 
