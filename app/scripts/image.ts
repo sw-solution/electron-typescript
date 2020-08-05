@@ -530,6 +530,7 @@ export function updateImages(points: IGeoPoint[], settings: any) {
         uploader_transport_method: settings.method,
         uploader_tags: settings.tags,
         created: dayjs().format('YYYY-MM-DD'),
+        uploader_camera: settings.camera,
       },
       photo: {},
     };

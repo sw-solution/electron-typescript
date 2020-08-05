@@ -27,11 +27,11 @@ import AddIcon from '@material-ui/icons/Add';
 import { useSelector, useDispatch } from 'react-redux';
 
 import Sequence from './Sequence';
-import Logo from '../Logo';
+import Logo from '../components/Logo';
 import { selLoaded, selSeqs, setEndLoad } from './slice';
 
-import routes from '../../constants/routes.json';
-import { Summary, TransportType } from '../../types/Result';
+import routes from '../constants/routes.json';
+import { Summary, TransportType } from '../types/Result';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -69,8 +69,7 @@ interface State {
   name: string;
   transporttype: TransportType;
   model: string;
-  startDate: string;
-  endDate: string;
+  capturedDate: string;
 }
 
 export default function ListPageWrapper() {
@@ -82,15 +81,14 @@ export default function ListPageWrapper() {
     name: '',
     transporttype: TransportType.Empty,
     model: '',
-    startDate: '',
-    endDate: '',
+    capturedDate: '',
   });
 
   if (!loaded) {
     ipcRenderer.send('sequences');
   }
   ipcRenderer.on(
-    'loaded_all',
+    'loaded-sequences',
     (_event: IpcRendererEvent, sequences: Summary[]) => {
       dispatch(setEndLoad(sequences));
     }
@@ -98,7 +96,7 @@ export default function ListPageWrapper() {
 
   useEffect(() => {
     return () => {
-      ipcRenderer.removeAllListeners('loaded_all');
+      ipcRenderer.removeAllListeners('loaded-sequences');
     };
   });
 
@@ -126,9 +124,8 @@ export default function ListPageWrapper() {
       (state.transporttype === TransportType.Empty ||
         item.type === state.transporttype) &&
       (state.model === '' || state.model === item.camera) &&
-      (state.startDate === '' ||
-        dayjs(state.startDate) < dayjs(item.captured)) &&
-      (state.endDate === '' || dayjs(state.endDate) > dayjs(item.captured))
+      (state.capturedDate === '' ||
+        dayjs(state.capturedDate).diff(dayjs(item.captured), 'day') === 0)
     ) {
       items.push(<Sequence data={item} key={item.id} />);
     }
@@ -139,16 +136,7 @@ export default function ListPageWrapper() {
   ) => {
     setState({
       ...state,
-      startDate: event.target.value,
-    });
-  };
-
-  const handleCapturedEndDate = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setState({
-      ...state,
-      endDate: event.target.value,
+      capturedDate: event.target.value,
     });
   };
 
@@ -204,20 +192,10 @@ export default function ListPageWrapper() {
             </Select>
           </FormControl>
           <TextField
-            label="Captured Start Date"
-            value={state.startDate}
+            label="Captured Date"
+            value={state.capturedDate}
             type="date"
             onChange={handleCapturedStartDate}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            fullWidth
-          />
-          <TextField
-            label="Captured End Date"
-            value={state.endDate}
-            type="date"
-            onChange={handleCapturedEndDate}
             InputLabelProps={{
               shrink: true,
             }}

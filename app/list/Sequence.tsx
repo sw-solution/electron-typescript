@@ -23,10 +23,10 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import Chip from '@material-ui/core/Chip';
 
-import Map from '../create/Map';
+import Map from '../components/Map';
 
 import { setRemoveSeq } from './slice';
-import { Summary } from '../../types/Result';
+import { Summary } from '../types/Result';
 
 const { ipcRenderer } = window.require('electron');
 

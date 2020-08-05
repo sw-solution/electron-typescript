@@ -8,7 +8,6 @@
  * When running `yarn build` or `yarn build-main`, this file is compiled to
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  */
-import path from 'path';
 import { app, BrowserWindow, ipcMain, IpcMainEvent, dialog } from 'electron';
 
 import fs from 'fs';
@@ -165,15 +164,17 @@ ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
 
 ipcMain.on('sequences', async (_event: IpcMainEvent) => {
   if (!fs.existsSync(log)) {
-    sendToClient(mainWindow, 'loaded_all', []);
+    sendToClient(mainWindow, 'loaded-sequences', []);
   } else {
     const logdata = JSON.parse(fs.readFileSync(log).toString());
     const result: Summary[] = [];
 
     Object.keys(logdata).forEach(async (id: string) => {
-      result.push(createdData2List(logdata[id]));
+      if (fs.existsSync(logdata[id].name)) {
+        result.push(createdData2List(logdata[id]));
+      }
     });
-    sendToClient(mainWindow, 'loaded_all', result);
+    sendToClient(mainWindow, 'loaded-sequences', result);
   }
 });
 

@@ -5,9 +5,9 @@ import Typography from '@material-ui/core/Typography';
 import { Grid, Button, Box, TextField } from '@material-ui/core';
 
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import Map from './Map';
+import Map from '../components/Map';
 import { setSequenceCurrentStep, selSequenceAzimuth, selPoints } from './slice';
-import { IGeoPoint } from '../../types/IGeoPoint';
+import { IGeoPoint } from '../types/IGeoPoint';
 
 export default function SequenceModifyAzimuth() {
   const dispatch = useDispatch();

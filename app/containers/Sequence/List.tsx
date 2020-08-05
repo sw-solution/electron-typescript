@@ -1,6 +1,6 @@
 import React from 'react';
 
-import ListPageWrapper from '../../components/list';
+import ListPageWrapper from '../../list';
 
 export default function ListPage() {
   return <ListPageWrapper />;

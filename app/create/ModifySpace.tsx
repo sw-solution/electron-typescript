@@ -5,8 +5,7 @@ import Typography from '@material-ui/core/Typography';
 import { Grid, Button, Box, Slider, TextField, Input } from '@material-ui/core';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { makeStyles } from '@material-ui/core/styles';
-import { IGeoPoint } from '../../types/IGeoPoint';
-import Map from './Map';
+import Map from '../components/Map';
 
 import {
   setSequenceCurrentStep,

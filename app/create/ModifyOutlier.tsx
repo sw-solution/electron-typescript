@@ -13,11 +13,9 @@ import {
 import { makeStyles } from '@material-ui/core/styles';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
-import Map from './Map';
+import Map from '../components/Map';
 
-import { getDistance } from '../../utils';
-
-import { IGeoPoint } from '../../types/IGeoPoint';
+import { IGeoPoint } from '../types/IGeoPoint';
 
 import {
   selSequenceOutlierMeter,

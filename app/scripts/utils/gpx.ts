@@ -3,7 +3,7 @@ import fs from 'fs';
 import dayjs from 'dayjs';
 import TrackPoint from '../../types/GPXTrackPoint';
 
-export function parseTrack(arg) {
+export function parseTrack(arg: any) {
   const track = arg.trkseg[0].trkpt;
   return track
     .filter((t) => {

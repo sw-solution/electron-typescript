@@ -6,8 +6,11 @@ import { Typography, Box, Grid, IconButton, Button } from '@material-ui/core';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 
 import { setSequenceNadirPath } from './slice';
-import nadir1 from '../../assets/images/nadir1.png';
-import nadir2 from '../../assets/images/nadir2.png';
+
+const defaultNadir = [
+  '../static/nadir/nadir1.png',
+  '../static/nadir/nadir2.png',
+];
 
 const { ipcRenderer, remote } = window.require('electron');
 
@@ -35,10 +38,6 @@ export default function SequenceUploadNadir() {
     }
   };
 
-  const defaultNadir = (url: string) => {
-    setPath(url);
-  };
-
   return (
     <>
       <Grid item xs={12}>
@@ -63,16 +62,19 @@ export default function SequenceUploadNadir() {
         </Box>
         <Box>
           <Box mr={1}>
-            <Button
-              onClick={() => defaultNadir('app/assets/images/nadir1.png')}
-            >
-              <img src={nadir1} width="70px" alt="nadir1" />
-            </Button>
-            <Button
-              onClick={() => defaultNadir('app/assets/images/nadir2.png')}
-            >
-              <img src={nadir2} width="70px" alt="nadir2" />
-            </Button>
+            {defaultNadir.map((nadir: string) => (
+              <Button onClick={() => setPath(nadir)} key={nadir}>
+                <div
+                  style={{
+                    display: 'inline-block',
+                    width: '70px',
+                    height: '70px',
+                    background: `url(${nadir})`,
+                    backgroundSize: '100% 100%',
+                  }}
+                />
+              </Button>
+            ))}
           </Box>
         </Box>
       </Grid>

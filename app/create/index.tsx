@@ -41,7 +41,7 @@ import UploadNadir from './UploadNadir';
 import PreviewNadir from './PreviewNadir';
 import ProcessPage from './ProcessPage';
 
-import routes from '../../constants/routes.json';
+import routes from '../constants/routes.json';
 import {
   getPrevStep,
   selCurrentStep,
@@ -53,7 +53,7 @@ import {
 } from './slice';
 
 import { setAddSeq } from '../list/slice';
-import Logo from '../Logo';
+import Logo from '../components/Logo';
 
 const { ipcRenderer } = window.require('electron');
 

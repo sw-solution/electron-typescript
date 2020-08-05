@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactMapboxGl, { Marker } from 'react-mapbox-gl';
 
-import { IGeoPoint } from '../../types/IGeoPoint';
+import { IGeoPoint } from '../types/IGeoPoint';
 
 interface Props {
   points: IGeoPoint[];

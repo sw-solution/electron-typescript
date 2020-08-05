@@ -1,6 +1,6 @@
 import { BrowserWindow } from 'electron';
-import { IGeoPoint } from '../../types/IGeoPoint';
-import { Result, Summary } from '../../types/Result';
+import { IGeoPoint } from '../types/IGeoPoint';
+import { Result, Summary } from '../types/Result';
 
 export function sendToClient(
   win: BrowserWindow | null,
