@@ -1,3 +1,10 @@
+export enum TransportType {
+  Empty = '',
+  Land = 'Land',
+  Water = 'Water',
+  Air = 'Air',
+}
+
 export interface Sequence {
   id: string;
   distance_km: number;
@@ -7,8 +14,9 @@ export interface Sequence {
   average_speed_kmh: number;
   uploader_sequence_name: string;
   uploader_sequence_description: string;
-  uploader_transport_type: string;
+  uploader_transport_type: TransportType;
   uploader_transport_method: string;
+  uploader_camera: string;
   uploader_tags: string[];
   created: string;
 }
@@ -75,10 +83,11 @@ export interface Summary {
   tags: string[];
   name: string;
   description: string;
-  type: string;
+  type: TransportType;
   method: string;
   points: Photo[];
   created: string;
   captured: string;
   total_km: number;
+  camera: string;
 }

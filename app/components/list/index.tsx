@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { IpcRendererEvent } from 'electron';
 
 import { push } from 'connected-react-router';
@@ -7,14 +7,20 @@ import {
   Drawer,
   Box,
   AppBar,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   Toolbar,
   Typography,
+  TextField,
   Grid,
   LinearProgress,
   Button,
 } from '@material-ui/core';
 
 import { makeStyles } from '@material-ui/core/styles';
+import dayjs from 'dayjs';
 
 import AddIcon from '@material-ui/icons/Add';
 
@@ -25,7 +31,7 @@ import Logo from '../Logo';
 import { selLoaded, selSeqs, setEndLoad } from './slice';
 
 import routes from '../../constants/routes.json';
-import { Summary } from '../../types/Result';
+import { Summary, TransportType } from '../../types/Result';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -51,13 +57,34 @@ const useStyles = makeStyles((theme) => ({
   drawerPaper: {
     width: drawerWidth,
   },
+  filterWrap: {
+    '& > *': {
+      marginBottom: theme.spacing(2),
+    },
+    padding: theme.spacing(2),
+  },
 }));
+
+interface State {
+  name: string;
+  transporttype: TransportType;
+  model: string;
+  startDate: string;
+  endDate: string;
+}
 
 export default function ListPageWrapper() {
   const classes = useStyles();
   const loaded = useSelector(selLoaded);
   const seqs = useSelector(selSeqs);
   const dispatch = useDispatch();
+  const [state, setState] = useState<State>({
+    name: '',
+    transporttype: TransportType.Empty,
+    model: '',
+    startDate: '',
+    endDate: '',
+  });
 
   if (!loaded) {
     ipcRenderer.send('sequences');
@@ -75,9 +102,55 @@ export default function ListPageWrapper() {
     };
   });
 
-  const items = seqs.map((item: Summary) => {
-    return <Sequence data={item} key={item.id} />;
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setState({
+      ...state,
+      name: e.target.value,
+    });
+  };
+
+  const handleTransportType = (
+    e: React.ChangeEvent<{ name?: string; value: TransportType }>,
+    _child: React.ReactNode
+  ) => {
+    setState({
+      ...state,
+      transporttype: e.target.value,
+    });
+  };
+
+  const items: JSX.Element[] = [];
+  seqs.forEach((item: Summary) => {
+    if (
+      item.name.indexOf(state.name) >= 0 &&
+      (state.transporttype === TransportType.Empty ||
+        item.type === state.transporttype) &&
+      (state.model === '' || state.model === item.camera) &&
+      (state.startDate === '' ||
+        dayjs(state.startDate) < dayjs(item.captured)) &&
+      (state.endDate === '' || dayjs(state.endDate) > dayjs(item.captured))
+    ) {
+      items.push(<Sequence data={item} key={item.id} />);
+    }
   });
+
+  const handleCapturedStartDate = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setState({
+      ...state,
+      startDate: event.target.value,
+    });
+  };
+
+  const handleCapturedEndDate = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setState({
+      ...state,
+      endDate: event.target.value,
+    });
+  };
 
   return (
     <div>
@@ -90,6 +163,67 @@ export default function ListPageWrapper() {
         }}
       >
         <Logo />
+        <div className={classes.filterWrap}>
+          <Typography variant="h5"> Filters </Typography>
+          <TextField
+            label="Tour name search"
+            fullWidth
+            variant="outlined"
+            value={state.name}
+            onChange={handleNameChange}
+            placeholder="Tour name search"
+          />
+          <FormControl fullWidth>
+            <InputLabel id="transporttype_label_id">Transport Type</InputLabel>
+            <Select
+              value={state.transporttype}
+              onChange={handleTransportType}
+              labelId="transporttype_label_id"
+            >
+              {Object.keys(TransportType).map((t: string) => (
+                <MenuItem value={TransportType[t]} key={t}>
+                  {t === 'Empty' ? 'Select Transport Type' : t}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth>
+            <InputLabel id="transporttype_label_id">
+              Camera make / model
+            </InputLabel>
+            <Select
+              value={state.transporttype}
+              onChange={handleTransportType}
+              labelId="transporttype_label_id"
+            >
+              {Object.keys(TransportType).map((t: string) => (
+                <MenuItem value={TransportType[t]} key={t}>
+                  {t === 'Empty' ? 'Select Transport Type' : t}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            label="Captured Start Date"
+            value={state.startDate}
+            type="date"
+            onChange={handleCapturedStartDate}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            fullWidth
+          />
+          <TextField
+            label="Captured End Date"
+            value={state.endDate}
+            type="date"
+            onChange={handleCapturedEndDate}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            fullWidth
+          />
+        </div>
       </Drawer>
       <div className={classes.appBarShift}>
         <AppBar position="static">

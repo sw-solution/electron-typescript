@@ -62,6 +62,7 @@ export function createdData2List(data: Result): Summary {
     total_km: sequence.distance_km,
     created: sequence.created,
     captured: sequence.earliest_time,
+    camera: sequence.uploader_camera,
   };
 }
 
