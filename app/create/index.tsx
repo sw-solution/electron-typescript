@@ -16,6 +16,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Box from '@material-ui/core/Box';
 import Card from '@material-ui/core/Card';
 import Grid from '@material-ui/core/Grid';
+import { Alert, AlertTitle } from '@material-ui/lab';
 
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import IconButton from '@material-ui/core/IconButton';
@@ -43,14 +44,18 @@ import ProcessPage from './ProcessPage';
 
 import routes from '../constants/routes.json';
 import {
-  getPrevStep,
+  selPrevStep,
   selCurrentStep,
   setSequenceCurrentStep,
   setSequencePoints,
   setSequenceStartTime,
   setSequenceGpxPoints,
   setSequenceInit,
+  setSequenceError,
+  selError,
 } from './slice';
+
+import { setConfigLoadEnd } from '../base/slice';
 
 import { setAddSeq } from '../list/slice';
 import Logo from '../components/Logo';
@@ -82,8 +87,9 @@ const useStyles = makeStyles((theme) => ({
 
 export default function CreatePageWrapper() {
   const classes = useStyles();
-  const prevStep = useSelector(getPrevStep);
+  const prevStep = useSelector(selPrevStep);
   const currentStep = useSelector(selCurrentStep);
+  const error = useSelector(selError);
   const dispatch = useDispatch();
 
   const goPrevStep = () => {
@@ -91,11 +97,11 @@ export default function CreatePageWrapper() {
   };
 
   useEffect(() => {
-    ipcRenderer.on('set-points', (_event: IpcRendererEvent, points) => {
+    ipcRenderer.on('loaded_points', (_event: IpcRendererEvent, points) => {
       dispatch(setSequencePoints(points));
     });
 
-    ipcRenderer.on('start-time', (_event: IpcRendererEvent, starttime) => {
+    ipcRenderer.on('start_time', (_event: IpcRendererEvent, starttime) => {
       dispatch(setSequenceStartTime(starttime));
     });
 
@@ -105,20 +111,25 @@ export default function CreatePageWrapper() {
       dispatch(push(routes.LIST));
     });
 
-    ipcRenderer.on('load_gpx_points', (_event: IpcRendererEvent, points) => {
+    ipcRenderer.on('loaded_gpx', (_event: IpcRendererEvent, points) => {
       dispatch(setSequenceGpxPoints(points));
     });
 
-    ipcRenderer.on('error', (_event: IpcRendererEvent, error) => {
-      console.error(error);
+    ipcRenderer.on('error', (_event: IpcRendererEvent, err) => {
+      dispatch(setSequenceError(err));
+    });
+
+    ipcRenderer.on('loaded_config', (_event: IpcRendererEvent, config: any) => {
+      dispatch(setConfigLoadEnd(config));
     });
 
     return () => {
-      ipcRenderer.removeAllListeners('start-time');
-      ipcRenderer.removeAllListeners('set-points');
-      ipcRenderer.removeAllListeners('load_gpx_points');
+      ipcRenderer.removeAllListeners('start_time');
+      ipcRenderer.removeAllListeners('loaded_points');
+      ipcRenderer.removeAllListeners('loaded_gpx');
       ipcRenderer.removeAllListeners('add-seq');
       ipcRenderer.removeAllListeners('error');
+      ipcRenderer.removeAllListeners('loaded_cameras');
     };
   });
 
@@ -190,6 +201,15 @@ export default function CreatePageWrapper() {
                       <ChevronLeftIcon />
                     </IconButton>
                   </Box>
+                )}
+
+                {error && (
+                  <Grid xs={12}>
+                    <Alert severity="error">
+                      <AlertTitle>Error</AlertTitle>
+                      <span>{error}</span>
+                    </Alert>
+                  </Grid>
                 )}
 
                 {currentStep === 'name' && <Name />}

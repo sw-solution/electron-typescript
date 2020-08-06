@@ -1,5 +1,6 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
+import path from 'path';
 
 import { Typography, Box, Grid, IconButton, Button } from '@material-ui/core';
 
@@ -7,12 +8,14 @@ import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 
 import { setSequenceNadirPath } from './slice';
 
-const defaultNadir = [
-  '../static/nadir/nadir1.png',
-  '../static/nadir/nadir2.png',
-];
-
 const { ipcRenderer, remote } = window.require('electron');
+
+const basePath = path.resolve(remote.app.getAppPath(), '../static');
+
+const defaultNadir = [
+  `${basePath}/nadir/nadir1.png`,
+  `${basePath}/nadir/nadir2.png`,
+];
 
 export default function SequenceUploadNadir() {
   const dispatch = useDispatch();

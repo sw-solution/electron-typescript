@@ -6,17 +6,13 @@ import Grid from '@material-ui/core/Grid';
 
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { IpcRendererEvent } from 'electron';
-import {
-  selProgressNextStep,
-  selProgressPrevStep,
-  setCurrentStep,
-} from './slice';
+import { selProcessPageNext, selPrevStep, setCurrentStep } from './slice';
 
 const { ipcRenderer } = window.require('electron');
 
 export default function SequenceProcessPage() {
-  const nextStep = useSelector(selProgressNextStep);
-  const prevStep = useSelector(selProgressPrevStep);
+  const nextStep = useSelector(selProcessPageNext);
+  const prevStep = useSelector(selPrevStep);
   const dispatch = useDispatch();
   const [errMessage, setErrMessage] = React.useState<string>('');
 

@@ -5,11 +5,14 @@ import { History } from 'history';
 import createReducer from './create/slice';
 // eslint-disable-next-line import/no-cycle
 import listReducer from './list/slice';
+// eslint-disable-next-line import/no-cycle
+import baseReducer from './base/slice';
 
 export default function createRootReducer(history: History) {
   return combineReducers({
     router: connectRouter(history),
     create: createReducer,
     list: listReducer,
+    base: baseReducer,
   });
 }

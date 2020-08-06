@@ -13,12 +13,14 @@ import { app, BrowserWindow, ipcMain, IpcMainEvent, dialog } from 'electron';
 import fs from 'fs';
 import rimraf from 'rimraf';
 import dotenv from 'dotenv';
+import path from 'path';
 
 import { processVideo } from './scripts/video';
 import { loadImages, updateImages } from './scripts/image';
 import { sendToClient, sendPoints, createdData2List } from './scripts/utils';
 import { readGPX } from './scripts/utils/gpx';
 import { Results, Summary } from './types/Result';
+import loadCameras from './scripts/camera';
 
 let mainWindow: BrowserWindow | null = null;
 dotenv.config();
@@ -101,6 +103,10 @@ const createWindow = async () => {
 /**
  * Add event listeners for ipcMain
  */
+ipcMain.on('load_config', async (_event: IpcMainEvent) => {
+  const cameras = await loadCameras(app);
+  sendToClient(mainWindow, 'loaded_config', { cameras });
+});
 
 ipcMain.on(
   'load_videos',
@@ -118,7 +124,6 @@ ipcMain.on(
       } else {
         const { points, removedfiles } = result;
         if (points.length) {
-          sendToClient(mainWindow, 'start-time', points[0].getDateStr());
           sendPoints(mainWindow, points);
         }
 
@@ -135,12 +140,12 @@ ipcMain.on(
 ipcMain.on('load_gpx', (_event: IpcMainEvent, gpxpath: string) => {
   readGPX(gpxpath, (err: any, points: any) => {
     if (!err) {
-      sendToClient(mainWindow, 'load_gpx_points', points);
+      sendToClient(mainWindow, 'loaded_gpx', points);
     }
   });
 });
 
-const log = 'result.json';
+const log = path.resolve(app.getAppPath(), '../result.json');
 
 ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
   let result: Results = {};
@@ -150,7 +155,6 @@ ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
 
   updateImages(sequence.points, sequence.steps)
     .then((resultjson: any) => {
-      console.log('result: ', resultjson);
       const sequenceid = resultjson.sequence.id;
       result[sequenceid] = resultjson;
       fs.writeFileSync(log, JSON.stringify(result));
@@ -163,6 +167,7 @@ ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
 });
 
 ipcMain.on('sequences', async (_event: IpcMainEvent) => {
+  console.log('logPath:', log);
   if (!fs.existsSync(log)) {
     sendToClient(mainWindow, 'loaded-sequences', []);
   } else {
@@ -170,7 +175,7 @@ ipcMain.on('sequences', async (_event: IpcMainEvent) => {
     const result: Summary[] = [];
 
     Object.keys(logdata).forEach(async (id: string) => {
-      if (fs.existsSync(logdata[id].name)) {
+      if (fs.existsSync(logdata[id].sequence.uploader_sequence_name)) {
         result.push(createdData2List(logdata[id]));
       }
     });
@@ -178,7 +183,7 @@ ipcMain.on('sequences', async (_event: IpcMainEvent) => {
   }
 });
 
-ipcMain.on('remove-seq', async (_event: IpcMainEvent, id: string) => {
+ipcMain.on('remove_sequence', async (_event: IpcMainEvent, id: string) => {
   let result: Results = {};
   if (fs.existsSync(log)) {
     result = JSON.parse(fs.readFileSync(log).toString());

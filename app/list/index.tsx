@@ -32,6 +32,8 @@ import { selLoaded, selSeqs, setEndLoad } from './slice';
 
 import routes from '../constants/routes.json';
 import { Summary, TransportType } from '../types/Result';
+import { selConfigLoaded, setConfigLoadEnd, selCameras } from '../base/slice';
+import { Camera } from '../types/Camera';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -67,7 +69,7 @@ const useStyles = makeStyles((theme) => ({
 
 interface State {
   name: string;
-  transporttype: TransportType;
+  transporttype: TransportType | '';
   model: string;
   capturedDate: string;
 }
@@ -75,11 +77,14 @@ interface State {
 export default function ListPageWrapper() {
   const classes = useStyles();
   const loaded = useSelector(selLoaded);
+  const configLoaded = useSelector(selConfigLoaded);
+
   const seqs = useSelector(selSeqs);
+  const cameras = useSelector(selCameras);
   const dispatch = useDispatch();
   const [state, setState] = useState<State>({
     name: '',
-    transporttype: TransportType.Empty,
+    transporttype: '',
     model: '',
     capturedDate: '',
   });
@@ -93,6 +98,13 @@ export default function ListPageWrapper() {
       dispatch(setEndLoad(sequences));
     }
   );
+
+  if (!configLoaded) {
+    ipcRenderer.send('load_config');
+  }
+  ipcRenderer.on('loaded_config', (_event: IpcRendererEvent, config) => {
+    dispatch(setConfigLoadEnd(config));
+  });
 
   useEffect(() => {
     return () => {
@@ -117,12 +129,21 @@ export default function ListPageWrapper() {
     });
   };
 
+  const handleCameraType = (
+    e: React.ChangeEvent<{ name?: string; value: TransportType }>,
+    _child: React.ReactNode
+  ) => {
+    setState({
+      ...state,
+      model: e.target.value,
+    });
+  };
+
   const items: JSX.Element[] = [];
   seqs.forEach((item: Summary) => {
     if (
       item.name.indexOf(state.name) >= 0 &&
-      (state.transporttype === TransportType.Empty ||
-        item.type === state.transporttype) &&
+      (state.transporttype === '' || item.type === state.transporttype) &&
       (state.model === '' || state.model === item.camera) &&
       (state.capturedDate === '' ||
         dayjs(state.capturedDate).diff(dayjs(item.captured), 'day') === 0)
@@ -168,9 +189,10 @@ export default function ListPageWrapper() {
               onChange={handleTransportType}
               labelId="transporttype_label_id"
             >
+              <MenuItem value="">Select Transport Type</MenuItem>
               {Object.keys(TransportType).map((t: string) => (
                 <MenuItem value={TransportType[t]} key={t}>
-                  {t === 'Empty' ? 'Select Transport Type' : t}
+                  {t}
                 </MenuItem>
               ))}
             </Select>
@@ -180,13 +202,14 @@ export default function ListPageWrapper() {
               Camera make / model
             </InputLabel>
             <Select
-              value={state.transporttype}
-              onChange={handleTransportType}
+              value={state.model}
+              onChange={handleCameraType}
               labelId="transporttype_label_id"
             >
-              {Object.keys(TransportType).map((t: string) => (
-                <MenuItem value={TransportType[t]} key={t}>
-                  {t === 'Empty' ? 'Select Transport Type' : t}
+              <MenuItem value="">Select Camera make / model</MenuItem>
+              {cameras.map((t: Camera) => (
+                <MenuItem value={t.name} key={t.name}>
+                  {t.name}
                 </MenuItem>
               ))}
             </Select>

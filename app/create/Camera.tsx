@@ -7,62 +7,46 @@ import Button from '@material-ui/core/Button';
 
 import { setSequenceCamera, selSequenceCamera } from './slice';
 
-import garminImg from '../assets/images/camera/garmin.png';
-import goprofusionImg from '../assets/images/camera/goprofusion.png';
-import gopromaxImg from '../assets/images/camera/gopromax.png';
-import insta360Img from '../assets/images/camera/insta360.png';
-import ricohImg from '../assets/images/camera/ricoh.png';
+import { selConfigLoaded, selCameras } from '../base/slice';
+import { Camera } from '../types/Camera';
 
-interface CameraModel {
-  component: ReactNode;
-  label: string;
-}
+const { ipcRenderer } = window.require('electron');
 
 export default function SequenceCamera() {
   const camera = useSelector(selSequenceCamera);
   const dispatch = useDispatch();
+  const loaded = useSelector(selConfigLoaded);
+  const cameras = useSelector(selCameras);
+
+  if (!loaded) {
+    ipcRenderer.send('load_config');
+  }
 
   const storeSequenceCamera = (newCamera: string) => {
     dispatch(setSequenceCamera(newCamera));
   };
 
-  const cameras: CameraModel[] = [
-    {
-      component: <img src={garminImg} alt="Garmin" width="100" />,
-      label: 'Garmin',
-    },
-    {
-      component: <img src={goprofusionImg} alt="GoPro Fusion" width="100" />,
-      label: 'GoPro Fusion',
-    },
-    {
-      component: <img src={gopromaxImg} alt="GoPro Max" width="100" />,
-      label: 'GoPro Max',
-    },
-    {
-      component: <img src={insta360Img} alt="Insta 360" width="100" />,
-      label: 'Insta 360',
-    },
-    {
-      component: <img src={ricohImg} alt="Ricoh" width="100" />,
-      label: 'Ricoh',
-    },
-  ];
-
   const items: ReactNode[] = [];
 
-  cameras.forEach((it: CameraModel) => {
-    const color = it.label === camera ? 'secondary' : 'primary';
+  cameras.forEach((it: Camera) => {
+    const color = it.name === camera ? 'secondary' : 'primary';
     items.push(
-      <Grid item key={it.label} xs={4}>
+      <Grid item key={it.name} xs={4}>
         <Button
           size="medium"
           color={color}
-          onClick={() => storeSequenceCamera(it.label)}
+          onClick={() => storeSequenceCamera(it.name)}
         >
-          {it.component}
+          <div
+            style={{
+              background: `url(${it.url})`,
+              width: 70,
+              height: 70,
+              backgroundSize: '100% 100%',
+            }}
+          />
+          <Typography color={color}>{it.name}</Typography>
         </Button>
-        <Typography color={color}>{it.label}</Typography>
       </Grid>
     );
   });

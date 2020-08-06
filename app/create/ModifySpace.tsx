@@ -1,9 +1,11 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import dayjs from 'dayjs';
 
 import Typography from '@material-ui/core/Typography';
 import { Grid, Button, Box, Slider, TextField, Input } from '@material-ui/core';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import AddIcon from '@material-ui/icons/Add';
 import { makeStyles } from '@material-ui/core/styles';
 import Map from '../components/Map';
 
@@ -11,10 +13,16 @@ import {
   setSequenceCurrentStep,
   setSequencePosition,
   setSequenceFrame,
+  setSequencePoints,
+  setSequenceGpxImport,
   selPoints,
   selSequenceFrame,
   selSequencePosition,
+  selGPXRequired,
+  selGPXPoints,
+  setSequenceError,
 } from './slice';
+import { IGeoPoint } from '../types/IGeoPoint';
 
 const useStyles = makeStyles((theme) => ({
   sliderHeader: {
@@ -40,11 +48,14 @@ export default function SequenceModifySpace() {
   const dispatch = useDispatch();
   const propframe = useSelector(selSequenceFrame);
   const propposition = useSelector(selSequencePosition);
+  const gpxRequired = useSelector(selGPXRequired);
 
   const [frames, setFrame] = React.useState<number>(propframe);
   const [position, setPosition] = React.useState<number>(propposition);
 
   const points = useSelector(selPoints);
+
+  const gpxPoints = useSelector(selGPXPoints);
 
   const classes = useStyles();
 
@@ -73,13 +84,46 @@ export default function SequenceModifySpace() {
     setPosition(parseFloat(event.target.value));
   };
 
+  const importGpxData = () => {
+    let importedPoints = 0;
+    const newPoints = points.map((point: IGeoPoint) => {
+      const pointTime = dayjs(point.GPSDateTime);
+      const matchedPoint = gpxPoints.filter(
+        (p) => pointTime.diff(dayjs(p.timestamp), 'second') === 0
+      );
+      if (matchedPoint.length) {
+        importedPoints += 1;
+        return new IGeoPoint({
+          ...point,
+          GPSLongitude: matchedPoint[0].longitude,
+          GPSLatitude: matchedPoint[0].latitude,
+          GPSAltitude: matchedPoint[0].elevation
+            ? matchedPoint[0].elevation
+            : point.GPSAltitude,
+        });
+      }
+      return point;
+    });
+    if (importedPoints !== points.length) {
+      dispatch(
+        setSequenceError(
+          `${
+            points.length - importedPoints
+          } points are not updated. These points may be ignored.`
+        )
+      );
+    }
+    dispatch(setSequencePoints(newPoints));
+    dispatch(setSequenceGpxImport());
+  };
+
   return (
     <>
       <Grid item xs={12}>
         <Typography variant="h6" align="center" color="textSecondary">
           Modify GPS
         </Typography>
-        <Box mb={2}>
+        <Box mb={1}>
           <Grid container spacing={3}>
             <Grid item xs={9} className={classes.sliderWrapper}>
               <Typography align="right" className={classes.sliderHeader}>
@@ -119,6 +163,14 @@ export default function SequenceModifySpace() {
             </Grid>
           </Grid>
         </Box>
+        {gpxRequired && (
+          <Box mb={2}>
+            <Button onClick={importGpxData}>
+              <AddIcon />
+              <span>Import GPX Data</span>
+            </Button>
+          </Box>
+        )}
       </Grid>
       <Grid item xs={12}>
         <Map points={points} />

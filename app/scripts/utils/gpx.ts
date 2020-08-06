@@ -1,6 +1,5 @@
 import xml2js from 'xml2js';
 import fs from 'fs';
-import dayjs from 'dayjs';
 import TrackPoint from '../../types/GPXTrackPoint';
 
 export function parseTrack(arg: any) {
@@ -9,21 +8,12 @@ export function parseTrack(arg: any) {
     .filter((t) => {
       return true ? t.time : false;
     })
-    .reduce((obj, t) => {
-      const elevation = t.ele[0];
-      const { lat, lon } = t.$;
-      const timestamp = t.time[0];
-      if (!timestamp) {
-        return obj;
-      }
-      obj[dayjs(timestamp).format('YYYY-MM-DDTHH:mm:ss')] = new TrackPoint(
-        elevation,
-        lat,
-        lon,
-        timestamp
-      );
-      return obj;
-    }, {});
+    .map((obj) => {
+      const elevation = obj.ele[0];
+      const { lat, lon } = obj.$;
+      const timestamp = obj.time[0];
+      return new TrackPoint(elevation, lat, lon, timestamp);
+    });
 }
 
 export function readGPX(dirpath: string, callback: CallableFunction) {

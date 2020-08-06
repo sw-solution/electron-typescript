@@ -6,17 +6,25 @@ import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 
-import { setSequenceGpxPath, selStartTime, setCurrentStep } from './slice';
+import {
+  setSequenceGpxPath,
+  setPrevStep,
+  setCurrentStep,
+  selGPXRequired,
+  setProcessStep,
+} from './slice';
 
 const { ipcRenderer, remote } = window.require('electron');
 
 export default function SequenceUploadGpx() {
   const dispatch = useDispatch();
-  const starttime = useSelector(selStartTime);
+
+  const required = useSelector(selGPXRequired);
 
   useEffect(() => {
-    if (starttime !== '') {
-      dispatch(setCurrentStep('startTime'));
+    if (!required) {
+      dispatch(setCurrentStep('modifySpace'));
+      dispatch(setPrevStep('modifySpace'));
     }
   });
 
@@ -33,6 +41,7 @@ export default function SequenceUploadGpx() {
     });
     if (result) {
       dispatch(setSequenceGpxPath(result[0]));
+      dispatch(setProcessStep('startTime'));
       ipcRenderer.send('load_gpx', result[0]);
     }
   };

@@ -236,11 +236,6 @@ export function splitVideoToImage(
       ],
       (err, { datalist, starttime }) => {
         if (!err) {
-          sendToClient(
-            win,
-            'start-time',
-            starttime.format('YYYY-MM-DDTHH:mm:ss')
-          );
           calculatePoints(datalist, [], function (err, result: any) {
             if (!err) {
               sendPoints(win, result.points);

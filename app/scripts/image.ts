@@ -70,7 +70,7 @@ export const copyFiles = (
   );
 };
 
-export function calcPoint(dirpath: string, filename: string) {
+export function getPoint(dirpath: string, filename: string) {
   return new Promise((resolve, reject) => {
     const filepath = path.join(dirpath, filename);
     exiftool
@@ -91,9 +91,9 @@ export function calcPoint(dirpath: string, filename: string) {
         if (datetime) {
           const item = new IGeoPoint({
             GPSDateTime: datetime,
-            GPSLatitude: tags.GPSLatitude || 0,
-            GPSLongitude: tags.GPSLongitude || 0,
-            GPSAltitude: tags.GPSAltitude || 0,
+            GPSLatitude: tags.GPSLatitude,
+            GPSLongitude: tags.GPSLongitude,
+            GPSAltitude: tags.GPSAltitude,
             Image: filename,
             Azimuth: azimuth,
             Pitch: pitch,
@@ -128,7 +128,7 @@ export const getPoints = (
   Async.each(
     files,
     (filename: string, cb: CallableFunction) => {
-      calcPoint(outputpath, filename)
+      getPoint(outputpath, filename)
         // eslint-disable-next-line promise/always-return
         .then((item: any) => {
           if (item.GPSDateTime) {
@@ -174,36 +174,43 @@ export const calculatePoints = (
       throw 'some photos are too far apart by time';
     }
 
-    points.forEach((point: IGeoPoint, idx: number) => {
-      if (idx < points.length - 2) {
-        const nextPoint = points[idx + 1];
+    if (
+      points.filter(
+        (item: IGeoPoint) => !item.GPSLatitude || !item.GPSLongitude
+      ).length === 0
+    ) {
+      points.forEach((point: IGeoPoint, idx: number) => {
+        if (idx < points.length - 2) {
+          const nextPoint = points[idx + 1];
 
-        let azimuth = point.Azimuth;
-        if (!azimuth) {
-          azimuth = getBearing(point, nextPoint);
-          point.setAzimuth(azimuth);
-        }
+          let azimuth = point.Azimuth;
+          if (!azimuth) {
+            azimuth = getBearing(point, nextPoint);
+            point.setAzimuth(azimuth);
+          }
 
-        const distance = getDistance(nextPoint, point);
-        point.setDistance(distance);
+          const distance = getDistance(nextPoint, point);
+          point.setDistance(distance);
 
-        let pitch = point.Pitch;
-        if (!pitch) {
-          pitch = getPitch(point, nextPoint, distance);
-          point.setPitch(pitch);
-        }
-      } else {
-        point.setDistance(0);
+          let pitch = point.Pitch;
+          if (!pitch) {
+            pitch = getPitch(point, nextPoint, distance);
+            point.setPitch(pitch);
+          }
+        } else {
+          point.setDistance(0);
 
-        const prevPoint = points[idx - 1];
-        if (!point.Azimuth && prevPoint.Azimuth) {
-          point.setAzimuth(prevPoint.Azimuth);
+          const prevPoint = points[idx - 1];
+          if (!point.Azimuth && prevPoint.Azimuth) {
+            point.setAzimuth(prevPoint.Azimuth);
+          }
+          if (!point.Pitch && prevPoint.Pitch) {
+            point.setPitch(prevPoint.Pitch);
+          }
         }
-        if (!point.Pitch && prevPoint.Pitch) {
-          point.setPitch(prevPoint.Pitch);
-        }
-      }
-    });
+      });
+    }
+
     next(null, { points, removedfiles });
   } catch (e) {
     console.log('Calculation points issue', e);
@@ -267,6 +274,14 @@ export function writeExifTags(
   return new Promise((resolve, reject) => {
     const datetime = dayjs(item.GPSDateTime);
     console.log(`Start Updating Exiftool: filename ${input_file}`);
+    if (outputfile) {
+      fs.exists(outputfile, (existed) => {
+        if (existed) {
+          fs.unlink(outputfile, console.log);
+        }
+      });
+    }
+
     const options: string[] = outputfile
       ? ['-o', outputfile]
       : ['-overwrite_original'];
@@ -361,6 +376,7 @@ export function writeBlurredImage(
     const filename = item.Image || '';
     const inputfile = path.join(settings.name, filename);
     const outputfile = path.join(settings.name, 'final_burred', filename);
+
     console.log(`Start Updating Jimp: filename ${inputfile}`);
     const jimpAsync = jimp
       .read(inputfile)
@@ -372,7 +388,12 @@ export function writeBlurredImage(
         return reject(err);
       });
     const writeExifAsync = jimpAsync
-      .then(() => writeExifTags(outputfile, item, description))
+      .then(() =>
+        writeExifTags(outputfile, item, {
+          ...description,
+          photo: { ...description.photo, uploader_blur_added: true },
+        })
+      )
       .catch((err) => {
         console.log(`Write Error in Jimp: ${filename} - `, err);
         return reject(err);
@@ -396,21 +417,6 @@ export function updateImages(points: IGeoPoint[], settings: any) {
       newP.convertStrToDate();
       return newP;
     });
-
-    // importing gpx file
-    const gpxPoints = settings.gpx.points;
-    if (settings.gpx.import && Object.keys(gpxPoints).length) {
-      updatedPoints = updatedPoints.map((p) => {
-        const key = p.getDateStr();
-        const gpxPoint = gpxPoints[key];
-        if (gpxPoint) {
-          p.GPSAltitude = gpxPoint.elevation;
-          p.GPSLongitude = gpxPoint.longitude;
-          p.GPSLatitude = gpxPoint.latitude;
-        }
-        return p;
-      });
-    }
 
     // outliers
     const { meters, mode } = settings.outlier;
@@ -596,10 +602,12 @@ export function updateImages(points: IGeoPoint[], settings: any) {
       };
     });
 
-    Async.each(
+    Async.eachOfLimit(
       updatedPoints,
-      (item: IGeoPoint, next: any) => {
+      4,
+      (item: IGeoPoint, key: any, next: CallableFunction) => {
         const desc: Description = descriptions[item.id];
+        console.log('Indexing: ', key);
         Async.parallel(
           [
             (cb: CallableFunction) => {
@@ -611,17 +619,22 @@ export function updateImages(points: IGeoPoint[], settings: any) {
                 filename
               );
               writeExifTags(inputfile, item, desc, outputfile)
-                .then(() => cb(null))
+                .then(() => cb())
                 .catch((err) => cb(err));
             },
             (cb: CallableFunction) => {
               writeNadirImages(item, settings, desc)
-                .then(() => cb(null))
-                .catch((err) => cb(err));
+                .then(() => cb())
+                .catch((err) => {
+                  console.log(err);
+                  if (err) {
+                    cb(err);
+                  }
+                });
             },
             (cb: CallableFunction) => {
               writeBlurredImage(item, settings, desc)
-                .then(() => cb(null))
+                .then(() => cb())
                 .catch((err) => cb(err));
             },
           ],

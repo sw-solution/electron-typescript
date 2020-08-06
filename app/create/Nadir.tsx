@@ -8,7 +8,7 @@ import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import SkipNextIcon from '@material-ui/icons/SkipNext';
 
-import { setCurrentStep, selSequence } from './slice';
+import { setCurrentStep, selSequence, setProcessStep } from './slice';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -22,7 +22,7 @@ export default function SequenceNadir() {
 
   const processPage = () => {
     ipcRenderer.send('update_images', sequence);
-    dispatch(setCurrentStep('processPage'));
+    dispatch(setProcessStep(''));
   };
 
   return (

@@ -83,7 +83,7 @@ export default function Sequence({ data }: Props) {
   const removeSeq = (id: string) => {
     dispatch(setRemoveSeq(id));
 
-    ipcRenderer.send('remove-seq', id);
+    ipcRenderer.send('remove_sequence', id);
   };
 
   return (

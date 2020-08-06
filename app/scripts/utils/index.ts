@@ -14,7 +14,7 @@ export function sendToClient(
 export function sendPoints(win: BrowserWindow | null, points: IGeoPoint[]) {
   sendToClient(
     win,
-    'set-points',
+    'loaded_points',
     points.map((item: IGeoPoint) => {
       item.convertDateToStr();
       return item;

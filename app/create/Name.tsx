@@ -8,17 +8,37 @@ import Button from '@material-ui/core/Button';
 
 import { setSequenceName, selSequenceName } from './slice';
 
+interface State {
+  name: string;
+  errorText: string | null;
+}
+
 export default function SequenceName() {
   const propsName = useSelector(selSequenceName);
-  const [name, setName] = React.useState<string>(propsName);
+  const [state, setState] = React.useState<State>({
+    name: propsName,
+    errorText: null,
+  });
   const dispatch = useDispatch();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setName(event.target.value);
+    const regex = /^[A-Za-z\s0-9]*$/g;
+
+    if (regex.test(event.target.value) && event.target.value.length < 30) {
+      setState({
+        name: event.target.value,
+        errorText: null,
+      });
+    } else {
+      setState({
+        ...state,
+        errorText: 'Between 6 ~ 30 charts. No special chars',
+      });
+    }
   };
 
   const storeSequenceName = () => {
-    dispatch(setSequenceName(name));
+    dispatch(setSequenceName(state.name));
   };
 
   return (
@@ -30,11 +50,12 @@ export default function SequenceName() {
       </Grid>
       <Grid item xs={12}>
         <TextField
-          id="outlined-basic"
+          error={state.errorText !== null}
           label="Sequence Name"
           variant="outlined"
-          value={name}
+          value={state.name}
           onChange={handleChange}
+          helperText={state.errorText}
         />
         <Typography paragraph style={{ marginTop: '30px' }}>
           E.g. “North Downs Way: Farnham and Guildford”
@@ -46,6 +67,9 @@ export default function SequenceName() {
           color="primary"
           size="large"
           onClick={storeSequenceName}
+          disabled={
+            state.name === '' || state.errorText || state.name.length < 6
+          }
         >
           Next
         </Button>

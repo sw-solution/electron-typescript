@@ -1,5 +1,4 @@
 export enum TransportType {
-  Empty = '',
   Land = 'Land',
   Water = 'Water',
   Air = 'Air',

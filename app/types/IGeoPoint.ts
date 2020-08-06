@@ -6,11 +6,11 @@ export interface IGeoPointModel {
 
   GPSDateTime: Dayjs | string;
 
-  GPSLatitude: number;
+  GPSLatitude?: number;
 
-  GPSLongitude: number;
+  GPSLongitude?: number;
 
-  GPSAltitude: number;
+  GPSAltitude?: number;
 
   Distance?: number;
 
@@ -42,11 +42,11 @@ export class IGeoPoint {
 
   GPSDateTime: Dayjs | string;
 
-  GPSLatitude: number;
+  GPSLatitude?: number;
 
-  GPSLongitude: number;
+  GPSLongitude?: number;
 
-  GPSAltitude: number;
+  GPSAltitude?: number;
 
   Distance?: number;
 

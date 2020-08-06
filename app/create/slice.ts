@@ -5,7 +5,10 @@ import { AppThunk, RootState } from '../store';
 import { IGeoPoint } from '../types/IGeoPoint';
 
 const initialState = {
-  currentStep: 'name',
+  step: {
+    current: 'name',
+    prev: '',
+  },
   steps: {
     name: '',
     description: '',
@@ -15,8 +18,9 @@ const initialState = {
     attachType: '',
     imagePath: '',
     gpx: {
+      required: true,
       path: '',
-      points: {},
+      points: [],
       import: false,
     },
     startTime: '',
@@ -29,18 +33,13 @@ const initialState = {
       meters: 0,
       mode: '',
     },
+    processPage: '',
     azimuth: 0,
     tags: [],
-    nadir: '',
     nadirPath: '',
-    previewNadir:
-      '/home/aa/Works/Rudy/David/Test/TIMELAPSE/MULTISHOT_9698_000001.jpg',
-    processPage: {
-      prevStep: '',
-      nextStep: '',
-    },
   },
   points: [],
+  error: null,
 };
 
 const createSequenceSlice = createSlice({
@@ -50,7 +49,19 @@ const createSequenceSlice = createSlice({
   },
   reducers: {
     setCurrentStep: (state, { payload }) => {
-      state.currentStep = payload;
+      state.step = {
+        current: payload,
+        prev:
+          state.step.current === 'processPage'
+            ? state.step.prev
+            : state.step.current,
+      };
+      state.error = null;
+    },
+    setPrevStep: (state, { payload }) => {
+      state.step = {
+        prev: payload,
+      };
     },
     setName: (state, { payload }) => {
       state.steps.name = payload;
@@ -79,10 +90,22 @@ const createSequenceSlice = createSlice({
         path: payload,
       };
     },
+    setGpxRequired: (state, { payload }) => {
+      state.steps.gpx = {
+        ...state.steps.gpx,
+        required: payload,
+      };
+    },
     setGpxPoints: (state, { payload }) => {
       state.steps.gpx = {
         ...state.steps.gpx,
-        points: { ...payload },
+        points: [...payload],
+      };
+    },
+    setGpxImport: (state) => {
+      state.steps.gpx = {
+        ...state.steps.gpx,
+        import: true,
       };
     },
     setImportGpxPoints: (state) => {
@@ -107,12 +130,11 @@ const createSequenceSlice = createSlice({
       state.steps.nadirPath = payload;
     },
     setProcessStep: (state, { payload }) => {
-      state.steps.processPage = {
-        ...state.steps.processPage,
-        nextStep: payload,
-        prevStep: state.currentStep,
+      state.steps.processPage = payload;
+      state.step = {
+        prev: state.step.current,
+        current: 'processPage',
       };
-      state.currentStep = 'processPage';
     },
     setPoints: (state, { payload }) => {
       state.points = [...payload];
@@ -165,11 +187,15 @@ const createSequenceSlice = createSlice({
         ...initialState,
       };
     },
+    setError: (state, { payload }) => {
+      state.error = payload;
+    },
   },
 });
 
 export const {
   setName,
+  setPrevStep,
   setDescription,
   setType,
   setMethod,
@@ -178,6 +204,8 @@ export const {
   setCurrentStep,
   setImagePath,
   setGpxPath,
+  setGpxRequired,
+  setGpxImport,
   setStartTime,
   setModifyTime,
   setAzimuth,
@@ -193,6 +221,7 @@ export const {
   setFrame,
   setPosition,
   setInit,
+  setError,
 } = createSequenceSlice.actions;
 
 export const setSequenceName = (name: string): AppThunk => {
@@ -289,19 +318,28 @@ export const setSequenceTags = (tags: string[]): AppThunk => {
   };
 };
 
-export const setSequencePoints = (points: IGeoPoint): AppThunk => {
+export const setSequencePoints = (points: IGeoPoint[]): AppThunk => {
   return (dispatch) => {
     dispatch(setPoints(points));
+    dispatch(
+      setGpxRequired(
+        points.filter((p: IGeoPoint) => !p.GPSLatitude || !p.GPSLongitude)
+          .length > 0
+      )
+    );
   };
 };
 
 export const setSequenceGpxPoints = (points: any): AppThunk => {
   return (dispatch) => {
     dispatch(setGpxPoints(points));
-    if (points) {
-      dispatch(setStartTime(points[Object.keys(points)[0]].timestamp));
-    }
     dispatch(setCurrentStep('startTime'));
+  };
+};
+
+export const setSequenceGpxImport = (): AppThunk => {
+  return (dispatch) => {
+    dispatch(setGpxImport());
   };
 };
 
@@ -341,6 +379,12 @@ export const setSequenceInit = (): AppThunk => {
   };
 };
 
+export const setSequenceError = (error: any): AppThunk => {
+  return (dispatch) => {
+    dispatch(setError(error));
+  };
+};
+
 export default createSequenceSlice.reducer;
 
 export const selSequenceName = (state: RootState) => state.create.steps.name;
@@ -359,18 +403,18 @@ export const selSequenceCamera = (state: RootState) =>
 export const selSequenceAttachType = (state: RootState) =>
   state.create.steps.attachType;
 
-export const getPrevStep = (state: RootState) => {
-  if (state.create.currentStep === 'processPage') return '';
-  const pages = Object.keys(state.create.steps);
-
-  const idx = pages.indexOf(state.create.currentStep);
-  if (idx - 1 < 0) {
-    return '';
-  }
-  return pages[idx - 1];
+export const selPrevStep = (state: RootState) => {
+  return state.create.step.prev;
 };
 
-export const selStartTime = (state: RootState) => state.create.steps.startTime;
+export const selGPXRequired = (state: RootState) =>
+  state.create.steps.gpx.required;
+
+export const selGPXPoints = (state: RootState) => state.create.steps.gpx.points;
+
+export const selStartTime = (state: RootState) =>
+  state.create.points.length ? state.create.points[0].GPSDateTime : null;
+
 export const selModifyTime = (state: RootState) =>
   state.create.steps.modifyTime;
 
@@ -378,16 +422,11 @@ export const selSequenceTags = (state: RootState) => state.create.steps.tags;
 
 export const selPoints = (state: RootState) => state.create.points;
 
-export const selProgressNextStep = (state: RootState) =>
-  state.create.steps.processPage.nextStep;
+export const selProcessPageNext = (state: RootState) => {
+  return state.create.steps.processPage;
+};
 
-export const selProgressPrevStep = (state: RootState) =>
-  state.create.steps.processPage.prevStep;
-
-export const selNadirImage = (state: RootState) =>
-  state.create.steps.previewNadir;
-
-export const selCurrentStep = (state: RootState) => state.create.currentStep;
+export const selCurrentStep = (state: RootState) => state.create.step.current;
 
 export const selSequence = (state: RootState) => state.create;
 
@@ -405,3 +444,5 @@ export const selSequencePosition = (state: RootState) =>
 
 export const selSequenceAzimuth = (state: RootState) =>
   state.create.steps.azimuth;
+
+export const selError = (state: RootState) => state.create.error;

@@ -30,28 +30,30 @@ export default function Map(props: Props) {
     accessToken: process.env.MAPBOX_TOKEN || '',
   });
 
-  const markers = points.map((point: IGeoPoint, idx: number) => {
-    return (
-      <Marker
-        key={`marker-${idx.toString()}`}
-        coordinates={[point.GPSLongitude || 0, point.GPSLatitude || 0]}
-        anchor="center"
-      >
-        <div
-          style={{
-            borderBottom: 'solid 10px #3f51b5',
-            borderLeft: 'solid 10px transparent',
-            borderRight: 'solid 10px transparent',
-            boxSizing: 'border-box',
-            display: 'inline-block',
-            height: '20px',
-            width: '20px',
-            transform: `rotate(${point.Azimuth}deg)`,
-          }}
-        />
-      </Marker>
-    );
-  });
+  const markers = points
+    .filter((point: IGeoPoint) => point.GPSLatitude && point.GPSLongitude)
+    .map((point: IGeoPoint, idx: number) => {
+      return (
+        <Marker
+          key={`marker-${idx.toString()}`}
+          coordinates={[point.GPSLongitude || 0, point.GPSLatitude || 0]}
+          anchor="center"
+        >
+          <div
+            style={{
+              borderBottom: 'solid 10px #3f51b5',
+              borderLeft: 'solid 10px transparent',
+              borderRight: 'solid 10px transparent',
+              boxSizing: 'border-box',
+              display: 'inline-block',
+              height: '20px',
+              width: '20px',
+              transform: `rotate(${point.Azimuth}deg)`,
+            }}
+          />
+        </Marker>
+      );
+    });
   return (
     <MapBox
       style="mapbox://styles/mapbox/streets-v8"
