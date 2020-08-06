@@ -1,12 +1,19 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import path from 'path';
 
 import { Typography, Box, Grid, IconButton, Button } from '@material-ui/core';
 
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 
-import { setSequenceNadirPath } from './slice';
+import { getImageBasePath } from '../scripts/utils';
+
+import {
+  setSequenceNadirPath,
+  selSequenceName,
+  selPoints,
+  setProcessStep,
+} from './slice';
 
 const { ipcRenderer, remote } = window.require('electron');
 
@@ -19,10 +26,16 @@ const defaultNadir = [
 
 export default function SequenceUploadNadir() {
   const dispatch = useDispatch();
+  const name = useSelector(selSequenceName);
+  const points = useSelector(selPoints);
 
   const setPath = (url: string) => {
     dispatch(setSequenceNadirPath(url));
-    ipcRenderer.send('upload_nadir', url);
+    dispatch(setProcessStep('previewNadir'));
+    ipcRenderer.send('upload_nadir', {
+      nadirpath: url,
+      imagepath: getImageBasePath(remote.app, name, points[0].Image),
+    });
   };
 
   const openFileDialog = async () => {

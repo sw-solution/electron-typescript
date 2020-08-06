@@ -239,7 +239,6 @@
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
-    "360-react-pannellum": "^0.0.3",
     "@ffmpeg-installer/ffmpeg": "^1.0.20",
     "@fortawesome/fontawesome-free": "^5.13.1",
     "@hot-loader/react-dom": "^16.13.0",
@@ -265,6 +264,7 @@
     "react-hot-loader": "^4.12.21",
     "react-leaflet": "^2.7.0",
     "react-mapbox-gl": "^4.8.6",
+    "react-pannellum": "^0.1.13",
     "react-redux": "^7.2.0",
     "react-router-dom": "^5.2.0",
     "redux": "^4.0.5",

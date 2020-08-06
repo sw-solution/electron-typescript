@@ -96,7 +96,7 @@ export default function Sequence({ data }: Props) {
       </IconButton>
       <Grid container alignItems="center" spacing={3}>
         <Grid xs={4} item>
-          <Map points={points} height={200} />
+          <Map points={points} height={200} show-popup={false} />
         </Grid>
         <Grid xs={5} item>
           <Typography variant="h5" color="primary" align="left">

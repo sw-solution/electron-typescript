@@ -24,7 +24,7 @@ export default function SequenceUploadGpx() {
   useEffect(() => {
     if (!required) {
       dispatch(setCurrentStep('modifySpace'));
-      dispatch(setPrevStep('modifySpace'));
+      dispatch(setPrevStep('imagePath'));
     }
   });
 

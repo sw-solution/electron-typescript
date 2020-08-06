@@ -7,23 +7,16 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import Box from '@material-ui/core/Box';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import { Pannellum } from '360-react-pannellum';
+import ReactPannellum from 'react-pannellum';
 
-import {
-  setSequenceCurrentStep,
-  selPoints,
-  selSequence,
-  selSequenceName,
-} from './slice';
+import { setSequenceCurrentStep, selSequence, selPreviewNadir } from './slice';
 
 const { ipcRenderer } = window.require('electron');
 
 export default function SequencePreviewNadir() {
   const dispatch = useDispatch();
-  const points = useSelector(selPoints);
   const sequence = useSelector(selSequence);
-  const name = useSelector(selSequenceName);
-  const point = points[0];
+  const imagePath = useSelector(selPreviewNadir);
 
   const resetMode = () => {
     dispatch(setSequenceCurrentStep('nadir'));
@@ -48,14 +41,17 @@ export default function SequencePreviewNadir() {
         <Typography align="center" color="textSecondary" />
       </Grid>
       <Grid item xs={12}>
-        <Pannellum
-          width="100%"
-          height="200px"
-          imagePath="https://pannellum.org/images/alma.jpg"
-          closeButtonTitle="Close"
-          showZoomCtrl={false}
-          showFullscreenCtrl={false}
-          autoLoad
+        <ReactPannellum
+          imageSource={imagePath}
+          id="preview_nadir"
+          sceneId="1"
+          config={{
+            autoLoad: true,
+          }}
+          style={{
+            width: '100%',
+            height: '300px',
+          }}
         />
       </Grid>
       <Grid item xs={12}>

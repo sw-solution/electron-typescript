@@ -14,9 +14,10 @@ import fs from 'fs';
 import rimraf from 'rimraf';
 import dotenv from 'dotenv';
 import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 import { processVideo } from './scripts/video';
-import { loadImages, updateImages } from './scripts/image';
+import { loadImages, updateImages, addLogo } from './scripts/image';
 import { sendToClient, sendPoints, createdData2List } from './scripts/utils';
 import { readGPX } from './scripts/utils/gpx';
 import { Results, Summary } from './types/Result';
@@ -143,6 +144,23 @@ ipcMain.on('load_gpx', (_event: IpcMainEvent, gpxpath: string) => {
       sendToClient(mainWindow, 'loaded_gpx', points);
     }
   });
+});
+
+ipcMain.on('upload_nadir', (_event: IpcMainEvent, { nadirpath, imagepath }) => {
+  console.log(imagepath, nadirpath);
+  const tempfilename = uuidv4();
+  const outputfile = path.resolve(app.getAppPath(), '../', tempfilename);
+  const addLogoAsync = addLogo(imagepath, nadirpath)
+    .then((image) => {
+      return image.writeAsync(outputfile);
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+
+  addLogoAsync
+    .then(() => sendToClient(mainWindow, 'loaded_preview_nadir', outputfile))
+    .catch((err) => console.error(err));
 });
 
 const log = path.resolve(app.getAppPath(), '../result.json');

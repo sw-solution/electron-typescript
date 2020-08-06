@@ -1,6 +1,8 @@
-import { BrowserWindow } from 'electron';
-import { IGeoPoint } from '../types/IGeoPoint';
-import { Result, Summary } from '../types/Result';
+import { BrowserWindow, App } from 'electron';
+import path from 'path';
+
+import { IGeoPoint } from '../../types/IGeoPoint';
+import { Result, Summary } from '../../types/Result';
 
 export function sendToClient(
   win: BrowserWindow | null,
@@ -89,4 +91,12 @@ export function getPitch(
   return distance !== 0
     ? (point2.GPSAltitude - point1.GPSAltitude) / distance
     : 0;
+}
+
+export function getImageBasePath(
+  app: App,
+  sequencename: string,
+  filename: string
+) {
+  return path.resolve(app.getAppPath(), '../', sequencename, filename);
 }

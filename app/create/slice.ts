@@ -37,6 +37,7 @@ const initialState = {
     azimuth: 0,
     tags: [],
     nadirPath: '',
+    previewnadir: '',
   },
   points: [],
   error: null,
@@ -60,6 +61,7 @@ const createSequenceSlice = createSlice({
     },
     setPrevStep: (state, { payload }) => {
       state.step = {
+        ...state.step,
         prev: payload,
       };
     },
@@ -128,6 +130,9 @@ const createSequenceSlice = createSlice({
     },
     setNadirPath: (state, { payload }) => {
       state.steps.nadirPath = payload;
+    },
+    setNadirPreview: (state, { payload }) => {
+      state.steps.previewnadir = payload;
     },
     setProcessStep: (state, { payload }) => {
       state.steps.processPage = payload;
@@ -211,6 +216,7 @@ export const {
   setAzimuth,
   setTags,
   setNadirPath,
+  setNadirPreview,
   setProcessStep,
   setPoints,
   setGpxPoints,
@@ -307,7 +313,6 @@ export const setSequenceAzimuth = (azimuth: number): AppThunk => {
 export const setSequenceNadirPath = (paths: string): AppThunk => {
   return (dispatch) => {
     dispatch(setNadirPath(paths));
-    dispatch(setCurrentStep('previewNadir'));
   };
 };
 
@@ -425,6 +430,9 @@ export const selPoints = (state: RootState) => state.create.points;
 export const selProcessPageNext = (state: RootState) => {
   return state.create.steps.processPage;
 };
+
+export const selPreviewNadir = (state: RootState) =>
+  state.create.steps.previewnadir;
 
 export const selCurrentStep = (state: RootState) => state.create.step.current;
 

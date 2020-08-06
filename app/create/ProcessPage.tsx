@@ -6,7 +6,12 @@ import Grid from '@material-ui/core/Grid';
 
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { IpcRendererEvent } from 'electron';
-import { selProcessPageNext, selPrevStep, setCurrentStep } from './slice';
+import {
+  selProcessPageNext,
+  selPrevStep,
+  setCurrentStep,
+  setNadirPreview,
+} from './slice';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -20,6 +25,14 @@ export default function SequenceProcessPage() {
     ipcRenderer.on('finish', (_event: IpcRendererEvent) => {
       dispatch(setCurrentStep(nextStep));
     });
+
+    ipcRenderer.on(
+      'loaded_preview_nadir',
+      (_event: IpcRendererEvent, previewnadir) => {
+        dispatch(setNadirPreview(previewnadir));
+        dispatch(setCurrentStep(nextStep));
+      }
+    );
 
     ipcRenderer.on('error', (_event: IpcRendererEvent, message) => {
       if (message) {
