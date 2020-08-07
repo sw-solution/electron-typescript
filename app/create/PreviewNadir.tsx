@@ -37,7 +37,7 @@ export default function SequencePreviewNadir() {
           Here’s an example of how your nadir will appear
         </Typography>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+      <Grid item xs={12}>
         <Typography align="center" color="textSecondary" />
       </Grid>
       <Grid item xs={12}>

@@ -35,7 +35,7 @@ export default function SequenceNadir() {
           You can add a nadir with a branded logo
         </Typography>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+      <Grid item xs={12}>
         <Grid container spacing={5} justify="center">
           <Grid item>
             <IconButton

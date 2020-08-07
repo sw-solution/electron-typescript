@@ -154,7 +154,7 @@ export default function SequenceModifyOutlier() {
           </Tooltip>
         </Box>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+      <Grid item xs={12}>
         <Map points={points} />
       </Grid>
       <Grid item xs={12}>

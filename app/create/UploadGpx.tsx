@@ -53,13 +53,13 @@ export default function SequenceUploadGpx() {
           Please upload the GPS tracks Following formats supported: GPX.
         </Typography>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+      <Grid item xs={12}>
         <IconButton onClick={openFileDialog} color="primary">
           <CloudUploadIcon fontSize="large" />
         </IconButton>
         <Typography color="primary">Upload</Typography>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }} />
+      <Grid item xs={12} />
     </>
   );
 }

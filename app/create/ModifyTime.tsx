@@ -31,13 +31,13 @@ export default function SequenceStartTime() {
           {startTime}
         </Typography>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+      <Grid item xs={12}>
         <Typography color="primary">
           Add the following time offset to all photos (in second, can be + or
           -):
         </Typography>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+      <Grid item xs={12}>
         <TextField
           id="outlined-basic"
           label="Sequence Name"
@@ -46,7 +46,7 @@ export default function SequenceStartTime() {
           onChange={handleChange}
         />
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+      <Grid item xs={12}>
         <Button
           endIcon={<ChevronRightIcon />}
           color="primary"

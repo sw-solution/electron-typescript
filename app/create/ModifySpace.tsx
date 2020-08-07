@@ -27,6 +27,7 @@ import { IGeoPoint } from '../types/IGeoPoint';
 const useStyles = makeStyles((theme) => ({
   sliderHeader: {
     width: 80,
+    color: 'rgba(0, 0, 0, 0.54)',
   },
   slider: {
     width: 180,

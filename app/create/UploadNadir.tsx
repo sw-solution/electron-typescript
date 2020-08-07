@@ -64,7 +64,7 @@ export default function SequenceUploadNadir() {
           Allowed jpg, png, tif file only. Must be at least 500px x 500px
         </Typography>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+      <Grid item xs={12}>
         <IconButton onClick={openFileDialog} color="primary">
           <CloudUploadIcon fontSize="large" />
         </IconButton>

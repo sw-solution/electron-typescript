@@ -59,12 +59,12 @@ export default function SequenceType() {
           Where did you capture content?
         </Typography>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+      <Grid item xs={12}>
         <Grid container spacing={5} justify="center">
           {items}
         </Grid>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }} />
+      <Grid item xs={12} />
     </>
   );
 }

@@ -58,7 +58,7 @@ export default function SequenceCamera() {
           What camera did you use?
         </Typography>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+      <Grid item xs={12}>
         <Grid container spacing={5} justify="center">
           {items}
         </Grid>

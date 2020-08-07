@@ -23,7 +23,7 @@ export default function SequenceStartTime() {
 
   return (
     <>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+      <Grid item xs={12}>
         <Typography variant="h6" align="center" color="textSecondary">
           The start time of your GPS Track is:
           {startTime}
@@ -35,7 +35,7 @@ export default function SequenceStartTime() {
           {startTime}
         </Typography>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+      <Grid item xs={12}>
         <Box mr={1} display="inline-block">
           <Button
             endIcon={<ChevronRightIcon />}
@@ -55,7 +55,7 @@ export default function SequenceStartTime() {
           Corret
         </Button>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+      <Grid item xs={12}>
         <Typography color="primary">
           This process will overwrite any existing geotags
         </Typography>

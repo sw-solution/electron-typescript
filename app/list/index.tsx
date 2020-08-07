@@ -6,12 +6,10 @@ import { push } from 'connected-react-router';
 import {
   Drawer,
   Box,
-  AppBar,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Toolbar,
   Typography,
   TextField,
   Grid,
@@ -28,6 +26,7 @@ import { useSelector, useDispatch } from 'react-redux';
 
 import Sequence from './Sequence';
 import Logo from '../components/Logo';
+import Wrapper from '../components/Wrapper';
 import { selLoaded, selSeqs, setEndLoad } from './slice';
 
 import routes from '../constants/routes.json';
@@ -43,19 +42,6 @@ const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
   },
-  appBarShift: {
-    width: `calc(100% - ${drawerWidth}px)`,
-    marginLeft: drawerWidth,
-    transition: theme.transitions.create(['margin', 'width'], {
-      easing: theme.transitions.easing.easeOut,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-    background: '#fff',
-  },
-  drawer: {
-    width: drawerWidth,
-    flexShrink: 0,
-  },
   drawerPaper: {
     width: drawerWidth,
   },
@@ -64,6 +50,11 @@ const useStyles = makeStyles((theme) => ({
       marginBottom: theme.spacing(2),
     },
     padding: theme.spacing(2),
+  },
+  gridContainer: {
+    '& > *': {
+      marginBottom: theme.spacing(2),
+    },
   },
 }));
 
@@ -226,46 +217,36 @@ export default function ListPageWrapper() {
           />
         </div>
       </Drawer>
-      <div className={classes.appBarShift}>
-        <AppBar position="static">
-          <Toolbar>
-            <Typography variant="h5">Browse Sequences</Typography>
-          </Toolbar>
-        </AppBar>
-
-        <div>
-          <Box my={1} height="78vh" px={5} style={{ overFlow: 'scroll' }}>
-            {loaded && (
-              <Grid container>
-                <Grid item xs={12}>
-                  <Box style={{ textAlign: 'right', marginBottom: '20px' }}>
-                    <Button
-                      onClick={() => {
-                        dispatch(push(routes.CREATE));
-                      }}
-                      color="primary"
-                      startIcon={<AddIcon />}
-                    >
-                      Create
-                    </Button>
-                  </Box>
-                </Grid>
-                {items}
-              </Grid>
-            )}
-            {!loaded && (
-              <div>
-                <Box mb={5}>
-                  <Typography variant="h5" color="primary">
-                    Loading
-                  </Typography>
-                </Box>
-                <LinearProgress />
-              </div>
-            )}
-          </Box>
-        </div>
-      </div>
+      <Wrapper title="Browse Sequences">
+        {loaded && (
+          <Grid container className={classes.gridContainer}>
+            <Grid item xs={12}>
+              <Box style={{ textAlign: 'right', marginBottom: '20px' }}>
+                <Button
+                  onClick={() => {
+                    dispatch(push(routes.CREATE));
+                  }}
+                  color="primary"
+                  startIcon={<AddIcon />}
+                >
+                  Create
+                </Button>
+              </Box>
+            </Grid>
+            {items}
+          </Grid>
+        )}
+        {!loaded && (
+          <div>
+            <Box mb={5}>
+              <Typography variant="h5" color="primary">
+                Loading
+              </Typography>
+            </Box>
+            <LinearProgress />
+          </div>
+        )}
+      </Wrapper>
     </div>
   );
 }

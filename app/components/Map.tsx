@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import ReactMapboxGl, { Marker } from 'react-mapbox-gl';
-import Modal from '@material-ui/core/Modal';
+import { Modal, ButtonGroup, IconButton, Box } from '@material-ui/core';
 import ReactPannellum from 'react-pannellum';
 import { makeStyles } from '@material-ui/core/styles';
+
+import ChevronLeftRoundedIcon from '@material-ui/icons/ChevronLeftRounded';
+import ChevronRightRoundedIcon from '@material-ui/icons/ChevronRightRounded';
 import { getImageBasePath } from '../scripts/utils';
 
 import { IGeoPoint } from '../types/IGeoPoint';
@@ -64,10 +67,24 @@ export default function Map(props: Props) {
   };
 
   const showPhoto = (idx: number) => () => {
-    console.log('showPhoto: ', idx);
     setState({
       isopen: true,
       selected: idx,
+    });
+  };
+
+  const nextImage = () => {
+    setState({
+      ...state,
+      selected: (state.selected + 1) % filteredpoints.length,
+    });
+  };
+
+  const prevImage = () => {
+    setState({
+      ...state,
+      selected:
+        (filteredpoints.length + state.selected - 1) % filteredpoints.length,
     });
   };
 
@@ -90,20 +107,34 @@ export default function Map(props: Props) {
     accessToken: process.env.MAPBOX_TOKEN || '',
   });
 
-  const currentImagePath = state.selected >= 0 ? getpath(state.selected) : null;
-
+  const photos = filteredpoints.map((_point: IGeoPoint, idx: number) => (
+    <ReactPannellum
+      key={idx}
+      style={{ width: '100%', height: 250 }}
+      imageSource={getpath(idx)}
+      id={`image_${idx.toString()}`}
+      sceneId={idx.toString()}
+      config={{
+        autoLoad: true,
+      }}
+    />
+  ));
   const modalBody = (
     <div className={classes.paper}>
-      {currentImagePath && (
-        <ReactPannellum
-          style={{ width: 200, height: 150 }}
-          imageSource={currentImagePath}
-          id={`image_${state.selected}`}
-          sceneId={state.selected.toString()}
-          config={{
-            autoLoad: true,
-          }}
-        />
+      {state.selected >= 0 && (
+        <>
+          <Box mb={1}>
+            <ButtonGroup>
+              <IconButton onClick={prevImage}>
+                <ChevronLeftRoundedIcon />
+              </IconButton>
+              <IconButton onClick={nextImage}>
+                <ChevronRightRoundedIcon />
+              </IconButton>
+            </ButtonGroup>
+          </Box>
+          {photos[state.selected]}
+        </>
       )}
     </div>
   );

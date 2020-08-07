@@ -61,13 +61,13 @@ export default function SequenceUploadImage() {
           Please upload the [timelapse photos | video file]
         </Typography>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+      <Grid item xs={12}>
         <IconButton onClick={openFileDialog} color="primary">
           <CloudUploadIcon fontSize="large" />
         </IconButton>
         <Typography color="primary">Upload</Typography>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+      <Grid item xs={12}>
         <Typography variant="h6" align="center" color="textSecondary">
           Or use an existing file
         </Typography>

@@ -7,6 +7,7 @@ import Grid from '@material-ui/core/Grid';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { IpcRendererEvent } from 'electron';
 import {
+  selSequenceName,
   selProcessPageNext,
   selPrevStep,
   setCurrentStep,
@@ -18,6 +19,7 @@ const { ipcRenderer } = window.require('electron');
 export default function SequenceProcessPage() {
   const nextStep = useSelector(selProcessPageNext);
   const prevStep = useSelector(selPrevStep);
+  const name = useSelector(selSequenceName);
   const dispatch = useDispatch();
   const [errMessage, setErrMessage] = React.useState<string>('');
 
@@ -54,7 +56,7 @@ export default function SequenceProcessPage() {
           Processing
         </Typography>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '30px' }}>
+      <Grid item xs={12}>
         {errMessage !== '' && (
           <Typography paragraph align="center" color="secondary">
             {errMessage}
@@ -68,9 +70,11 @@ export default function SequenceProcessPage() {
         </Typography>
       </Grid>
       <Grid item xs={12}>
-        <Typography align="center" color="textSecondary">
-          Output can be viewed in [DIR] once complete
-        </Typography>
+        {prevStep !== 'imagePath' && (
+          <Typography align="center" color="textSecondary">
+            Output can be viewed in [{name}] once complete
+          </Typography>
+        )}
       </Grid>
     </>
   );

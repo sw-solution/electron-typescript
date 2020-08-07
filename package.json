@@ -1,8 +1,8 @@
 {
-  "name": "opm-desktop-uploader",
-  "productName": "OpmDesktopUploader",
+  "name": "mtp",
+  "productName": "Map the Paths Uploader",
   "version": "1.0.0",
-  "description": "Electron Application for calculation geo images or videos",
+  "description": "Map the Paths Uploader",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\"",
     "build-dll": "cross-env NODE_ENV=development webpack --config ./configs/webpack.config.renderer.dev.dll.babel.js --colors",
@@ -37,8 +37,8 @@
     "test-watch": "yarn test --watch"
   },
   "build": {
-    "productName": "OpmDesktopUploader",
-    "appId": "org.develar.OpmDesktopUploader",
+    "productName": "Map the Paths Uploader",
+    "appId": "org.develar.mtp",
     "asarUnpack": [
       "node_modules/exiftool-vendored.*/**/*",
       "node_modules/@ffmpeg-installer/**/*"

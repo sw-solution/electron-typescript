@@ -1,7 +1,4 @@
 import React, { useEffect } from 'react';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -14,7 +11,6 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Box from '@material-ui/core/Box';
-import Card from '@material-ui/core/Card';
 import Grid from '@material-ui/core/Grid';
 import { Alert, AlertTitle } from '@material-ui/lab';
 
@@ -59,6 +55,7 @@ import { setConfigLoadEnd } from '../base/slice';
 
 import { setAddSeq } from '../list/slice';
 import Logo from '../components/Logo';
+import Wrapper from '../components/Wrapper';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -68,20 +65,15 @@ const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
   },
-  appBarShift: {
-    width: `calc(100% - ${drawerWidth}px)`,
-    marginLeft: drawerWidth,
-    transition: theme.transitions.create(['margin', 'width'], {
-      easing: theme.transitions.easing.easeOut,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  },
-  drawer: {
-    width: drawerWidth,
-    flexShrink: 0,
-  },
+
   drawerPaper: {
     width: drawerWidth,
+  },
+
+  gridContainer: {
+    '& > *': {
+      marginBottom: theme.spacing(2),
+    },
   },
 }));
 
@@ -171,70 +163,53 @@ export default function CreatePageWrapper() {
           </ListItem>
         </List>
       </Drawer>
-      <div className={classes.appBarShift}>
-        <AppBar position="static">
-          <Toolbar>
-            <Typography variant="h5">Create Sequence</Typography>
-          </Toolbar>
-        </AppBar>
-        <div>
-          <Box my={1} height="78vh" style={{ textAlign: 'center' }}>
-            <Card
-              style={{
-                height: '100%',
-                padding: '30px',
-                position: 'relative',
-              }}
-            >
-              <Grid
-                container
-                alignItems="center"
-                style={{
-                  height: '100%',
-                  paddingTop: '30px',
-                  paddingBottom: '30px',
-                }}
-              >
-                {prevStep !== '' && (
-                  <Box position="absolute" top={20} left={20} zIndex="modal">
-                    <IconButton onClick={goPrevStep}>
-                      <ChevronLeftIcon />
-                    </IconButton>
-                  </Box>
-                )}
+      <Wrapper title="Create Sequence">
+        <Grid
+          container
+          alignItems="center"
+          style={{
+            paddingTop: '30px',
+            paddingBottom: '30px',
+          }}
+          className={classes.gridContainer}
+        >
+          {prevStep !== '' && (
+            <Box position="absolute" top={20} left={20} zIndex="modal">
+              <IconButton onClick={goPrevStep}>
+                <ChevronLeftIcon />
+              </IconButton>
+            </Box>
+          )}
 
-                {error && (
-                  <Grid xs={12}>
-                    <Alert severity="error">
-                      <AlertTitle>Error</AlertTitle>
-                      <span>{error}</span>
-                    </Alert>
-                  </Grid>
-                )}
+          {error && (
+            <Grid xs={12}>
+              <Alert severity="error">
+                <AlertTitle>Error</AlertTitle>
+                <span>{error}</span>
+              </Alert>
+            </Grid>
+          )}
 
-                {currentStep === 'name' && <Name />}
-                {currentStep === 'description' && <Description />}
-                {currentStep === 'type' && <Type />}
-                {currentStep === 'method' && <Method />}
-                {currentStep === 'camera' && <Camera />}
-                {currentStep === 'attachType' && <AttachType />}
-                {currentStep === 'imagePath' && <UploadImage />}
-                {currentStep === 'gpx' && <UploadGpx />}
-                {currentStep === 'startTime' && <StartTime />}
-                {currentStep === 'modifyTime' && <ModifyTime />}
-                {currentStep === 'modifySpace' && <ModifySpace />}
-                {currentStep === 'outlier' && <ModifyOutlier />}
-                {currentStep === 'azimuth' && <ModifyAzimuth />}
-                {currentStep === 'tags' && <Tags />}
-                {currentStep === 'nadir' && <Nadir />}
-                {currentStep === 'nadirPath' && <UploadNadir />}
-                {currentStep === 'previewNadir' && <PreviewNadir />}
-                {currentStep === 'processPage' && <ProcessPage />}
-              </Grid>
-            </Card>
-          </Box>
-        </div>
-      </div>
+          {currentStep === 'name' && <Name />}
+          {currentStep === 'description' && <Description />}
+          {currentStep === 'type' && <Type />}
+          {currentStep === 'method' && <Method />}
+          {currentStep === 'camera' && <Camera />}
+          {currentStep === 'attachType' && <AttachType />}
+          {currentStep === 'imagePath' && <UploadImage />}
+          {currentStep === 'gpx' && <UploadGpx />}
+          {currentStep === 'startTime' && <StartTime />}
+          {currentStep === 'modifyTime' && <ModifyTime />}
+          {currentStep === 'modifySpace' && <ModifySpace />}
+          {currentStep === 'outlier' && <ModifyOutlier />}
+          {currentStep === 'azimuth' && <ModifyAzimuth />}
+          {currentStep === 'tags' && <Tags />}
+          {currentStep === 'nadir' && <Nadir />}
+          {currentStep === 'nadirPath' && <UploadNadir />}
+          {currentStep === 'previewNadir' && <PreviewNadir />}
+          {currentStep === 'processPage' && <ProcessPage />}
+        </Grid>
+      </Wrapper>
     </div>
   );
 }
