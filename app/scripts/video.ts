@@ -165,6 +165,8 @@ export async function writeTags2Image(
             origin_GPSAltitude: item.GPSAltitude,
             camera_model: commonData['Main:Model'],
             camera_make: commonData['Main:Make'],
+            width: commonData['Main:ImageWidth'],
+            height: commonData['Main:ImageHeight'],
           });
           result.push(newitem);
           return cb();
@@ -205,7 +207,7 @@ export async function splitVideos(
 
 export function splitVideoToImage(
   win: BrowserWindow,
-  tags: typeof Tags,
+  tags: any,
   videoPath: string,
   outputPath: string
 ) {
@@ -229,19 +231,18 @@ export function splitVideoToImage(
             outputPath,
             commonData,
             dataList,
-            (datalist: VGeoPoint[], starttime: Dayjs) =>
-              cb(null, { datalist, starttime })
+            (datalist: IGeoPoint[]) => cb(null, datalist)
           );
         },
       ],
-      (err, { datalist, starttime }) => {
+      function (err, datalist: IGeoPoint[]) {
         if (!err) {
-          calculatePoints(datalist, [], function (err, result: any) {
-            if (!err) {
+          calculatePoints(datalist, [], function (error: any, result: any) {
+            if (!error) {
               sendPoints(win, result.points);
               sendToClient(win, 'finish');
             } else {
-              sendToClient(win, 'error', err);
+              sendToClient(win, 'error', error);
             }
           });
         } else {

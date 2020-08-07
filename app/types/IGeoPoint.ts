@@ -35,6 +35,9 @@ export interface IGeoPointModel {
   camera_make?: string;
 
   camera_model?: string;
+
+  width: number;
+  height: number;
 }
 
 export class IGeoPoint {
@@ -55,6 +58,10 @@ export class IGeoPoint {
   Pitch?: number;
 
   Azimuth?: number;
+
+  width: number;
+
+  height: number;
 
   readonly origin_GPSDateTime?: string;
 
@@ -91,6 +98,8 @@ export class IGeoPoint {
     origin_Azimuth,
     camera_make,
     camera_model,
+    width,
+    height,
   }: IGeoPointModel) {
     this.id = id || uuidv4();
     this.GPSDateTime = GPSDateTime;
@@ -101,6 +110,8 @@ export class IGeoPoint {
     this.Pitch = Pitch;
     this.Azimuth = Azimuth;
     this.Distance = Distance;
+    this.width = width;
+    this.height = height;
 
     this.origin_GPSDateTime = origin_GPSDateTime;
     this.origin_GPSLatitude = origin_GPSLatitude;

@@ -32,7 +32,7 @@ export default function SequenceProcessPage() {
       'loaded_preview_nadir',
       (_event: IpcRendererEvent, previewnadir) => {
         dispatch(setNadirPreview(previewnadir));
-        dispatch(setCurrentStep(nextStep));
+        dispatch(setCurrentStep('previewNadir'));
       }
     );
 
@@ -72,7 +72,8 @@ export default function SequenceProcessPage() {
       <Grid item xs={12}>
         {prevStep !== 'imagePath' && (
           <Typography align="center" color="textSecondary">
-            Output can be viewed in [{name}] once complete
+            Output can be viewed in [
+{name}] once complete
           </Typography>
         )}
       </Grid>

@@ -9,7 +9,12 @@ import Box from '@material-ui/core/Box';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ReactPannellum from 'react-pannellum';
 
-import { setSequenceCurrentStep, selSequence, selPreviewNadir } from './slice';
+import {
+  setCurrentStep,
+  selSequence,
+  selPreviewNadir,
+  selPoints,
+} from './slice';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -17,14 +22,15 @@ export default function SequencePreviewNadir() {
   const dispatch = useDispatch();
   const sequence = useSelector(selSequence);
   const imagePath = useSelector(selPreviewNadir);
+  const points = useSelector(selPoints);
 
   const resetMode = () => {
-    dispatch(setSequenceCurrentStep('nadir'));
+    dispatch(setCurrentStep('nadir'));
   };
 
   const confirmMode = () => {
     ipcRenderer.send('update_images', sequence);
-    dispatch(setSequenceCurrentStep('processPage'));
+    dispatch(setCurrentStep('processPage'));
   };
 
   return (
@@ -49,8 +55,11 @@ export default function SequencePreviewNadir() {
             autoLoad: true,
           }}
           style={{
-            width: '100%',
-            height: '300px',
+            width: '500px',
+            height: `${(
+              (points[0].height / points[0].width) *
+              500
+            ).toString()}px`,
           }}
         />
       </Grid>

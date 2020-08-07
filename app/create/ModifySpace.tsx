@@ -10,7 +10,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Map from '../components/Map';
 
 import {
-  setSequenceCurrentStep,
+  setCurrentStep,
   setSequencePosition,
   setSequenceFrame,
   setSequencePoints,
@@ -67,7 +67,7 @@ export default function SequenceModifySpace() {
 
   const confirmMode = () => {
     dispatch(setSequenceFrame(frames));
-    dispatch(setSequenceCurrentStep('outlier'));
+    dispatch(setCurrentStep('outlier'));
   };
 
   const handleFrameSliderChange = (

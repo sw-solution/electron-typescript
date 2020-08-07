@@ -16,7 +16,9 @@ export default async function loadCameras(app: App | null) {
     );
   const cameras = modules.map((m) => {
     return {
-      url: path.join(camerasRootPath, m, moduleIconPath),
+      image: fs
+        .readFileSync(path.resolve(camerasRootPath, m, moduleIconPath))
+        .toString('base64'),
       name: m,
     };
   });

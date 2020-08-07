@@ -37,13 +37,11 @@ export default function SequenceCamera() {
           color={color}
           onClick={() => storeSequenceCamera(it.name)}
         >
-          <div
-            style={{
-              background: `url(${it.url})`,
-              width: 70,
-              height: 70,
-              backgroundSize: '100% 100%',
-            }}
+          <img
+            src={`data:image/png;base64, ${it.image}`}
+            alt={it.name}
+            width="70"
+            height="70"
           />
           <Typography color={color}>{it.name}</Typography>
         </Button>

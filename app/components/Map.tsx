@@ -12,8 +12,6 @@ import { getImageBasePath } from '../scripts/utils';
 import { IGeoPoint } from '../types/IGeoPoint';
 import { selSequenceName } from '../create/slice';
 
-const { remote } = window.require('electron');
-
 const useStyles = makeStyles((theme) => ({
   paper: {
     position: 'absolute',
@@ -96,11 +94,7 @@ export default function Map(props: Props) {
   };
 
   const getpath = (idx: number) => {
-    return getImageBasePath(
-      remote.app,
-      name,
-      filteredpoints[idx.toString()].Image
-    );
+    return getImageBasePath(name, filteredpoints[idx.toString()].Image);
   };
 
   const MapBox = ReactMapboxGl({

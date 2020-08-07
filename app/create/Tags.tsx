@@ -38,6 +38,7 @@ export default function SequenceTags() {
           value={tags}
           onAdd={(tag: string) => handleAddTag(tag)}
           onDelete={(tag: string) => handleDeleteTag(tag)}
+          newChipKeyCodes={[13, 32]}
         />
       </Grid>
       <Grid item xs={12}>

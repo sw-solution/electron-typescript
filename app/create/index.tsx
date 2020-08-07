@@ -42,7 +42,7 @@ import routes from '../constants/routes.json';
 import {
   selPrevStep,
   selCurrentStep,
-  setSequenceCurrentStep,
+  goToPrevStep,
   setSequencePoints,
   setSequenceStartTime,
   setSequenceGpxPoints,
@@ -85,7 +85,7 @@ export default function CreatePageWrapper() {
   const dispatch = useDispatch();
 
   const goPrevStep = () => {
-    dispatch(setSequenceCurrentStep(prevStep));
+    dispatch(goToPrevStep());
   };
 
   useEffect(() => {

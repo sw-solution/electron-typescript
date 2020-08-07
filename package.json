@@ -253,6 +253,7 @@
     "electron-log": "^4.2.2",
     "electron-updater": "^4.3.1",
     "fluent-ffmpeg": "^2.1.2",
+    "gm": "^1.23.1",
     "history": "4.7.2",
     "jimp": "^0.14.0",
     "leaflet": "^1.6.0",

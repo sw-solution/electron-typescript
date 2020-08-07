@@ -22,6 +22,7 @@ import { sendToClient, sendPoints, createdData2List } from './scripts/utils';
 import { readGPX } from './scripts/utils/gpx';
 import { Results, Summary } from './types/Result';
 import loadCameras from './scripts/camera';
+import loadDefaultNadir from './scripts/nadir';
 
 let mainWindow: BrowserWindow | null = null;
 dotenv.config();
@@ -62,6 +63,7 @@ const createWindow = async () => {
     height: 768,
     webPreferences: {
       nodeIntegration: true,
+      webSecurity: false,
     },
   });
 
@@ -105,8 +107,11 @@ const createWindow = async () => {
  * Add event listeners for ipcMain
  */
 ipcMain.on('load_config', async (_event: IpcMainEvent) => {
-  const cameras = await loadCameras(app);
-  sendToClient(mainWindow, 'loaded_config', { cameras });
+  const [cameras, nadirs] = await Promise.all([
+    loadCameras(app),
+    loadDefaultNadir(app),
+  ]);
+  sendToClient(mainWindow, 'loaded_config', { cameras, nadirs });
 });
 
 ipcMain.on(
@@ -149,7 +154,7 @@ ipcMain.on('load_gpx', (_event: IpcMainEvent, gpxpath: string) => {
 ipcMain.on('upload_nadir', (_event: IpcMainEvent, { nadirpath, imagepath }) => {
   console.log(imagepath, nadirpath);
   const tempfilename = uuidv4();
-  const outputfile = path.resolve(app.getAppPath(), '../', tempfilename);
+  const outputfile = path.resolve(tempfilename);
   const addLogoAsync = addLogo(imagepath, nadirpath)
     .then((image) => {
       return image.writeAsync(outputfile);
@@ -163,7 +168,7 @@ ipcMain.on('upload_nadir', (_event: IpcMainEvent, { nadirpath, imagepath }) => {
     .catch((err) => console.error(err));
 });
 
-const log = path.resolve(app.getAppPath(), '../result.json');
+const log = 'result.json';
 
 ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
   let result: Results = {};
@@ -185,7 +190,6 @@ ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
 });
 
 ipcMain.on('sequences', async (_event: IpcMainEvent) => {
-  console.log('logPath:', log);
   if (!fs.existsSync(log)) {
     sendToClient(mainWindow, 'loaded-sequences', []);
   } else {

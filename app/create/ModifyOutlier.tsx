@@ -19,7 +19,7 @@ import { IGeoPoint } from '../types/IGeoPoint';
 
 import {
   selSequenceOutlierMeter,
-  setSequenceCurrentStep,
+  setCurrentStep,
   setSequenceSmooth,
   setSequenceDiscard,
   setSequenceOutlierMeters,
@@ -97,13 +97,13 @@ export default function SequenceModifyOutlier() {
 
   const resetMode = () => {
     dispatch(setSequenceOutlierMeters(0));
-    dispatch(setSequenceCurrentStep('modifySpace'));
+    dispatch(setCurrentStep('modifySpace'));
   };
 
   const confirmMode = () => {
     const meters = parseFloat(metersStr);
     dispatch(setSequenceOutlierMeters(meters));
-    dispatch(setSequenceCurrentStep('azimuth'));
+    dispatch(setCurrentStep('azimuth'));
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {

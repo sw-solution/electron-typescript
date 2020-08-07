@@ -104,6 +104,8 @@ export function getPoint(dirpath: string, filename: string) {
             origin_Pitch: pitch,
             camera_make: tags.Make,
             camera_model: tags.Model,
+            width: tags.ImageWidth,
+            height: tags.ImageHeight,
           });
           return resolve(item);
         }
@@ -251,13 +253,29 @@ export async function addLogo(imageurl: string, logourl: string) {
     jimp.read(logourl),
   ]);
 
-  logo.resize(image.bitmap.width / 10, jimp.AUTO);
+  const percentage = 0.12;
 
-  const X = (image.bitmap.width - logo.bitmap.width) / 2;
-  const Y = (image.bitmap.height - logo.bitmap.height) / 2;
+  logo.rotate(180);
+
+  logo.flip(true, true);
+
+  logo.resize(image.bitmap.width, image.bitmap.height * percentage);
+
+  const X = 0;
+  const Y = image.bitmap.height - image.bitmap.height * percentage;
+
+  // const LOGO_MARGIN_PERCENTAGE = 10;
+
+  // logo.resize(image.bitmap.width / 10, jimp.AUTO);
+
+  // const xMargin = (image.bitmap.width * LOGO_MARGIN_PERCENTAGE) / 100;
+  // const yMargin = (image.bitmap.width * LOGO_MARGIN_PERCENTAGE) / 100;
+
+  // const X = image.bitmap.width - logo.bitmap.width - xMargin;
+  // const Y = image.bitmap.height - logo.bitmap.height - yMargin;
 
   const blendmode: any = {
-    mode: jimp.BLEND_SOURCE_OVER,
+    mode: jimp.BLEND_OVERLAY,
     opacitySource: 1,
     opacityDest: 1,
   };

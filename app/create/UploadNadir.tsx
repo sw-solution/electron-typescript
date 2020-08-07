@@ -1,6 +1,5 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import path from 'path';
 
 import { Typography, Box, Grid, IconButton, Button } from '@material-ui/core';
 
@@ -15,26 +14,23 @@ import {
   setProcessStep,
 } from './slice';
 
+import { selNadirs } from '../base/slice';
+import { Nadir } from '../types/Nadir';
+
 const { ipcRenderer, remote } = window.require('electron');
-
-const basePath = path.resolve(remote.app.getAppPath(), '../static');
-
-const defaultNadir = [
-  `${basePath}/nadir/nadir1.png`,
-  `${basePath}/nadir/nadir2.png`,
-];
 
 export default function SequenceUploadNadir() {
   const dispatch = useDispatch();
   const name = useSelector(selSequenceName);
   const points = useSelector(selPoints);
+  const nadirs = useSelector(selNadirs);
 
   const setPath = (url: string) => {
     dispatch(setSequenceNadirPath(url));
     dispatch(setProcessStep('previewNadir'));
     ipcRenderer.send('upload_nadir', {
       nadirpath: url,
-      imagepath: getImageBasePath(remote.app, name, points[0].Image),
+      imagepath: getImageBasePath(name, points[0].Image),
     });
   };
 
@@ -78,16 +74,13 @@ export default function SequenceUploadNadir() {
         </Box>
         <Box>
           <Box mr={1}>
-            {defaultNadir.map((nadir: string) => (
-              <Button onClick={() => setPath(nadir)} key={nadir}>
-                <div
-                  style={{
-                    display: 'inline-block',
-                    width: '70px',
-                    height: '70px',
-                    background: `url(${nadir})`,
-                    backgroundSize: '100% 100%',
-                  }}
+            {nadirs.map((nadir: Nadir) => (
+              <Button onClick={() => setPath(nadir.url)} key={nadir.url}>
+                <img
+                  width="70"
+                  height="70"
+                  src={`data:image/png;base64, ${nadir.image}`}
+                  alt="Nadir"
                 />
               </Button>
             ))}

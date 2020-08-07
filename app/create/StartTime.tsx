@@ -7,18 +7,18 @@ import Button from '@material-ui/core/Button';
 import Box from '@material-ui/core/Box';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
-import { selStartTime, setSequenceCurrentStep } from './slice';
+import { selStartTime, setCurrentStep } from './slice';
 
 export default function SequenceStartTime() {
   const dispatch = useDispatch();
   const startTime = useSelector(selStartTime);
 
   const modifyTime = () => {
-    dispatch(setSequenceCurrentStep('modifyTime'));
+    dispatch(setCurrentStep('modifyTime'));
   };
 
   const correctTime = () => {
-    dispatch(setSequenceCurrentStep('modifySpace'));
+    dispatch(setCurrentStep('modifySpace'));
   };
 
   return (

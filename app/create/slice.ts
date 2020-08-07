@@ -7,7 +7,7 @@ import { IGeoPoint } from '../types/IGeoPoint';
 const initialState = {
   step: {
     current: 'name',
-    prev: '',
+    passed: [],
   },
   steps: {
     name: '',
@@ -50,19 +50,35 @@ const createSequenceSlice = createSlice({
   },
   reducers: {
     setCurrentStep: (state, { payload }) => {
+      const passed =
+        state.step.current === 'processPage'
+          ? state.step.passed
+          : [
+              ...state.step.passed.filter(
+                (step) => step !== state.step.current
+              ),
+              state.step.current,
+            ];
       state.step = {
         current: payload,
-        prev:
-          state.step.current === 'processPage'
-            ? state.step.prev
-            : state.step.current,
+        passed,
       };
       state.error = null;
     },
-    setPrevStep: (state, { payload }) => {
+
+    goToPrevStep: (state) => {
+      const passedlength = state.step.passed.length;
+      if (passedlength) {
+        state.step = {
+          ...state.step,
+          current: state.step.passed[passedlength - 1],
+          passed: state.step.passed.slice(0, -1),
+        };
+      }
+    },
+    setPrevStep: (state) => {
       state.step = {
         ...state.step,
-        prev: payload,
       };
     },
     setName: (state, { payload }) => {
@@ -137,7 +153,7 @@ const createSequenceSlice = createSlice({
     setProcessStep: (state, { payload }) => {
       state.steps.processPage = payload;
       state.step = {
-        prev: state.step.current,
+        ...state.step,
         current: 'processPage',
       };
     },
@@ -207,6 +223,7 @@ export const {
   setCamera,
   setAttachType,
   setCurrentStep,
+  goToPrevStep,
   setImagePath,
   setGpxPath,
   setGpxRequired,
@@ -269,12 +286,6 @@ export const setSequenceAttachType = (attachType: string): AppThunk => {
   return (dispatch) => {
     dispatch(setAttachType(attachType));
     dispatch(setCurrentStep('imagePath'));
-  };
-};
-
-export const setSequenceCurrentStep = (currentStep: string): AppThunk => {
-  return (dispatch) => {
-    dispatch(setCurrentStep(currentStep));
   };
 };
 
@@ -409,7 +420,8 @@ export const selSequenceAttachType = (state: RootState) =>
   state.create.steps.attachType;
 
 export const selPrevStep = (state: RootState) => {
-  return state.create.step.prev;
+  const passedlength = state.create.step.passed.length;
+  return passedlength ? state.create.step.passed[passedlength - 1] : '';
 };
 
 export const selGPXRequired = (state: RootState) =>

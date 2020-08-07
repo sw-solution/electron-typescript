@@ -6,7 +6,7 @@ import { Grid, Button, Box, TextField } from '@material-ui/core';
 
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import Map from '../components/Map';
-import { setSequenceCurrentStep, selSequenceAzimuth, selPoints } from './slice';
+import { setCurrentStep, selSequenceAzimuth, selPoints } from './slice';
 import { IGeoPoint } from '../types/IGeoPoint';
 
 export default function SequenceModifyAzimuth() {
@@ -32,11 +32,11 @@ export default function SequenceModifyAzimuth() {
   };
 
   const resetMode = () => {
-    dispatch(setSequenceCurrentStep('outlier'));
+    dispatch(setCurrentStep('outlier'));
   };
 
   const confirmMode = () => {
-    dispatch(setSequenceCurrentStep('tags'));
+    dispatch(setCurrentStep('tags'));
   };
 
   return (

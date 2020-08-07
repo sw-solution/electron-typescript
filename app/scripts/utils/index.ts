@@ -93,10 +93,6 @@ export function getPitch(
     : 0;
 }
 
-export function getImageBasePath(
-  app: App,
-  sequencename: string,
-  filename: string
-) {
-  return path.resolve(app.getAppPath(), '../', sequencename, filename);
+export function getImageBasePath(sequencename: string, filename: string) {
+  return path.resolve(sequencename, filename);
 }

@@ -1,4 +1,4 @@
 export interface Camera {
-  url: string;
+  image: string;
   name: string;
 }
