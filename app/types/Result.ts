@@ -40,6 +40,7 @@ export interface Photo {
   GPSLatitude?: number;
   GPSLongitude?: number;
   Azimuth?: number;
+  Image?: string;
 
   original_GPSDateTime?: string;
   original_altitude?: number;

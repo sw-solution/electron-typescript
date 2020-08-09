@@ -22,6 +22,8 @@ import {
   selGPXPoints,
   setSequenceError,
 } from './slice';
+
+import { getDistance, getBearing, getPitch } from '../scripts/utils';
 import { IGeoPoint } from '../types/IGeoPoint';
 
 const useStyles = makeStyles((theme) => ({
@@ -45,16 +47,26 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+interface State {
+  frames: number;
+  position: string;
+  points: IGeoPoint[];
+}
+
 export default function SequenceModifySpace() {
   const dispatch = useDispatch();
   const propframe = useSelector(selSequenceFrame);
   const propposition = useSelector(selSequencePosition);
   const gpxRequired = useSelector(selGPXRequired);
+  const proppoints = useSelector(selPoints);
 
-  const [frames, setFrame] = React.useState<number>(propframe);
-  const [position, setPosition] = React.useState<number>(propposition);
+  const [state, setState] = React.useState<State>({
+    frames: propframe,
+    position: propposition.toString(),
+    points: proppoints,
+  });
 
-  const points = useSelector(selPoints);
+  const { points, frames, position } = state;
 
   const gpxPoints = useSelector(selGPXPoints);
 
@@ -66,23 +78,71 @@ export default function SequenceModifySpace() {
   };
 
   const confirmMode = () => {
+    dispatch(setSequencePoints(points));
     dispatch(setSequenceFrame(frames));
     dispatch(setCurrentStep('outlier'));
+  };
+
+  const updatePoints = () => {
+    const positionmeter = parseFloat(position);
+
+    if (positionmeter > 0) {
+      const newpoints: IGeoPoint[] = [];
+
+      const temppoints = proppoints.map(
+        (point: IGeoPoint) => new IGeoPoint({ ...point })
+      );
+
+      let previousIdx = 0;
+      temppoints.forEach((point: IGeoPoint, idx: number) => {
+        if (idx > 0 && idx < temppoints.length - 1) {
+          if (point.Distance < positionmeter) {
+            const prevpoint = newpoints[previousIdx];
+            const nextpoint = temppoints[idx + 1];
+            prevpoint.setDistance(getDistance(prevpoint, nextpoint));
+            prevpoint.setAzimuth(getBearing(prevpoint, nextpoint));
+            prevpoint.setPitch(getPitch(prevpoint, nextpoint));
+          } else {
+            previousIdx = newpoints.length;
+            newpoints.push(point);
+          }
+        } else {
+          newpoints.push(point);
+        }
+      });
+      setState({
+        ...state,
+        points: [...newpoints],
+      });
+    }
   };
 
   const handleFrameSliderChange = (
     _event: React.ChangeEvent,
     newValue: number
   ) => {
-    setFrame(newValue);
+    setState({
+      ...state,
+      frames: newValue,
+    });
   };
 
   const handleFrameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFrame(parseInt(event.target.value, 10));
+    setState({
+      ...state,
+      frames: parseFloat(event.target.value),
+    });
   };
 
   const handlePositionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPosition(parseFloat(event.target.value));
+    setState({
+      ...state,
+      position: event.target.value,
+    });
+  };
+
+  const handlePositionBlur = (event: React.ChangeEvent<HTMLInputElement>) => {
+    updatePoints();
   };
 
   const importGpxData = () => {
@@ -126,7 +186,7 @@ export default function SequenceModifySpace() {
         </Typography>
         <Box mb={1}>
           <Grid container spacing={3}>
-            <Grid item xs={9} className={classes.sliderWrapper}>
+            <Grid item xs={8} className={classes.sliderWrapper}>
               <Typography align="right" className={classes.sliderHeader}>
                 Frames
               </Typography>
@@ -134,32 +194,34 @@ export default function SequenceModifySpace() {
                 value={frames}
                 onChange={handleFrameSliderChange}
                 aria-labelledby="input-slider"
-                step={1}
-                min={1}
-                max={20}
+                step={0.05}
+                min={0.05}
+                max={1}
                 className={classes.slider}
               />
               <Input
-                style={{ width: 42 }}
+                style={{ width: 50 }}
                 value={frames}
                 margin="dense"
                 onChange={handleFrameChange}
                 inputProps={{
-                  step: 1,
-                  min: 1,
-                  max: 20,
+                  step: 0.05,
+                  min: 0.05,
+                  max: 1,
                   type: 'number',
                   'aria-labelledby': 'input-slider',
                 }}
               />
             </Grid>
-            <Grid item xs={3}>
+            <Grid item xs={4}>
               <TextField
+                fullWidth
                 id="outlined-basic"
                 label="Position"
                 variant="outlined"
                 value={position}
-                onBlur={handlePositionChange}
+                onChange={handlePositionChange}
+                onBlur={handlePositionBlur}
               />
             </Grid>
           </Grid>

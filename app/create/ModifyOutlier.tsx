@@ -16,6 +16,7 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import Map from '../components/Map';
 
 import { IGeoPoint } from '../types/IGeoPoint';
+import { getDistance, getBearing, getPitch } from '../scripts/utils';
 
 import {
   selSequenceOutlierMeter,
@@ -25,6 +26,7 @@ import {
   setSequenceOutlierMeters,
   selSequenceOutlierMode,
   selPoints,
+  setSequencePoints,
 } from './slice';
 
 const useStyles = makeStyles((theme) => ({
@@ -39,15 +41,23 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+interface State {
+  points: IGeoPoint[];
+  metersStr: string;
+}
+
 export default function SequenceModifyOutlier() {
   const dispatch = useDispatch();
   const propmeters = useSelector(selSequenceOutlierMeter);
   const mode = useSelector(selSequenceOutlierMode);
 
-  const [metersStr, setMeters] = React.useState<string>(propmeters.toString());
-
   const proppoints = useSelector(selPoints);
-  const [points, setPoints] = React.useState<IGeoPoint[]>(proppoints);
+  const [state, setState] = React.useState<State>({
+    points: proppoints,
+    metersStr: propmeters.toString(),
+  });
+
+  const { points, metersStr } = state;
 
   const classes = useStyles();
 
@@ -55,33 +65,53 @@ export default function SequenceModifyOutlier() {
     const meters = parseFloat(metersStr);
     if (meters > 0 && mode !== '') {
       const newpoints: IGeoPoint[] = [];
-      proppoints.forEach((point: IGeoPoint, idx: number) => {
-        if (idx > 0 && idx < points.length - 1) {
-          const prevpoint = points[idx - 1];
-          const nextpoint = points[idx + 1];
+
+      const temppoints = proppoints.map(
+        (point: IGeoPoint) => new IGeoPoint({ ...point })
+      );
+
+      let previousIdx = 0;
+      temppoints.forEach((point: IGeoPoint, idx: number) => {
+        if (idx > 0 && idx < temppoints.length - 1) {
+          const prevpoint = newpoints[previousIdx];
+          const nextpoint = temppoints[idx + 1];
           if (
             (prevpoint.Distance || 0) > meters &&
             (point.Distance || 0) > meters
           ) {
             if (mode === 'S') {
-              newpoints.push(
-                new IGeoPoint({
-                  ...point,
-                  GPSLongitude:
-                    (prevpoint.GPSLongitude + nextpoint.GPSLongitude) / 2,
-                  GPSLatitude:
-                    (prevpoint.GPSLatitude + nextpoint.GPSLatitude) / 2,
-                })
-              );
+              const newpoint = new IGeoPoint({
+                ...point,
+                GPSLongitude:
+                  (prevpoint.GPSLongitude + nextpoint.GPSLongitude) / 2,
+                GPSLatitude:
+                  (prevpoint.GPSLatitude + nextpoint.GPSLatitude) / 2,
+              });
+              prevpoint.setDistance(getDistance(prevpoint, newpoint));
+              prevpoint.setAzimuth(getBearing(prevpoint, newpoint));
+              prevpoint.setPitch(getPitch(prevpoint, newpoint));
+
+              newpoint.setDistance(getDistance(nextpoint, newpoint));
+              newpoint.setAzimuth(getBearing(newpoint, nextpoint));
+              newpoint.setPitch(getPitch(newpoint, nextpoint));
+              newpoints.push(newpoint);
+            } else {
+              prevpoint.setDistance(getDistance(prevpoint, nextpoint));
+              prevpoint.setAzimuth(getBearing(prevpoint, nextpoint));
+              prevpoint.setPitch(getPitch(prevpoint, nextpoint));
             }
           } else {
+            previousIdx = newpoints.length;
             newpoints.push(point);
           }
         } else {
           newpoints.push(point);
         }
       });
-      setPoints(newpoints);
+      setState({
+        ...state,
+        points: [...newpoints],
+      });
     }
   };
 
@@ -104,14 +134,21 @@ export default function SequenceModifyOutlier() {
     const meters = parseFloat(metersStr);
     dispatch(setSequenceOutlierMeters(meters));
     dispatch(setCurrentStep('azimuth'));
+    dispatch(setSequencePoints(points));
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setMeters(event.target.value);
+    setState({
+      ...state,
+      metersStr: event.target.value,
+    });
   };
 
   const handleBlur = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setMeters(event.target.value);
+    setState({
+      ...state,
+      metersStr: event.target.value,
+    });
     updatePoints();
   };
 

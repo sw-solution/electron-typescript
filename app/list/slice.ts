@@ -27,7 +27,7 @@ const listSlice = createSlice({
       state.seqs = [...state.seqs, payload];
     },
     removeSeq(state, { payload }) {
-      state.seqs = state.seqs.filter((s) => s.id !== payload);
+      state.seqs = state.seqs.filter((s) => s.name !== payload);
     },
   },
 });
@@ -53,8 +53,8 @@ export const setAddSeq = (seq: Summary): AppThunk => {
   };
 };
 
-export const setRemoveSeq = (id: string): AppThunk => {
+export const setRemoveSeq = (name: string): AppThunk => {
   return (dispatch) => {
-    dispatch(removeSeq(id));
+    dispatch(removeSeq(name));
   };
 };

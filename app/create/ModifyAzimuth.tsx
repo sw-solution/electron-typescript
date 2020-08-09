@@ -6,28 +6,44 @@ import { Grid, Button, Box, TextField } from '@material-ui/core';
 
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import Map from '../components/Map';
-import { setCurrentStep, selSequenceAzimuth, selPoints } from './slice';
+import {
+  setCurrentStep,
+  selSequenceAzimuth,
+  selPoints,
+  setSequencePoints,
+} from './slice';
 import { IGeoPoint } from '../types/IGeoPoint';
+
+interface State {
+  points: IGeoPoint[];
+  azimuth: number;
+}
 
 export default function SequenceModifyAzimuth() {
   const dispatch = useDispatch();
   const propazimuth = useSelector(selSequenceAzimuth);
   const proppoints = useSelector(selPoints);
 
-  const [azimuth, setAzimuth] = React.useState<number>(propazimuth);
-  const [points, setPoints] = React.useState<IGeoPoint[]>(proppoints);
+  const [state, setState] = React.useState<State>({
+    points: proppoints,
+    azimuth: propazimuth,
+  });
+
+  const { points, azimuth } = state;
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.value) {
       const newazimuth = parseFloat(event.target.value);
-      setAzimuth(newazimuth);
       const newpoints = points.map((p: IGeoPoint) => {
         return new IGeoPoint({
           ...p,
           Azimuth: (p.Azimuth || 0) + newazimuth,
         });
       });
-      setPoints(newpoints);
+      setState({
+        azimuth: newazimuth,
+        points: newpoints,
+      });
     }
   };
 
@@ -36,6 +52,7 @@ export default function SequenceModifyAzimuth() {
   };
 
   const confirmMode = () => {
+    setSequencePoints(points);
     dispatch(setCurrentStep('tags'));
   };
 

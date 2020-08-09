@@ -5,7 +5,7 @@ import { Typography, Box, Grid, IconButton, Button } from '@material-ui/core';
 
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 
-import { getImageBasePath } from '../scripts/utils';
+import { getSequenceImagePath } from '../scripts/utils';
 
 import {
   setSequenceNadirPath,
@@ -30,7 +30,7 @@ export default function SequenceUploadNadir() {
     dispatch(setProcessStep('previewNadir'));
     ipcRenderer.send('upload_nadir', {
       nadirpath: url,
-      imagepath: getImageBasePath(name, points[0].Image),
+      imagepath: getSequenceImagePath(name, points[0].Image),
     });
   };
 

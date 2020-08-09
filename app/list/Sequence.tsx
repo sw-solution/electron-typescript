@@ -80,17 +80,17 @@ export default function Sequence({ data }: Props) {
 
   const { points } = data;
 
-  const removeSeq = (id: string) => {
-    dispatch(setRemoveSeq(id));
+  const removeSeq = (name: string) => {
+    dispatch(setRemoveSeq(name));
 
-    ipcRenderer.send('remove_sequence', id);
+    ipcRenderer.send('remove_sequence', name);
   };
 
   return (
     <Grid xs={12} item className={classes.container}>
       <IconButton
         className={classes.removeButton}
-        onClick={() => removeSeq(data.id)}
+        onClick={() => removeSeq(data.name)}
       >
         <DeleteOutlineIcon />
       </IconButton>

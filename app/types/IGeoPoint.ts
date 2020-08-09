@@ -43,21 +43,21 @@ export interface IGeoPointModel {
 export class IGeoPoint {
   id: string;
 
-  GPSDateTime: Dayjs | string;
+  public GPSDateTime: Dayjs | string;
 
-  GPSLatitude?: number;
+  public GPSLatitude?: number;
 
-  GPSLongitude?: number;
+  public GPSLongitude?: number;
 
-  GPSAltitude?: number;
+  public GPSAltitude?: number;
 
-  Distance?: number;
+  public Distance?: number;
 
   Image?: string;
 
-  Pitch?: number;
+  public Pitch?: number;
 
-  Azimuth?: number;
+  public Azimuth?: number;
 
   width: number;
 

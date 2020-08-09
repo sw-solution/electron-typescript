@@ -13,7 +13,14 @@ import {
   Description,
 } from '../types/Result';
 
-import { getBearing, getDistance, getPitch } from './utils';
+import {
+  getBearing,
+  getDistance,
+  getPitch,
+  getSequenceImagePath,
+  OutputType,
+  getSequenceOutputPath,
+} from './utils';
 
 const { Tags, exiftool } = require('exiftool-vendored');
 
@@ -182,7 +189,7 @@ export const calculatePoints = (
       ).length === 0
     ) {
       points.forEach((point: IGeoPoint, idx: number) => {
-        if (idx < points.length - 2) {
+        if (idx < points.length - 1) {
           const nextPoint = points[idx + 1];
 
           let azimuth = point.Azimuth;
@@ -275,7 +282,7 @@ export async function addLogo(imageurl: string, logourl: string) {
   // const Y = image.bitmap.height - logo.bitmap.height - yMargin;
 
   const blendmode: any = {
-    mode: jimp.BLEND_OVERLAY,
+    mode: jimp.BLEND_SOURCE_OVER,
     opacitySource: 1,
     opacityDest: 1,
   };
@@ -291,7 +298,6 @@ export function writeExifTags(
 ) {
   return new Promise((resolve, reject) => {
     const datetime = dayjs(item.GPSDateTime);
-    console.log(`Start Updating Exiftool: filename ${input_file}`);
     if (outputfile) {
       fs.exists(outputfile, (existed) => {
         if (existed) {
@@ -343,11 +349,11 @@ export function writeNadirImages(
   return new Promise((resolve, reject) => {
     if (settings.nadirPath !== '') {
       const filename = item.Image || '';
-      const existingfile = path.join(settings.name, filename);
-      const outputfile = path.join(
+      const existingfile = getSequenceImagePath(settings.name, filename);
+      const outputfile = getSequenceOutputPath(
         settings.name,
-        'final_unblurred',
-        `${filename}`
+        filename,
+        OutputType.nadir
       );
       console.log(`Start Adding Logo: filename ${filename}`);
 
@@ -392,8 +398,12 @@ export function writeBlurredImage(
 ) {
   return new Promise((resolve, reject) => {
     const filename = item.Image || '';
-    const inputfile = path.join(settings.name, filename);
-    const outputfile = path.join(settings.name, 'final_burred', filename);
+    const inputfile = getSequenceImagePath(settings.name, filename);
+    const outputfile = getSequenceOutputPath(
+      settings.name,
+      filename,
+      OutputType.blur
+    );
 
     console.log(`Start Updating Jimp: filename ${inputfile}`);
     const jimpAsync = jimp
@@ -430,93 +440,11 @@ export function writeBlurredImage(
 
 export function updateImages(points: IGeoPoint[], settings: any) {
   return new Promise((resolve, reject) => {
-    let updatedPoints = points.map((p) => {
+    const updatedPoints = points.map((p) => {
       const newP = new IGeoPoint(p);
       newP.convertStrToDate();
       return newP;
     });
-
-    // outliers
-    const { meters, mode } = settings.outlier;
-    if (meters > 0) {
-      if (mode === 'D') {
-        updatedPoints = updatedPoints.filter((item, idx) => {
-          if (idx === 0 && idx === points.length - 1) {
-            return true;
-          }
-          const prevItem = points[idx - 1];
-          const nextItem = points[idx + 1];
-          if (
-            getDistance(prevItem, item) > meters &&
-            getDistance(nextItem, item) > meters
-          ) {
-            return false;
-          }
-          return true;
-        });
-      } else {
-        updatedPoints = updatedPoints.map((item, idx) => {
-          if (idx === 0 && idx === points.length - 1) {
-            return item;
-          }
-          const prevItem = points[idx - 2];
-          const nextItem = points[idx];
-          if (
-            getDistance(prevItem, item) > meters &&
-            getDistance(nextItem, item) > meters
-          ) {
-            item.GPSLongitude =
-              (prevItem.GPSLongitude + nextItem.GPSLongitude) / 2;
-            item.GPSLatitude =
-              (prevItem.GPSLatitude + nextItem.GPSLatitude) / 2;
-            return item;
-          }
-          return item;
-        });
-      }
-
-      updatedPoints.forEach((point: IGeoPoint, idx: number) => {
-        if (idx < points.length - 2) {
-          const nextPoint = points[idx + 1];
-
-          const azimuth = getBearing(point, nextPoint);
-          point.setAzimuth(azimuth);
-
-          const distance = getDistance(nextPoint, point);
-          point.setDistance(distance);
-
-          const pitch = getPitch(point, nextPoint, distance);
-          point.setPitch(pitch);
-        } else {
-          point.setDistance(0);
-
-          const prevPoint = points[idx - 1];
-          if (!point.Azimuth && prevPoint.Azimuth) {
-            point.setAzimuth(prevPoint.Azimuth);
-          }
-          if (!point.Pitch && prevPoint.Pitch) {
-            point.setPitch(prevPoint.Pitch);
-          }
-        }
-      });
-    }
-
-    // modify time
-    const { modifyTime } = settings;
-    if (modifyTime !== 0) {
-      updatedPoints = updatedPoints.map((p) => {
-        p.GPSDateTime = dayjs(p.GPSDateTime).add(modifyTime, 'second');
-        return p;
-      });
-    }
-
-    const { azimuth } = settings;
-    if (azimuth !== 0) {
-      updatedPoints = updatedPoints.map((p) => {
-        p.Azimuth += azimuth;
-        return p;
-      });
-    }
 
     const sequenceId = uuidv4();
 
@@ -602,6 +530,7 @@ export function updateImages(points: IGeoPoint[], settings: any) {
         GPSLatitude: p.GPSLatitude,
         GPSLongitude: p.GPSLongitude,
         Azimuth: p.Azimuth,
+        Image: p.Image,
         software_version: 1.0,
 
         uploader_photo_from_video: settings.type === 'Video',
@@ -625,16 +554,15 @@ export function updateImages(points: IGeoPoint[], settings: any) {
       4,
       (item: IGeoPoint, key: any, next: CallableFunction) => {
         const desc: Description = descriptions[item.id];
-        console.log('Indexing: ', key);
         Async.parallel(
           [
             (cb: CallableFunction) => {
               const filename = item.Image || '';
-              const inputfile = path.join(settings.name, filename);
-              const outputfile = path.join(
+              const inputfile = getSequenceImagePath(settings.name, filename);
+              const outputfile = getSequenceOutputPath(
                 settings.name,
-                'final_raw',
-                filename
+                filename,
+                OutputType.raw
               );
               writeExifTags(inputfile, item, desc, outputfile)
                 .then(() => cb())
@@ -644,7 +572,6 @@ export function updateImages(points: IGeoPoint[], settings: any) {
               writeNadirImages(item, settings, desc)
                 .then(() => cb())
                 .catch((err) => {
-                  console.log(err);
                   if (err) {
                     cb(err);
                   }

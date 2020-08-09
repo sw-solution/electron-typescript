@@ -1,8 +1,10 @@
-import { BrowserWindow, App } from 'electron';
+import { BrowserWindow } from 'electron';
 import path from 'path';
 
 import { IGeoPoint } from '../../types/IGeoPoint';
 import { Result, Summary } from '../../types/Result';
+
+export const resultdirectory = 'mapthepaths';
 
 export function sendToClient(
   win: BrowserWindow | null,
@@ -53,6 +55,7 @@ export function getDistance(point1: any, point2: any) {
 
 export function createdData2List(data: Result): Summary {
   const { sequence, photo } = data;
+  console.log(photo);
   return {
     id: sequence.id,
     tags: sequence.uploader_tags,
@@ -83,16 +86,36 @@ export function getBearing(point1: IGeoPoint, point2: IGeoPoint) {
   return brng;
 }
 
-export function getPitch(
-  point1: IGeoPoint,
-  point2: IGeoPoint,
-  distance: number
-) {
-  return distance !== 0
-    ? (point2.GPSAltitude - point1.GPSAltitude) / distance
-    : 0;
+export function getPitch(point1: IGeoPoint, point2: IGeoPoint, distance = -1) {
+  const dis = distance !== -1 ? distance : point1.Distance;
+  return dis !== 0 ? (point2.GPSAltitude - point1.GPSAltitude) / dis : 0;
 }
 
-export function getImageBasePath(sequencename: string, filename: string) {
-  return path.resolve(sequencename, filename);
+export function getSequenceBasePath(seqname: string): string {
+  return path.resolve(resultdirectory, seqname);
+}
+
+export function getSequenceImagePath(
+  seqname: string,
+  filename: string
+): string {
+  return path.resolve(getSequenceBasePath(seqname), filename);
+}
+
+export enum OutputType {
+  raw = 'final_raw',
+  nadir = 'final_unblurred',
+  blur = 'final_blurred',
+}
+
+export function getSequenceOutputPath(
+  seqname: string,
+  filename: string,
+  type: OutputType
+): string {
+  return path.resolve(getSequenceBasePath(seqname), type, filename);
+}
+
+export function getSequenceLogPath(seqname: string): string {
+  return path.join(getSequenceBasePath(seqname), 'result.json');
 }

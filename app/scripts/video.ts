@@ -123,6 +123,7 @@ export async function writeTags2Image(
   callback: any
 ) {
   const strStartTime = commonData['Main:GPSDateTime'];
+  const duration = commonData['Main:Duration'];
   let starttime: Dayjs;
   if (strStartTime) {
     starttime = dayjs(strStartTime);
@@ -130,13 +131,77 @@ export async function writeTags2Image(
     starttime = datalist[0].GPSDateTime;
   }
   const result: IGeoPoint[] = [];
+
   Async.each(
-    datalist,
-    (item: VGeoPoint, cb: any) => {
-      const filename = `${item.SampleTime}.png`;
-      const datetime = item.GPSDateTime
-        ? item.GPSDateTime
-        : starttime.add(item.SampleTime, 'second');
+    Array.from({ length: duration }, (_, index) => index),
+    (seconds: number, cb: any) => {
+      let previtem = null;
+      let nextitem = null;
+      const datetime = starttime.add(seconds, 'second');
+      for (let i = 0; i < datalist.length - 1; i += 1) {
+        const item1 = datalist[i];
+        const item2 = datalist[i + 1];
+        if (item1.SampleTime <= seconds && item2.SampleTime > seconds) {
+          previtem = item1;
+          nextitem = item2;
+        }
+      }
+      const filename = `${seconds}.png`;
+      let item: IGeoPoint;
+      if (previtem && nextitem) {
+        const totaldiff = nextitem.SampleTime - previtem.SampleTime;
+        const startdiff = seconds - previtem.SampleTime;
+
+        const latitude =
+          previtem.GPSLatitude +
+          ((nextitem.GPSLatitude - previtem.GPSLatitude) * startdiff) /
+            totaldiff;
+        const longitude =
+          previtem.GPSLongitude +
+          ((nextitem.GPSLongitude - previtem.GPSLongitude) * startdiff) /
+            totaldiff;
+
+        const altitude =
+          previtem.GPSAltitude +
+          ((nextitem.GPSAltitude - previtem.GPSAltitude) * startdiff) /
+            totaldiff;
+
+        item = new IGeoPoint({
+          GPSDateTime: datetime,
+          GPSLatitude: latitude,
+          GPSLongitude: longitude,
+          GPSAltitude: altitude,
+          Image: filename,
+          origin_GPSDateTime: datetime.format('YYYY-MM-DDTHH:mm:ss'),
+          origin_GPSLatitude: latitude,
+          origin_GPSLongitude: longitude,
+          origin_GPSAltitude: altitude,
+          camera_model: commonData['Main:Model'],
+          camera_make: commonData['Main:Make'],
+          width: commonData['Main:ImageWidth'],
+          height: commonData['Main:ImageHeight'],
+        });
+      } else {
+        nextitem = datalist[datalist.length - 1];
+        item = new IGeoPoint({
+          GPSDateTime: nextitem.GPSDateTime,
+          GPSLatitude: nextitem.GPSLatitude,
+          GPSLongitude: nextitem.GPSLongitude,
+          GPSAltitude: nextitem.GPSAltitude,
+          Image: filename,
+          origin_GPSDateTime: nextitem.GPSDateTime.format(
+            'YYYY-MM-DDTHH:mm:ss'
+          ),
+          origin_GPSLatitude: nextitem.GPSLatitude,
+          origin_GPSLongitude: nextitem.GPSLongitude,
+          origin_GPSAltitude: nextitem.GPSAltitude,
+          camera_model: commonData['Main:Model'],
+          camera_make: commonData['Main:Make'],
+          width: commonData['Main:ImageWidth'],
+          height: commonData['Main:ImageHeight'],
+        });
+      }
+
       exiftool
         .write(
           path.join(outputPath, filename),
@@ -153,22 +218,7 @@ export async function writeTags2Image(
           ['-overwrite_original']
         )
         .then(() => {
-          const newitem = new IGeoPoint({
-            GPSDateTime: item.GPSDateTime,
-            GPSLatitude: item.GPSLatitude,
-            GPSLongitude: item.GPSLongitude,
-            GPSAltitude: item.GPSAltitude,
-            Image: filename,
-            origin_GPSDateTime: item.GPSDateTime.format('YYYY-MM-DDTHH:mm:ss'),
-            origin_GPSLatitude: item.GPSLatitude,
-            origin_GPSLongitude: item.GPSLongitude,
-            origin_GPSAltitude: item.GPSAltitude,
-            camera_model: commonData['Main:Model'],
-            camera_make: commonData['Main:Make'],
-            width: commonData['Main:ImageWidth'],
-            height: commonData['Main:ImageHeight'],
-          });
-          result.push(newitem);
+          result.push(item);
           return cb();
         })
         .catch((error: Error) =>
@@ -212,13 +262,15 @@ export function splitVideoToImage(
   outputPath: string
 ) {
   const { dataList, commonData } = getGPSVideoData(tags);
+  const duration = Math.floor(commonData['Main:Duration']);
+  console.log('Video Common Data', commonData);
   if (dataList) {
     Async.waterfall(
       [
         (cb: CallableFunction) => {
           splitVideos(
             videoPath,
-            dataList.map((item: VGeoPointModel) => item.SampleTime),
+            Array.from({ length: duration }, (_, index) => index),
             outputPath,
             (_filenames: string[]) => {
               cb(null);

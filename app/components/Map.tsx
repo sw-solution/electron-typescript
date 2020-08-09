@@ -7,7 +7,7 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import ChevronLeftRoundedIcon from '@material-ui/icons/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@material-ui/icons/ChevronRightRounded';
-import { getImageBasePath } from '../scripts/utils';
+import { getSequenceImagePath } from '../scripts/utils';
 
 import { IGeoPoint } from '../types/IGeoPoint';
 import { selSequenceName } from '../create/slice';
@@ -94,28 +94,33 @@ export default function Map(props: Props) {
   };
 
   const getpath = (idx: number) => {
-    return getImageBasePath(name, filteredpoints[idx.toString()].Image);
+    return getSequenceImagePath(name, filteredpoints[idx.toString()].Image);
   };
 
   const MapBox = ReactMapboxGl({
     accessToken: process.env.MAPBOX_TOKEN || '',
   });
 
-  const photos = filteredpoints.map((_point: IGeoPoint, idx: number) => (
-    <ReactPannellum
-      key={idx}
-      style={{ width: '100%', height: 250 }}
-      imageSource={getpath(idx)}
-      id={`image_${idx.toString()}`}
-      sceneId={idx.toString()}
-      config={{
-        autoLoad: true,
-      }}
-    />
-  ));
+  let photos = [];
+
+  if (showPopup && name) {
+    photos = filteredpoints.map((_point: IGeoPoint, idx: number) => (
+      <ReactPannellum
+        key={idx}
+        style={{ width: '100%', height: 250 }}
+        imageSource={getpath(idx)}
+        id={`image_${idx.toString()}`}
+        sceneId={idx.toString()}
+        config={{
+          autoLoad: true,
+        }}
+      />
+    ));
+  }
+
   const modalBody = (
     <div className={classes.paper}>
-      {state.selected >= 0 && (
+      {state.selected >= 0 && photos.length && (
         <>
           <Box mb={1}>
             <ButtonGroup>
@@ -127,7 +132,7 @@ export default function Map(props: Props) {
               </IconButton>
             </ButtonGroup>
           </Box>
-          {photos[state.selected]}
+          <Box>{photos[state.selected]}</Box>
         </>
       )}
     </div>

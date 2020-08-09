@@ -27,7 +27,7 @@ export default function SequenceUploadImage() {
     let options: OpenDialogSyncOptions;
     let channelName: string;
     if (attachType === 'Video') {
-      channelName = 'load_videos';
+      channelName = 'load_video';
       options = {
         properties: ['openFile'],
         filters: [

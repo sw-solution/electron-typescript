@@ -26,7 +26,7 @@ const initialState = {
     startTime: '',
     modifyTime: 0,
     modifySpace: {
-      frame: 0,
+      frame: 0.05,
       position: 0,
     },
     outlier: {
@@ -204,9 +204,17 @@ const createSequenceSlice = createSlice({
       };
     },
     setInit: (state) => {
-      state = {
-        ...initialState,
+      // state = {
+      //   ...initialState,
+      // };
+      state.step = {
+        ...initialState.step,
       };
+      state.steps = {
+        ...initialState.steps,
+      };
+      state.points = [];
+      state.error = null;
     },
     setError: (state, { payload }) => {
       state.error = payload;

@@ -18,7 +18,14 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { processVideo } from './scripts/video';
 import { loadImages, updateImages, addLogo } from './scripts/image';
-import { sendToClient, sendPoints, createdData2List } from './scripts/utils';
+import {
+  sendToClient,
+  sendPoints,
+  createdData2List,
+  resultdirectory,
+  getSequenceLogPath,
+  getSequenceBasePath,
+} from './scripts/utils';
 import { readGPX } from './scripts/utils/gpx';
 import { Results, Summary } from './types/Result';
 import loadCameras from './scripts/camera';
@@ -115,31 +122,41 @@ ipcMain.on('load_config', async (_event: IpcMainEvent) => {
 });
 
 ipcMain.on(
-  'load_videos',
-  (_event: IpcMainEvent, videoPath: string, outputPath: string) => {
-    processVideo(mainWindow, videoPath, outputPath);
+  'load_video',
+  async (_event: IpcMainEvent, videoPath: string, seqname: string) => {
+    if (!fs.existsSync(resultdirectory)) {
+      fs.mkdirSync(resultdirectory);
+    }
+    processVideo(mainWindow, videoPath, path.resolve(resultdirectory, seqname));
   }
 );
 
 ipcMain.on(
   'load_images',
-  (_event: IpcMainEvent, dirPath: string, outputpath: string) => {
-    loadImages(dirPath, outputpath, (error: any, result: any) => {
-      if (error) {
-        sendToClient(mainWindow, 'error', error.message);
-      } else {
-        const { points, removedfiles } = result;
-        if (points.length) {
-          sendPoints(mainWindow, points);
-        }
+  async (_event: IpcMainEvent, dirPath: string, seqname: string) => {
+    if (!fs.existsSync(resultdirectory)) {
+      fs.mkdirSync(resultdirectory);
+    }
+    loadImages(
+      dirPath,
+      path.resolve(resultdirectory, seqname),
+      (error: any, result: any) => {
+        if (error) {
+          sendToClient(mainWindow, 'error', error.message);
+        } else {
+          const { points, removedfiles } = result;
+          if (points.length) {
+            sendPoints(mainWindow, points);
+          }
 
-        if (removedfiles.length) {
-          sendToClient(mainWindow, 'removed_files', removedfiles);
-        }
+          if (removedfiles.length) {
+            sendToClient(mainWindow, 'removed_files', removedfiles);
+          }
 
-        sendToClient(mainWindow, 'finish');
+          sendToClient(mainWindow, 'finish');
+        }
       }
-    });
+    );
   }
 );
 
@@ -171,16 +188,12 @@ ipcMain.on('upload_nadir', (_event: IpcMainEvent, { nadirpath, imagepath }) => {
 const log = 'result.json';
 
 ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
-  let result: Results = {};
-  if (fs.existsSync(log)) {
-    result = JSON.parse(fs.readFileSync(log).toString());
-  }
-
   updateImages(sequence.points, sequence.steps)
     .then((resultjson: any) => {
-      const sequenceid = resultjson.sequence.id;
-      result[sequenceid] = resultjson;
-      fs.writeFileSync(log, JSON.stringify(result));
+      fs.writeFileSync(
+        getSequenceLogPath(sequence.steps.name),
+        JSON.stringify(resultjson)
+      );
 
       return sendToClient(mainWindow, 'add-seq', createdData2List(resultjson));
     })
@@ -190,37 +203,27 @@ ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
 });
 
 ipcMain.on('sequences', async (_event: IpcMainEvent) => {
-  if (!fs.existsSync(log)) {
-    sendToClient(mainWindow, 'loaded-sequences', []);
-  } else {
-    const logdata = JSON.parse(fs.readFileSync(log).toString());
-    const result: Summary[] = [];
+  const sequences = fs
+    .readdirSync(resultdirectory)
+    .filter(
+      (name) =>
+        fs.lstatSync(path.join(resultdirectory, name)).isDirectory() &&
+        fs.existsSync(getSequenceLogPath(name))
+    );
 
-    Object.keys(logdata).forEach(async (id: string) => {
-      if (fs.existsSync(logdata[id].sequence.uploader_sequence_name)) {
-        result.push(createdData2List(logdata[id]));
-      }
-    });
-    sendToClient(mainWindow, 'loaded-sequences', result);
-  }
+  const result: Summary[] = sequences.map((name: string) => {
+    const logdata = JSON.parse(
+      fs.readFileSync(getSequenceLogPath(name)).toString()
+    );
+    return createdData2List(logdata);
+  });
+
+  sendToClient(mainWindow, 'loaded-sequences', result);
 });
 
-ipcMain.on('remove_sequence', async (_event: IpcMainEvent, id: string) => {
-  let result: Results = {};
-  if (fs.existsSync(log)) {
-    result = JSON.parse(fs.readFileSync(log).toString());
-  }
-  if (result[id]) {
-    const name = result[id].sequence.uploader_sequence_name;
-    if (fs.existsSync(name)) {
-      rimraf.sync(name);
-    }
-    const storefile = `${name}.json`;
-    if (fs.existsSync(storefile)) {
-      fs.unlinkSync(storefile);
-    }
-    delete result[id];
-    fs.writeFileSync(log, JSON.stringify(result));
+ipcMain.on('remove_sequence', async (_event: IpcMainEvent, name: string) => {
+  if (fs.existsSync(getSequenceBasePath(name))) {
+    rimraf.sync(getSequenceBasePath(name));
   }
 });
 
