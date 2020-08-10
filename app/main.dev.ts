@@ -203,6 +203,9 @@ ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
 });
 
 ipcMain.on('sequences', async (_event: IpcMainEvent) => {
+  if (!fs.existsSync(resultdirectory)) {
+    fs.mkdirSync(resultdirectory);
+  }
   const sequences = fs
     .readdirSync(resultdirectory)
     .filter(
