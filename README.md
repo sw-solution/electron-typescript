@@ -35,6 +35,20 @@ Requires
 yarn
 ```
 
+```
+cd app && yarn
+```
+
+#### Environment
+Create .env file with following content.
+
+```
+MAPBOX_TOKEN={mapbox_token}
+```
+
+Plese replace the {mapbox_token} with your correct mapbox token.
+
+
 #### Starting Development
 
 Start the app in the `dev` environment. This starts the renderer process in [**hot-module-replacement**](https://webpack.js.org/guides/hmr-react/) mode and starts a webpack dev server that sends hot updates to the renderer process:
