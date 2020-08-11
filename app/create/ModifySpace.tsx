@@ -23,7 +23,12 @@ import {
   setSequenceError,
 } from './slice';
 
-import { getDistance, getBearing, getPitch } from '../scripts/utils';
+import {
+  getDistance,
+  getBearing,
+  getPitch,
+  discardPointsBySeconds,
+} from '../scripts/utils';
 import { IGeoPoint } from '../types/IGeoPoint';
 
 const useStyles = makeStyles((theme) => ({
@@ -70,7 +75,7 @@ export default function SequenceModifySpace() {
     points: proppoints,
   });
 
-  const { points, frames, position } = state;
+  const { points } = state;
 
   const gpxPoints = useSelector(selGPXPoints);
 
@@ -85,21 +90,22 @@ export default function SequenceModifySpace() {
 
   const confirmMode = () => {
     dispatch(setSequencePoints(points));
-    dispatch(setSequenceFrame(frames));
+    dispatch(setSequenceFrame(state.frames));
     dispatch(setCurrentStep('outlier'));
   };
 
-  const updatePoints = (positionstr: string) => {
+  const updatePoints = (positionstr: string, frames: number) => {
     try {
+      const seconds = Math.ceil(frames / 0.05);
       const positionmeter = parseFloat(positionstr);
-      discarded = 0;
+
+      const temppoints = discardPointsBySeconds(
+        proppoints.map((point: IGeoPoint) => new IGeoPoint({ ...point })),
+        seconds
+      );
 
       if (positionmeter > 0) {
         const newpoints: IGeoPoint[] = [];
-
-        const temppoints = proppoints.map(
-          (point: IGeoPoint) => new IGeoPoint({ ...point })
-        );
 
         let previousIdx = 0;
         temppoints.forEach((point: IGeoPoint, idx: number) => {
@@ -110,7 +116,6 @@ export default function SequenceModifySpace() {
               prevpoint.setDistance(getDistance(prevpoint, nextpoint));
               prevpoint.setAzimuth(getBearing(prevpoint, nextpoint));
               prevpoint.setPitch(getPitch(prevpoint, nextpoint));
-              discarded += 1;
             } else {
               previousIdx = newpoints.length;
               newpoints.push(point);
@@ -119,16 +124,27 @@ export default function SequenceModifySpace() {
             newpoints.push(point);
           }
         });
+        discarded = points.length - newpoints.length;
         setState({
           ...state,
           position: positionstr,
+          frames,
           points: [...newpoints],
+        });
+      } else {
+        discarded = points.length - temppoints.length;
+        setState({
+          ...state,
+          position: positionstr,
+          frames,
+          points: [...temppoints],
         });
       }
     } catch (e) {
       setState({
         ...state,
         position: positionstr,
+        frames,
       });
     }
   };
@@ -137,21 +153,15 @@ export default function SequenceModifySpace() {
     _event: React.ChangeEvent,
     newValue: number
   ) => {
-    setState({
-      ...state,
-      frames: newValue,
-    });
+    updatePoints(state.position, newValue);
   };
 
   const handleFrameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setState({
-      ...state,
-      frames: parseFloat(event.target.value),
-    });
+    updatePoints(state.position, parseFloat(event.target.value));
   };
 
   const handlePositionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    updatePoints(event.target.value);
+    updatePoints(event.target.value, state.frames);
   };
 
   const importGpxData = () => {
@@ -200,7 +210,7 @@ export default function SequenceModifySpace() {
                 Frames
               </Typography>
               <Slider
-                value={frames}
+                value={state.frames}
                 onChange={handleFrameSliderChange}
                 aria-labelledby="input-slider"
                 step={0.05}
@@ -210,7 +220,7 @@ export default function SequenceModifySpace() {
               />
               <Input
                 style={{ width: 50 }}
-                value={frames}
+                value={state.frames}
                 margin="dense"
                 onChange={handleFrameChange}
                 inputProps={{
@@ -223,7 +233,7 @@ export default function SequenceModifySpace() {
               />
               <Typography size="small" align="center" className={classes.info}>
                 {`Source photos will apart ${Math.ceil(
-                  frames / 0.05
+                  state.frames / 0.05
                 )} seconds. ${
                   discarded > 0 ? `${discarded} photos will be removed.` : ''
                 }`}

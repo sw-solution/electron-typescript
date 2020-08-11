@@ -123,3 +123,61 @@ export function getSequenceOutputPath(
 export function getSequenceLogPath(seqname: string): string {
   return path.join(getSequenceBasePath(seqname), `${seqname}.json`);
 }
+
+export function discardPointsBySeconds(
+  points: IGeoPoint[],
+  seconds: number
+): IGeoPoint[] {
+  const newpoints = [];
+  let nextIdx = 1;
+  let currentIdx = 0;
+
+  while (true) {
+    const point = points[currentIdx];
+
+    if (nextIdx >= points.length) {
+      point.setDistance(0);
+
+      const prevPoint = newpoints[newpoints.length - 1];
+
+      if (!point.Azimuth && prevPoint.Azimuth) {
+        point.setAzimuth(prevPoint.Azimuth);
+      }
+
+      if (!point.Pitch && prevPoint.Pitch) {
+        point.setPitch(prevPoint.Pitch);
+      }
+      newpoints.push(point);
+
+      break;
+    }
+
+    const nextPoint = points[nextIdx];
+
+    if (
+      nextPoint.getDate().diff(point.getDate(), 'millisecond') >=
+      seconds * 1000
+    ) {
+      let azimuth = point.Azimuth;
+      if (!azimuth) {
+        azimuth = getBearing(point, nextPoint);
+        point.setAzimuth(azimuth);
+      }
+
+      const distance = getDistance(nextPoint, point);
+      point.setDistance(distance);
+
+      let pitch = point.Pitch;
+      if (!pitch) {
+        pitch = getPitch(point, nextPoint, distance);
+        point.setPitch(pitch);
+      }
+      newpoints.push(point);
+
+      currentIdx = nextIdx;
+    }
+    nextIdx += 1;
+  }
+
+  return newpoints;
+}

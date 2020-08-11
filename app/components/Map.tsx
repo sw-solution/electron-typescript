@@ -11,7 +11,7 @@ import ChevronRightRoundedIcon from '@material-ui/icons/ChevronRightRounded';
 import { getSequenceImagePath } from '../scripts/utils';
 
 import { IGeoPoint } from '../types/IGeoPoint';
-import { selSequenceName } from '../create/slice';
+import { selSequenceName, selPoints } from '../create/slice';
 
 import markerImg from '../assets/images/marker.svg';
 
@@ -42,11 +42,13 @@ interface State {
 
 export default function Map(props: Props) {
   const { points, height, showPopup } = props;
+  const proppoints = useSelector(selPoints);
   const name = useSelector(selSequenceName);
   const [state, setState] = useState<State>({
     isopen: false,
     selected: -1,
   });
+
   const classes = useStyles();
   const filteredpoints = points.filter(
     (point: IGeoPoint) => point.GPSLatitude && point.GPSLongitude
@@ -62,9 +64,11 @@ export default function Map(props: Props) {
   };
 
   const fitBounds = () => {
-    return points.map((point) => {
-      return [point.GPSLongitude, point.GPSLatitude];
-    });
+    return proppoints
+      .filter((point) => point.GPSLatitude && point.GPSLongitude)
+      .map((point) => {
+        return [point.GPSLongitude, point.GPSLatitude];
+      });
   };
 
   const showPhoto = (idx: number) => () => {

@@ -20,6 +20,7 @@ import {
   getSequenceImagePath,
   OutputType,
   getSequenceOutputPath,
+  discardPointsBySeconds,
 } from './utils';
 
 const { Tags, exiftool } = require('exiftool-vendored');
@@ -188,39 +189,11 @@ export const calculatePoints = (
         (item: IGeoPoint) => !item.GPSLatitude || !item.GPSLongitude
       ).length === 0
     ) {
-      points.forEach((point: IGeoPoint, idx: number) => {
-        if (idx < points.length - 1) {
-          const nextPoint = points[idx + 1];
-
-          let azimuth = point.Azimuth;
-          if (!azimuth) {
-            azimuth = getBearing(point, nextPoint);
-            point.setAzimuth(azimuth);
-          }
-
-          const distance = getDistance(nextPoint, point);
-          point.setDistance(distance);
-
-          let pitch = point.Pitch;
-          if (!pitch) {
-            pitch = getPitch(point, nextPoint, distance);
-            point.setPitch(pitch);
-          }
-        } else {
-          point.setDistance(0);
-
-          const prevPoint = points[idx - 1];
-          if (!point.Azimuth && prevPoint.Azimuth) {
-            point.setAzimuth(prevPoint.Azimuth);
-          }
-          if (!point.Pitch && prevPoint.Pitch) {
-            point.setPitch(prevPoint.Pitch);
-          }
-        }
-      });
+      const newpoints = discardPointsBySeconds(points, 1);
+      next(null, { points: newpoints, removedfiles });
+    } else {
+      next(null, { points, removedfiles });
     }
-
-    next(null, { points, removedfiles });
   } catch (e) {
     console.log('Calculation points issue', e);
     next({
