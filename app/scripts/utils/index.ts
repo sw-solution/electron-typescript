@@ -34,10 +34,10 @@ export function getDistance(point1: any, point2: any) {
   if (!point1 || !point2) {
     return 0;
   }
-  const lat2 = point2.GPSLatitude;
-  const lon2 = point2.GPSLongitude;
-  const lat1 = point1.GPSLatitude;
-  const lon1 = point1.GPSLongitude;
+  const lat2 = point2.MAPLatitude;
+  const lon2 = point2.MAPLongitude;
+  const lat1 = point1.MAPLatitude;
+  const lon1 = point1.MAPLongitude;
   const R = 6371 * 1000; // Radius of the earth in meter
   const dLat = deg2rad(lat2 - lat1); // deg2rad below
   const dLon = deg2rad(lon2 - lon1);
@@ -72,10 +72,10 @@ export function createdData2List(data: Result): Summary {
 }
 
 export function getBearing(point1: IGeoPoint, point2: IGeoPoint) {
-  const lng1 = point1.GPSLongitude;
-  const lat1 = point1.GPSLatitude;
-  const lng2 = point2.GPSLongitude;
-  const lat2 = point2.GPSLatitude;
+  const lng1 = point1.MAPLongitude;
+  const lat1 = point1.MAPLatitude;
+  const lng2 = point2.MAPLongitude;
+  const lat2 = point2.MAPLatitude;
 
   const dLon = lng2 - lng1;
   const y = Math.sin(dLon) * Math.cos(lat2);
@@ -88,7 +88,7 @@ export function getBearing(point1: IGeoPoint, point2: IGeoPoint) {
 
 export function getPitch(point1: IGeoPoint, point2: IGeoPoint, distance = -1) {
   const dis = distance !== -1 ? distance : point1.Distance;
-  return dis !== 0 ? (point2.GPSAltitude - point1.GPSAltitude) / dis : 0;
+  return dis !== 0 ? (point2.MAPAltitude - point1.MAPAltitude) / dis : 0;
 }
 
 export function getSequenceBasePath(seqname: string): string {
@@ -122,6 +122,10 @@ export function getSequenceOutputPath(
 
 export function getSequenceLogPath(seqname: string): string {
   return path.join(getSequenceBasePath(seqname), `${seqname}.json`);
+}
+
+export function getSequenceGpxPath(seqname: string): string {
+  return path.join(getSequenceBasePath(seqname), `${seqname}.gpx`);
 }
 
 export function discardPointsBySeconds(

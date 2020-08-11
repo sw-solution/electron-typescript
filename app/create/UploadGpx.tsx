@@ -5,12 +5,13 @@ import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 
 import {
   setSequenceGpxPath,
-  setPrevStep,
   setCurrentStep,
   selGPXRequired,
+  selGPXImport,
   setProcessStep,
 } from './slice';
 
@@ -20,11 +21,11 @@ export default function SequenceUploadGpx() {
   const dispatch = useDispatch();
 
   const required = useSelector(selGPXRequired);
+  const importgpx = useSelector(selGPXImport);
 
   useEffect(() => {
-    if (!required) {
+    if (!required && !importgpx) {
       dispatch(setCurrentStep('modifySpace'));
-      dispatch(setPrevStep('imagePath'));
     }
   });
 
@@ -50,14 +51,39 @@ export default function SequenceUploadGpx() {
     <>
       <Grid item xs={12}>
         <Typography variant="h6" align="center" color="textSecondary">
-          Please upload the GPS tracks Following formats supported: GPX.
+          {`${
+            required ? 'There are some images that have no geodata.' : ' .'
+          }Please upload the GPS tracks Following formats supported: GPX.`}
         </Typography>
       </Grid>
-      <Grid item xs={12}>
-        <IconButton onClick={openFileDialog} color="primary">
-          <CloudUploadIcon fontSize="large" />
-        </IconButton>
-        <Typography color="primary">Upload</Typography>
+      <Grid
+        item
+        xs={12}
+        style={{
+          alignItems: 'center',
+          display: 'flex',
+          justifyContent: 'space-around',
+        }}
+      >
+        <div>
+          <IconButton onClick={openFileDialog} color="primary">
+            <CloudUploadIcon fontSize="large" />
+          </IconButton>
+          <Typography color="primary">Upload</Typography>
+        </div>
+        {!importgpx && (
+          <div>
+            <IconButton
+              onClick={() => {
+                dispatch(setCurrentStep('modifySpace'));
+              }}
+              color="secondary"
+            >
+              <DeleteForeverIcon fontSize="large" />
+            </IconButton>
+            <Typography color="secondary">Discard</Typography>
+          </div>
+        )}
       </Grid>
       <Grid item xs={12} />
     </>

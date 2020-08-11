@@ -20,7 +20,6 @@ import {
   selSequencePosition,
   selGPXRequired,
   selGPXPoints,
-  setSequenceError,
 } from './slice';
 
 import {
@@ -164,37 +163,42 @@ export default function SequenceModifySpace() {
     updatePoints(event.target.value, state.frames);
   };
 
-  const importGpxData = () => {
-    let importedPoints = 0;
-    const newPoints = points.map((point: IGeoPoint) => {
-      const pointTime = dayjs(point.GPSDateTime);
-      const matchedPoint = gpxPoints.filter(
-        (p) => pointTime.diff(dayjs(p.timestamp), 'second') === 0
-      );
-      if (matchedPoint.length) {
-        importedPoints += 1;
-        return new IGeoPoint({
-          ...point,
-          GPSLongitude: matchedPoint[0].longitude,
-          GPSLatitude: matchedPoint[0].latitude,
-          GPSAltitude: matchedPoint[0].elevation
-            ? matchedPoint[0].elevation
-            : point.GPSAltitude,
-        });
-      }
-      return point;
-    });
-    if (importedPoints !== points.length) {
-      dispatch(
-        setSequenceError(
-          `${
-            points.length - importedPoints
-          } points are not updated. These points may be ignored.`
-        )
-      );
-    }
-    dispatch(setSequencePoints(newPoints));
+  // const importGpxData = () => {
+  //   let importedPoints = 0;
+  //   const newPoints = points.map((point: IGeoPoint) => {
+  //     const pointTime = dayjs(point.GPSDateTime);
+  //     const matchedPoint = gpxPoints.filter(
+  //       (p) => pointTime.diff(dayjs(p.timestamp), 'second') === 0
+  //     );
+  //     if (matchedPoint.length) {
+  //       importedPoints += 1;
+  //       return new IGeoPoint({
+  //         ...point,
+  //         MAPLongitude: matchedPoint[0].longitude,
+  //         MAPLatitude: matchedPoint[0].latitude,
+  //         MAPAltitude: matchedPoint[0].elevation
+  //           ? matchedPoint[0].elevation
+  //           : point.MAPAltitude,
+  //       });
+  //     }
+  //     return point;
+  //   });
+  //   if (importedPoints !== points.length) {
+  //     dispatch(
+  //       setSequenceError(
+  //         `${
+  //           points.length - importedPoints
+  //         } points are not updated. These points may be ignored.`
+  //       )
+  //     );
+  //   }
+  //   dispatch(setSequencePoints(newPoints));
+  //   dispatch(setSequenceGpxImport());
+  // };
+
+  const uploadGpx = () => {
     dispatch(setSequenceGpxImport());
+    dispatch(setCurrentStep('gpx'));
   };
 
   return (
@@ -250,14 +254,12 @@ export default function SequenceModifySpace() {
             </Grid>
           </Grid>
         </Box>
-        {gpxRequired && (
-          <Box mb={2}>
-            <Button onClick={importGpxData}>
-              <AddIcon />
-              <span>Import GPX Data</span>
-            </Button>
-          </Box>
-        )}
+        <Box mb={2}>
+          <Button onClick={uploadGpx}>
+            <AddIcon />
+            <span>Import GPX Data</span>
+          </Button>
+        </Box>
       </Grid>
       <Grid item xs={12}>
         <Map points={points} />

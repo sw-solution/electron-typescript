@@ -6,11 +6,11 @@ export interface IGeoPointModel {
 
   GPSDateTime: Dayjs | string;
 
-  GPSLatitude?: number;
+  MAPLatitude?: number;
 
-  GPSLongitude?: number;
+  MAPLongitude?: number;
 
-  GPSAltitude?: number;
+  MAPAltitude?: number;
 
   Distance?: number;
 
@@ -19,18 +19,6 @@ export interface IGeoPointModel {
   Pitch?: number;
 
   Azimuth?: number;
-
-  origin_GPSDateTime?: string;
-
-  origin_GPSLatitude?: number;
-
-  origin_GPSLongitude?: number;
-
-  origin_GPSAltitude?: number;
-
-  origin_Pitch?: number;
-
-  origin_Azimuth?: number;
 
   camera_make?: string;
 
@@ -45,11 +33,11 @@ export class IGeoPoint {
 
   public GPSDateTime: Dayjs | string;
 
-  public GPSLatitude?: number;
+  public MAPLatitude?: number;
 
-  public GPSLongitude?: number;
+  public MAPLongitude?: number;
 
-  public GPSAltitude?: number;
+  public MAPAltitude?: number;
 
   public Distance?: number;
 
@@ -63,18 +51,6 @@ export class IGeoPoint {
 
   height: number;
 
-  readonly origin_GPSDateTime?: string;
-
-  readonly origin_GPSLatitude?: number;
-
-  readonly origin_GPSLongitude?: number;
-
-  readonly origin_GPSAltitude?: number;
-
-  readonly origin_Pitch?: number;
-
-  readonly origin_Azimuth?: number;
-
   readonly camera_make?: string;
 
   readonly camera_model?: string;
@@ -82,20 +58,14 @@ export class IGeoPoint {
   constructor({
     id,
     GPSDateTime,
-    GPSLatitude,
-    GPSLongitude,
-    GPSAltitude,
+    MAPLatitude,
+    MAPLongitude,
+    MAPAltitude,
     Image,
     Pitch,
     Azimuth,
     Distance,
 
-    origin_GPSDateTime,
-    origin_GPSLatitude,
-    origin_GPSLongitude,
-    origin_GPSAltitude,
-    origin_Pitch,
-    origin_Azimuth,
     camera_make,
     camera_model,
     width,
@@ -103,9 +73,9 @@ export class IGeoPoint {
   }: IGeoPointModel) {
     this.id = id || uuidv4();
     this.GPSDateTime = GPSDateTime;
-    this.GPSLatitude = GPSLatitude;
-    this.GPSLongitude = GPSLongitude;
-    this.GPSAltitude = GPSAltitude;
+    this.MAPLatitude = MAPLatitude;
+    this.MAPLongitude = MAPLongitude;
+    this.MAPAltitude = MAPAltitude;
     this.Image = Image;
     this.Pitch = Pitch;
     this.Azimuth = Azimuth;
@@ -113,12 +83,6 @@ export class IGeoPoint {
     this.width = width;
     this.height = height;
 
-    this.origin_GPSDateTime = origin_GPSDateTime;
-    this.origin_GPSLatitude = origin_GPSLatitude;
-    this.origin_GPSLongitude = origin_GPSLongitude;
-    this.origin_GPSAltitude = origin_GPSAltitude;
-    this.origin_Pitch = origin_Pitch;
-    this.origin_Azimuth = origin_Azimuth;
     this.camera_make = camera_make;
     this.camera_model = camera_model;
   }
@@ -163,13 +127,5 @@ export class IGeoPoint {
     return typeof this.GPSDateTime === 'string'
       ? dayjs(this.GPSDateTime)
       : this.GPSDateTime;
-  }
-
-  isGpsUpdated() {
-    return (
-      this.origin_GPSDateTime !== this.getDateStr() ||
-      this.origin_GPSAltitude !== this.GPSAltitude ||
-      this.origin_GPSLatitude !== this.GPSLatitude
-    );
   }
 }

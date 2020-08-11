@@ -51,23 +51,23 @@ export default function Map(props: Props) {
 
   const classes = useStyles();
   const filteredpoints = points.filter(
-    (point: IGeoPoint) => point.GPSLatitude && point.GPSLongitude
+    (point: IGeoPoint) => point.MAPLatitude && point.MAPLongitude
   );
 
   const centerPoint = () => {
     if (points.length) {
       const centerIdx = Math.floor(points.length / 2);
       const centerpoint = points[centerIdx];
-      return [centerpoint.GPSLongitude, centerpoint.GPSLatitude];
+      return [centerpoint.MAPLongitude, centerpoint.MAPLatitude];
     }
     return [51.5, -0.09];
   };
 
   const fitBounds = () => {
-    return proppoints
-      .filter((point) => point.GPSLatitude && point.GPSLongitude)
+    return (showPopup ? proppoints : filteredpoints)
+      .filter((point) => point.MAPLatitude && point.MAPLongitude)
       .map((point) => {
-        return [point.GPSLongitude, point.GPSLatitude];
+        return [point.MAPLongitude, point.MAPLatitude];
       });
   };
 
@@ -149,7 +149,7 @@ export default function Map(props: Props) {
     return (
       <Marker
         key={`marker-${idx.toString()}`}
-        coordinates={[point.GPSLongitude || 0, point.GPSLatitude || 0]}
+        coordinates={[point.MAPLongitude || 0, point.MAPLatitude || 0]}
         anchor="center"
         onClick={showPhoto(idx)}
       >
@@ -179,7 +179,7 @@ export default function Map(props: Props) {
           geometry: {
             type: 'LineString',
             coordinates: filteredpoints.map((point) => {
-              return [point.GPSLongitude, point.GPSLatitude];
+              return [point.MAPLongitude, point.MAPLatitude];
             }),
           },
         },

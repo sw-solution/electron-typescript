@@ -12,8 +12,7 @@ import {
   selStartTime,
   selModifyTime,
   setSequenceModifyTime,
-  selPoints,
-  setSequencePoints,
+  selGPXPoints,
 } from './slice';
 
 import { IGeoPoint } from '../types/IGeoPoint';
@@ -27,38 +26,20 @@ export default function SequenceStartTime() {
   const dispatch = useDispatch();
   const startTime = useSelector(selStartTime);
   const propModifyTime = useSelector(selModifyTime);
-  const proppoints = useSelector(selPoints);
   const [state, setState] = React.useState<State>({
-    points: proppoints,
     modifyTime: propModifyTime.toString(),
   });
 
-  const { points, modifyTime } = state;
+  const { modifyTime } = state;
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setState({
       ...state,
       modifyTime: event.target.value,
     });
-    try {
-      const modifiedTime = parseFloat(modifyTime);
-      const newpoints = points.map((p: IGeoPoint) => {
-        return new IGeoPoint({
-          ...p,
-          GPSDateTime: dayjs(p.GPSDateTime).add(modifiedTime, 'second'),
-        });
-      });
-      setState({
-        ...state,
-        points: newpoints,
-      });
-    } catch (e) {
-      console.log('Wrong Value');
-    }
   };
 
   const correctTime = () => {
-    dispatch(setSequencePoints(points));
     dispatch(setSequenceModifyTime(parseFloat(modifyTime)));
   };
 

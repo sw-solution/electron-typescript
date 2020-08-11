@@ -65,7 +65,7 @@ export function getAltudeMeters(atlStr: string) {
 }
 
 export function getGPSVideoData(tags: typeof Tags) {
-  const re = /(Doc\d+):GPSLatitude/g;
+  const re = /(Doc\d+):MAPLatitude/g;
 
   const tagsText = JSON.stringify(tags);
   const availableKeys = [];
@@ -87,9 +87,9 @@ export function getGPSVideoData(tags: typeof Tags) {
       ) {
         const item = new VGeoPoint({
           GPSDateTime: dayjs(tags[`${k}:GPSDateTime`]),
-          GPSLatitude: parseDms(tags[`${k}:GPSLatitude`]),
-          GPSLongitude: parseDms(tags[`${k}:GPSLongitude`]),
-          GPSAltitude: getAltudeMeters(tags[`${k}:GPSAltitude`]),
+          MAPLatitude: parseDms(tags[`${k}:GPSLatitude`]),
+          MAPLongitude: parseDms(tags[`${k}:GPSLongitude`]),
+          MAPAltitude: getAltudeMeters(tags[`${k}:GPSAltitude`]),
           SampleTime: sampleTime,
         });
         dataList.push(item);
@@ -153,29 +153,25 @@ export async function writeTags2Image(
         const startdiff = seconds - previtem.SampleTime;
 
         const latitude =
-          previtem.GPSLatitude +
-          ((nextitem.GPSLatitude - previtem.GPSLatitude) * startdiff) /
+          previtem.MAPLatitude +
+          ((nextitem.MAPLatitude - previtem.MAPLatitude) * startdiff) /
             totaldiff;
         const longitude =
-          previtem.GPSLongitude +
-          ((nextitem.GPSLongitude - previtem.GPSLongitude) * startdiff) /
+          previtem.MAPLongitude +
+          ((nextitem.MAPLongitude - previtem.MAPLongitude) * startdiff) /
             totaldiff;
 
         const altitude =
-          previtem.GPSAltitude +
-          ((nextitem.GPSAltitude - previtem.GPSAltitude) * startdiff) /
+          previtem.MAPAltitude +
+          ((nextitem.MAPAltitude - previtem.MAPAltitude) * startdiff) /
             totaldiff;
 
         item = new IGeoPoint({
           GPSDateTime: datetime,
-          GPSLatitude: latitude,
-          GPSLongitude: longitude,
-          GPSAltitude: altitude,
+          MAPLatitude: latitude,
+          MAPLongitude: longitude,
+          MAPAltitude: altitude,
           Image: filename,
-          origin_GPSDateTime: datetime.format('YYYY-MM-DDTHH:mm:ss'),
-          origin_GPSLatitude: latitude,
-          origin_GPSLongitude: longitude,
-          origin_GPSAltitude: altitude,
           camera_model: commonData['Main:Model'],
           camera_make: commonData['Main:Make'],
           width: commonData['Main:ImageWidth'],
@@ -185,16 +181,10 @@ export async function writeTags2Image(
         nextitem = datalist[datalist.length - 1];
         item = new IGeoPoint({
           GPSDateTime: nextitem.GPSDateTime,
-          GPSLatitude: nextitem.GPSLatitude,
-          GPSLongitude: nextitem.GPSLongitude,
-          GPSAltitude: nextitem.GPSAltitude,
+          MAPLatitude: nextitem.MAPLatitude,
+          MAPLongitude: nextitem.MAPLongitude,
+          MAPAltitude: nextitem.MAPAltitude,
           Image: filename,
-          origin_GPSDateTime: nextitem.GPSDateTime.format(
-            'YYYY-MM-DDTHH:mm:ss'
-          ),
-          origin_GPSLatitude: nextitem.GPSLatitude,
-          origin_GPSLongitude: nextitem.GPSLongitude,
-          origin_GPSAltitude: nextitem.GPSAltitude,
           camera_model: commonData['Main:Model'],
           camera_make: commonData['Main:Make'],
           width: commonData['Main:ImageWidth'],
@@ -209,9 +199,9 @@ export async function writeTags2Image(
             AllDates: datetime.format('YYYY-MM-DDTHH:mm:ss'),
             GPSTimeStamp: datetime.format('HH:mm:ss'),
             GPSDateStamp: datetime.format('YYYY-MM-DD'),
-            GPSLatitude: item.GPSLatitude,
-            GPSLongitude: item.GPSLongitude,
-            GPSAltitude: item.GPSAltitude,
+            MAPLatitude: item.MAPLatitude,
+            MAPLongitude: item.MAPLongitude,
+            MAPAltitude: item.MAPAltitude,
             ProjectionType: commonData['Main:ProjectionType'],
             Make: commonData['Main:Make'],
           },

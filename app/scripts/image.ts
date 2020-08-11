@@ -14,9 +14,6 @@ import {
 } from '../types/Result';
 
 import {
-  getBearing,
-  getDistance,
-  getPitch,
   getSequenceImagePath,
   OutputType,
   getSequenceOutputPath,
@@ -99,17 +96,12 @@ export function getPoint(dirpath: string, filename: string) {
         if (datetime) {
           const item = new IGeoPoint({
             GPSDateTime: datetime,
-            GPSLatitude: tags.GPSLatitude,
-            GPSLongitude: tags.GPSLongitude,
-            GPSAltitude: tags.GPSAltitude,
+            MAPLatitude: tags.GPSLatitude,
+            MAPLongitude: tags.GPSLongitude,
+            MAPAltitude: tags.GPSAltitude,
             Image: filename,
             Azimuth: azimuth,
             Pitch: pitch,
-            origin_GPSLatitude: tags.GPSLatitude,
-            origin_GPSLongitude: tags.GPSLongitude,
-            origin_GPSAltitude: tags.GPSAltitude,
-            origin_Azimuth: azimuth,
-            origin_Pitch: pitch,
             camera_make: tags.Make,
             camera_model: tags.Model,
             width: tags.ImageWidth,
@@ -186,7 +178,7 @@ export const calculatePoints = (
 
     if (
       points.filter(
-        (item: IGeoPoint) => !item.GPSLatitude || !item.GPSLongitude
+        (item: IGeoPoint) => !item.MAPLatitude || !item.MAPLongitude
       ).length === 0
     ) {
       const newpoints = discardPointsBySeconds(points, 1);
@@ -309,9 +301,9 @@ export function writeExifTags(
           AllDates: datetime.format('YYYY-MM-DDTHH:mm:ss'),
           GPSTimeStamp: datetime.format('HH:mm:ss'),
           GPSDateStamp: datetime.format('YYYY-MM-DD'),
-          GPSLatitude: item.GPSLatitude,
-          GPSLongitude: item.GPSLongitude,
-          GPSAltitude: item.GPSAltitude,
+          GPSLatitude: item.MAPLatitude,
+          GPSLongitude: item.MAPLongitude,
+          GPSAltitude: item.MAPAltitude,
           PoseHeadingDegrees: azimuth,
           GPSImgDirection: azimuth,
           CameraElevationAngle: item.Pitch,
@@ -509,16 +501,21 @@ export function updateImages(points: IGeoPoint[], settings: any) {
       }
       const photodict: Photo = {
         id: p.id,
-        cli_frame_rate_set: '',
-        original_GPSDateTime: p.origin_GPSDateTime,
-        original_altitude: p.origin_GPSAltitude,
-        original_latitude: p.origin_GPSLatitude,
-        original_longitude: p.origin_GPSLatitude,
-
+        cli_frame_rate_set: settings.modifySpace.frame,
         GPSDateTime: p.getDateStr(),
-        GPSAltitude: p.GPSAltitude,
-        GPSLatitude: p.GPSLatitude,
-        GPSLongitude: p.GPSLongitude,
+
+        MAPAltitude: p.MAPAltitude,
+        MAPLatitude: p.MAPLatitude,
+        MAPLongitude: p.MAPLongitude,
+
+        MAPCaptureTime: p.getDate().format('YYYY_MM_DD_HH_mm_ss_SSS'),
+        MTPSequenceName: settings.name,
+        MTPSequenceDescription: settings.description,
+        MTPSequenceTransport: `${settings.type}-${settings.method}`,
+        MTPSequenceTags: settings.tags,
+        MTPImageCopy: 'original',
+        MTPImageProjection: 'equirectangular',
+
         Azimuth: p.Azimuth,
         Image: p.Image,
         software_version: 1.0,
@@ -526,7 +523,6 @@ export function updateImages(points: IGeoPoint[], settings: any) {
         uploader_photo_from_video: settings.type === 'Video',
         uploader_nadir_added: settings.nadirPath !== '',
         uploader_blur_added: false,
-        uploader_gps_modified: p.isGpsUpdated(),
 
         connections,
       };
@@ -568,9 +564,13 @@ export function updateImages(points: IGeoPoint[], settings: any) {
                 });
             },
             (cb: CallableFunction) => {
-              writeBlurredImage(item, settings, desc)
-                .then(() => cb())
-                .catch((err) => cb(err));
+              if (settings.blur) {
+                writeBlurredImage(item, settings, desc)
+                  .then(() => cb())
+                  .catch((err) => cb(err));
+              } else {
+                cb();
+              }
             },
           ],
           (err) => {

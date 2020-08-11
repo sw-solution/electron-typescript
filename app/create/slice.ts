@@ -38,6 +38,7 @@ const initialState = {
     tags: [],
     nadirPath: '',
     previewnadir: '',
+    blur: false,
   },
   points: [],
   error: null,
@@ -203,6 +204,9 @@ const createSequenceSlice = createSlice({
         position: payload,
       };
     },
+    setBlur: (state, { payload }) => {
+      state.steps.blur = payload;
+    },
     setInit: (state) => {
       // state = {
       //   ...initialState,
@@ -253,6 +257,7 @@ export const {
   setPosition,
   setInit,
   setError,
+  setBlur,
 } = createSequenceSlice.actions;
 
 export const setSequenceName = (name: string): AppThunk => {
@@ -316,13 +321,6 @@ export const setSequenceStartTime = (startTime: string): AppThunk => {
   };
 };
 
-export const setSequenceModifyTime = (modifyTime: number): AppThunk => {
-  return (dispatch) => {
-    dispatch(setModifyTime(modifyTime));
-    dispatch(setCurrentStep('modifySpace'));
-  };
-};
-
 export const setSequenceAzimuth = (azimuth: number): AppThunk => {
   return (dispatch) => {
     dispatch(setAzimuth(azimuth));
@@ -347,7 +345,7 @@ export const setSequencePoints = (points: IGeoPoint[]): AppThunk => {
     dispatch(setPoints(points));
     dispatch(
       setGpxRequired(
-        points.filter((p: IGeoPoint) => !p.GPSLatitude || !p.GPSLongitude)
+        points.filter((p: IGeoPoint) => !p.MAPLatitude || !p.MAPLongitude)
           .length > 0
       )
     );
@@ -409,6 +407,51 @@ export const setSequenceError = (error: any): AppThunk => {
   };
 };
 
+export const setSequenceModifyTime = (modifyTime: number): AppThunk => {
+  return (dispatch, getState) => {
+    const state = getState();
+    dispatch(setModifyTime(modifyTime));
+    const { points } = state.create;
+    const gpxPoints = state.create.steps.gpx.points.map((point: any) => {
+      return {
+        ...point,
+        timestamp: dayjs(point.GPSDateTime).add(modifyTime, 'second'),
+      };
+    });
+
+    let importedPoints = 0;
+    const newPoints = points.map((point: IGeoPoint) => {
+      const pointTime = dayjs(point.GPSDateTime);
+      const matchedPoint = gpxPoints.filter(
+        (p) => pointTime.diff(dayjs(p.timestamp), 'second') === 0
+      );
+      if (matchedPoint.length) {
+        importedPoints += 1;
+        return new IGeoPoint({
+          ...point,
+          MAPLongitude: matchedPoint[0].longitude,
+          MAPLatitude: matchedPoint[0].latitude,
+          MAPAltitude: matchedPoint[0].elevation
+            ? matchedPoint[0].elevation
+            : point.MAPAltitude,
+        });
+      }
+      return point;
+    });
+    if (importedPoints !== points.length) {
+      dispatch(
+        setSequenceError(
+          `${
+            points.length - importedPoints
+          } points are not updated. These points may be ignored.`
+        )
+      );
+    }
+    dispatch(setPoints(newPoints));
+    dispatch(setCurrentStep('modifySpace'));
+  };
+};
+
 export default createSequenceSlice.reducer;
 
 export const selSequenceName = (state: RootState) => state.create.steps.name;
@@ -434,6 +477,8 @@ export const selPrevStep = (state: RootState) => {
 
 export const selGPXRequired = (state: RootState) =>
   state.create.steps.gpx.required;
+
+export const selGPXImport = (state: RootState) => state.create.steps.gpx.import;
 
 export const selGPXPoints = (state: RootState) => state.create.steps.gpx.points;
 
@@ -474,3 +519,5 @@ export const selSequenceAzimuth = (state: RootState) =>
   state.create.steps.azimuth;
 
 export const selError = (state: RootState) => state.create.error;
+
+export const selBlur = (state: RootState) => state.create.steps.blur;

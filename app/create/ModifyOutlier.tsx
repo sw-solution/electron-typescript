@@ -83,10 +83,10 @@ export default function SequenceModifyOutlier() {
               if (mode === 'S') {
                 const newpoint = new IGeoPoint({
                   ...point,
-                  GPSLongitude:
-                    (prevpoint.GPSLongitude + nextpoint.GPSLongitude) / 2,
-                  GPSLatitude:
-                    (prevpoint.GPSLatitude + nextpoint.GPSLatitude) / 2,
+                  MAPLongitude:
+                    (prevpoint.MAPLongitude + nextpoint.MAPLongitude) / 2,
+                  MAPLatitude:
+                    (prevpoint.MAPLatitude + nextpoint.MAPLatitude) / 2,
                 });
                 prevpoint.setDistance(getDistance(prevpoint, newpoint));
                 prevpoint.setAzimuth(getBearing(prevpoint, newpoint));

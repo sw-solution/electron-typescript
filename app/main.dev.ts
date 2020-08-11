@@ -15,6 +15,7 @@ import rimraf from 'rimraf';
 import dotenv from 'dotenv';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import dayjs from 'dayjs';
 
 import { processVideo } from './scripts/video';
 import { loadImages, updateImages, addLogo } from './scripts/image';
@@ -24,10 +25,11 @@ import {
   createdData2List,
   resultdirectory,
   getSequenceLogPath,
+  getSequenceGpxPath,
   getSequenceBasePath,
 } from './scripts/utils';
 import { readGPX } from './scripts/utils/gpx';
-import { Results, Summary } from './types/Result';
+import { Summary, Result, Photo } from './types/Result';
 import loadCameras from './scripts/camera';
 import loadDefaultNadir from './scripts/nadir';
 
@@ -185,14 +187,30 @@ ipcMain.on('upload_nadir', (_event: IpcMainEvent, { nadirpath, imagepath }) => {
     .catch((err) => console.error(err));
 });
 
-const log = 'result.json';
-
 ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
+  const { buildGPX, GarminBuilder } = require('gpx-builder');
+  const { Point } = GarminBuilder.MODELS;
+
   updateImages(sequence.points, sequence.steps)
-    .then((resultjson: any) => {
+    .then((resultjson: Result) => {
       fs.writeFileSync(
         getSequenceLogPath(sequence.steps.name),
         JSON.stringify(resultjson)
+      );
+      const gpxData = new GarminBuilder();
+
+      const points = Object.values(resultjson.photo).map((p: Photo) => {
+        return new Point(p.MAPLatitude, p.MAPLongitude, {
+          ele: p.MAPAltitude,
+          time: dayjs(p.GPSDateTime).toDate(),
+        });
+      });
+
+      gpxData.setSegmentPoints(points);
+
+      fs.writeFileSync(
+        getSequenceGpxPath(sequence.steps.name),
+        buildGPX(gpxData.toObject())
       );
 
       return sendToClient(mainWindow, 'add-seq', createdData2List(resultjson));

@@ -36,22 +36,25 @@ export interface Photo {
   id: string;
   cli_frame_rate_set: '';
   GPSDateTime?: string;
-  GPSAltitude?: number;
-  GPSLatitude?: number;
-  GPSLongitude?: number;
+  MAPAltitude?: number;
+  MAPLatitude?: number;
+  MAPLongitude?: number;
   Azimuth?: number;
   Image?: string;
 
-  original_GPSDateTime?: string;
-  original_altitude?: number;
-  original_latitude?: number;
-  original_longitude?: number;
+  MAPCaptureTime: string;
+  MTPSequenceName: string;
+  MTPSequenceDescription: string;
+  MTPSequenceTransport: string;
+  MTPSequenceTags: string[];
+  MTPImageCopy: string;
+  MTPImageProjection: string;
+
   software_version: number;
 
   uploader_photo_from_video: boolean;
   uploader_nadir_added: boolean;
   uploader_blur_added: boolean;
-  uploader_gps_modified: boolean;
 
   connections: Connections;
 }

@@ -5,11 +5,11 @@ export interface VGeoPointModel {
 
   SampleTime: number;
 
-  GPSLatitude: number;
+  MAPLatitude: number;
 
-  GPSLongitude: number;
+  MAPLongitude: number;
 
-  GPSAltitude: number;
+  MAPAltitude: number;
 }
 
 export class VGeoPoint {
@@ -17,26 +17,26 @@ export class VGeoPoint {
 
   SampleTime: number;
 
-  GPSLatitude: number;
+  MAPLatitude: number;
 
-  GPSLongitude: number;
+  MAPLongitude: number;
 
-  GPSAltitude: number;
+  MAPAltitude: number;
 
   Image?: string;
 
   constructor({
     GPSDateTime,
     SampleTime,
-    GPSLatitude,
-    GPSLongitude,
-    GPSAltitude,
+    MAPLatitude,
+    MAPLongitude,
+    MAPAltitude,
   }: VGeoPointModel) {
     this.SampleTime = SampleTime;
     this.GPSDateTime = GPSDateTime;
-    this.GPSLatitude = GPSLatitude;
-    this.GPSLongitude = GPSLongitude;
-    this.GPSAltitude = GPSAltitude;
+    this.MAPLatitude = MAPLatitude;
+    this.MAPLongitude = MAPLongitude;
+    this.MAPAltitude = MAPAltitude;
   }
 
   setImage(imgpath: string) {

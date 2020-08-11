@@ -37,6 +37,7 @@ import Nadir from './Nadir';
 import UploadNadir from './UploadNadir';
 import PreviewNadir from './PreviewNadir';
 import ProcessPage from './ProcessPage';
+import BlurPage from './Blur';
 
 import routes from '../constants/routes.json';
 import {
@@ -208,6 +209,7 @@ export default function CreatePageWrapper() {
           {currentStep === 'nadirPath' && <UploadNadir />}
           {currentStep === 'previewNadir' && <PreviewNadir />}
           {currentStep === 'processPage' && <ProcessPage />}
+          {currentStep === 'blur' && <BlurPage />}
         </Grid>
       </Wrapper>
     </div>

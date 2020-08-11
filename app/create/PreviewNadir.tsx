@@ -9,18 +9,10 @@ import Box from '@material-ui/core/Box';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ReactPannellum from 'react-pannellum';
 
-import {
-  setCurrentStep,
-  selSequence,
-  selPreviewNadir,
-  selPoints,
-} from './slice';
-
-const { ipcRenderer } = window.require('electron');
+import { setCurrentStep, selPreviewNadir, selPoints } from './slice';
 
 export default function SequencePreviewNadir() {
   const dispatch = useDispatch();
-  const sequence = useSelector(selSequence);
   const imagePath = useSelector(selPreviewNadir);
   const points = useSelector(selPoints);
 
@@ -29,8 +21,7 @@ export default function SequencePreviewNadir() {
   };
 
   const confirmMode = () => {
-    ipcRenderer.send('update_images', sequence);
-    dispatch(setCurrentStep('processPage'));
+    dispatch(setCurrentStep('blur'));
   };
 
   return (
