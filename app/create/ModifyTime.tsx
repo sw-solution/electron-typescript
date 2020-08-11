@@ -40,21 +40,21 @@ export default function SequenceStartTime() {
       ...state,
       modifyTime: event.target.value,
     });
-  };
-
-  const handleBlur = (_event: React.ChangeEvent<HTMLInputElement>) => {
-    const modifiedTime = parseFloat(modifyTime);
-
-    const newpoints = points.map((p: IGeoPoint) => {
-      return new IGeoPoint({
-        ...p,
-        GPSDateTime: dayjs(p.GPSDateTime).add(modifiedTime, 'second'),
+    try {
+      const modifiedTime = parseFloat(modifyTime);
+      const newpoints = points.map((p: IGeoPoint) => {
+        return new IGeoPoint({
+          ...p,
+          GPSDateTime: dayjs(p.GPSDateTime).add(modifiedTime, 'second'),
+        });
       });
-    });
-    setState({
-      ...state,
-      points: newpoints,
-    });
+      setState({
+        ...state,
+        points: newpoints,
+      });
+    } catch (e) {
+      console.log('Wrong Value');
+    }
   };
 
   const correctTime = () => {
@@ -83,7 +83,6 @@ export default function SequenceStartTime() {
           variant="outlined"
           value={modifyTime}
           onChange={handleChange}
-          onBlur={handleBlur}
         />
       </Grid>
       <Grid item xs={12}>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import ReactMapboxGl, { Marker } from 'react-mapbox-gl';
+import ReactMapboxGl, { Marker, ZoomControl } from 'react-mapbox-gl';
+
 import { Modal, ButtonGroup, IconButton, Box } from '@material-ui/core';
 import ReactPannellum from 'react-pannellum';
 import { makeStyles } from '@material-ui/core/styles';
@@ -11,6 +12,8 @@ import { getSequenceImagePath } from '../scripts/utils';
 
 import { IGeoPoint } from '../types/IGeoPoint';
 import { selSequenceName } from '../create/slice';
+
+import markerImg from '../assets/images/marker.svg';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -148,11 +151,8 @@ export default function Map(props: Props) {
       >
         <div
           style={{
-            borderBottom: 'solid 10px #3f51b5',
-            borderLeft: 'solid 10px transparent',
-            borderRight: 'solid 10px transparent',
-            boxSizing: 'border-box',
-            display: 'inline-block',
+            backgroundImage: `url(${markerImg})`,
+            backgroundSize: '100% 100%',
             height: '20px',
             width: '20px',
             transform: `rotate(${point.Azimuth}deg)`,
@@ -162,16 +162,19 @@ export default function Map(props: Props) {
       </Marker>
     );
   });
+
   return (
     <div>
       <MapBox
         style="mapbox://styles/mapbox/streets-v8"
         containerStyle={{
           height: `${height.toString()}px`,
+          width: '100%',
         }}
         center={centerPoint()}
         fitBounds={fitBounds()}
       >
+        <ZoomControl />
         {markers}
       </MapBox>
       {state.selected >= 0 && showPopup && (

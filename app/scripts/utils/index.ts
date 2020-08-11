@@ -95,11 +95,15 @@ export function getSequenceBasePath(seqname: string): string {
   return path.resolve(resultdirectory, seqname);
 }
 
+export function getOriginalBasePath(seqname: string): string {
+  return path.resolve(resultdirectory, seqname, 'originals');
+}
+
 export function getSequenceImagePath(
   seqname: string,
   filename: string
 ): string {
-  return path.resolve(getSequenceBasePath(seqname), filename);
+  return path.resolve(getOriginalBasePath(seqname), filename);
 }
 
 export enum OutputType {
@@ -117,5 +121,5 @@ export function getSequenceOutputPath(
 }
 
 export function getSequenceLogPath(seqname: string): string {
-  return path.join(getSequenceBasePath(seqname), 'result.json');
+  return path.join(getSequenceBasePath(seqname), `${seqname}.json`);
 }

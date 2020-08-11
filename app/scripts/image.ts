@@ -238,10 +238,27 @@ export function loadImages(
   Async.waterfall(
     [
       (cb1: CallableFunction) => {
-        if (!fs.existsSync(outputpath)) {
-          fs.mkdirSync(outputpath);
-        }
-        cb1(null, files, dirPath, outputpath);
+        fs.exists(outputpath, (existed: boolean) => {
+          if (!existed) {
+            fs.mkdir(outputpath, () => {
+              cb1(null);
+            });
+          } else {
+            cb1(null);
+          }
+        });
+      },
+      (cb1: CallableFunction) => {
+        const originalpath = path.join(outputpath, 'originals');
+        fs.exists(originalpath, (existed: boolean) => {
+          if (!existed) {
+            fs.mkdir(originalpath, () => {
+              cb1(null, files, dirPath, originalpath);
+            });
+          } else {
+            cb1(null, files, dirPath, originalpath);
+          }
+        });
       },
       // filterCorruptImages,
       copyFiles,

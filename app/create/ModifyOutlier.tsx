@@ -62,56 +62,60 @@ export default function SequenceModifyOutlier() {
   const classes = useStyles();
 
   const updatePoints = () => {
-    const meters = parseFloat(metersStr);
-    if (meters > 0 && mode !== '') {
-      const newpoints: IGeoPoint[] = [];
+    try {
+      const meters = parseFloat(metersStr);
+      if (meters > 0 && mode !== '') {
+        const newpoints: IGeoPoint[] = [];
 
-      const temppoints = proppoints.map(
-        (point: IGeoPoint) => new IGeoPoint({ ...point })
-      );
+        const temppoints = proppoints.map(
+          (point: IGeoPoint) => new IGeoPoint({ ...point })
+        );
 
-      let previousIdx = 0;
-      temppoints.forEach((point: IGeoPoint, idx: number) => {
-        if (idx > 0 && idx < temppoints.length - 1) {
-          const prevpoint = newpoints[previousIdx];
-          const nextpoint = temppoints[idx + 1];
-          if (
-            (prevpoint.Distance || 0) > meters &&
-            (point.Distance || 0) > meters
-          ) {
-            if (mode === 'S') {
-              const newpoint = new IGeoPoint({
-                ...point,
-                GPSLongitude:
-                  (prevpoint.GPSLongitude + nextpoint.GPSLongitude) / 2,
-                GPSLatitude:
-                  (prevpoint.GPSLatitude + nextpoint.GPSLatitude) / 2,
-              });
-              prevpoint.setDistance(getDistance(prevpoint, newpoint));
-              prevpoint.setAzimuth(getBearing(prevpoint, newpoint));
-              prevpoint.setPitch(getPitch(prevpoint, newpoint));
+        let previousIdx = 0;
+        temppoints.forEach((point: IGeoPoint, idx: number) => {
+          if (idx > 0 && idx < temppoints.length - 1) {
+            const prevpoint = newpoints[previousIdx];
+            const nextpoint = temppoints[idx + 1];
+            if (
+              (prevpoint.Distance || 0) > meters &&
+              (point.Distance || 0) > meters
+            ) {
+              if (mode === 'S') {
+                const newpoint = new IGeoPoint({
+                  ...point,
+                  GPSLongitude:
+                    (prevpoint.GPSLongitude + nextpoint.GPSLongitude) / 2,
+                  GPSLatitude:
+                    (prevpoint.GPSLatitude + nextpoint.GPSLatitude) / 2,
+                });
+                prevpoint.setDistance(getDistance(prevpoint, newpoint));
+                prevpoint.setAzimuth(getBearing(prevpoint, newpoint));
+                prevpoint.setPitch(getPitch(prevpoint, newpoint));
 
-              newpoint.setDistance(getDistance(nextpoint, newpoint));
-              newpoint.setAzimuth(getBearing(newpoint, nextpoint));
-              newpoint.setPitch(getPitch(newpoint, nextpoint));
-              newpoints.push(newpoint);
+                newpoint.setDistance(getDistance(nextpoint, newpoint));
+                newpoint.setAzimuth(getBearing(newpoint, nextpoint));
+                newpoint.setPitch(getPitch(newpoint, nextpoint));
+                newpoints.push(newpoint);
+              } else {
+                prevpoint.setDistance(getDistance(prevpoint, nextpoint));
+                prevpoint.setAzimuth(getBearing(prevpoint, nextpoint));
+                prevpoint.setPitch(getPitch(prevpoint, nextpoint));
+              }
             } else {
-              prevpoint.setDistance(getDistance(prevpoint, nextpoint));
-              prevpoint.setAzimuth(getBearing(prevpoint, nextpoint));
-              prevpoint.setPitch(getPitch(prevpoint, nextpoint));
+              previousIdx = newpoints.length;
+              newpoints.push(point);
             }
           } else {
-            previousIdx = newpoints.length;
             newpoints.push(point);
           }
-        } else {
-          newpoints.push(point);
-        }
-      });
-      setState({
-        ...state,
-        points: [...newpoints],
-      });
+        });
+        setState({
+          ...state,
+          points: [...newpoints],
+        });
+      }
+    } catch (e) {
+      console.log('Wrong Value');
     }
   };
 
@@ -142,13 +146,6 @@ export default function SequenceModifyOutlier() {
       ...state,
       metersStr: event.target.value,
     });
-  };
-
-  const handleBlur = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setState({
-      ...state,
-      metersStr: event.target.value,
-    });
     updatePoints();
   };
 
@@ -162,7 +159,6 @@ export default function SequenceModifyOutlier() {
           <TextField
             label="Meters"
             placeholder="0"
-            onBlur={handleBlur}
             onChange={handleChange}
             value={metersStr.toString()}
           />

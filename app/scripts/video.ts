@@ -241,6 +241,7 @@ export async function splitVideos(
   callback: CallableFunction
 ) {
   let filenames: string[] = [];
+  console.log('Split Times:', splitTimes);
   ffmpeg(inputPath)
     .on('filenames', function (fns: string[]) {
       filenames = fns;
@@ -263,7 +264,7 @@ export function splitVideoToImage(
 ) {
   const { dataList, commonData } = getGPSVideoData(tags);
   const duration = Math.floor(commonData['Main:Duration']);
-  console.log('Video Common Data', commonData);
+  console.log('Video Duration', duration);
   if (dataList) {
     Async.waterfall(
       [

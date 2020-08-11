@@ -45,6 +45,10 @@ const useStyles = makeStyles((theme) => ({
       margin: theme.spacing(1),
     },
   },
+  info: {
+    color: 'grey',
+    width: '100%',
+  },
 }));
 
 interface State {
@@ -72,6 +76,8 @@ export default function SequenceModifySpace() {
 
   const classes = useStyles();
 
+  let discarded = 0;
+
   const resetMode = () => {
     dispatch(setSequenceFrame(0));
     dispatch(setSequencePosition(0));
@@ -83,36 +89,46 @@ export default function SequenceModifySpace() {
     dispatch(setCurrentStep('outlier'));
   };
 
-  const updatePoints = () => {
-    const positionmeter = parseFloat(position);
+  const updatePoints = (positionstr: string) => {
+    try {
+      const positionmeter = parseFloat(positionstr);
+      discarded = 0;
 
-    if (positionmeter > 0) {
-      const newpoints: IGeoPoint[] = [];
+      if (positionmeter > 0) {
+        const newpoints: IGeoPoint[] = [];
 
-      const temppoints = proppoints.map(
-        (point: IGeoPoint) => new IGeoPoint({ ...point })
-      );
+        const temppoints = proppoints.map(
+          (point: IGeoPoint) => new IGeoPoint({ ...point })
+        );
 
-      let previousIdx = 0;
-      temppoints.forEach((point: IGeoPoint, idx: number) => {
-        if (idx > 0 && idx < temppoints.length - 1) {
-          if (point.Distance < positionmeter) {
-            const prevpoint = newpoints[previousIdx];
-            const nextpoint = temppoints[idx + 1];
-            prevpoint.setDistance(getDistance(prevpoint, nextpoint));
-            prevpoint.setAzimuth(getBearing(prevpoint, nextpoint));
-            prevpoint.setPitch(getPitch(prevpoint, nextpoint));
+        let previousIdx = 0;
+        temppoints.forEach((point: IGeoPoint, idx: number) => {
+          if (idx > 0 && idx < temppoints.length - 1) {
+            if (point.Distance < positionmeter) {
+              const prevpoint = newpoints[previousIdx];
+              const nextpoint = temppoints[idx + 1];
+              prevpoint.setDistance(getDistance(prevpoint, nextpoint));
+              prevpoint.setAzimuth(getBearing(prevpoint, nextpoint));
+              prevpoint.setPitch(getPitch(prevpoint, nextpoint));
+              discarded += 1;
+            } else {
+              previousIdx = newpoints.length;
+              newpoints.push(point);
+            }
           } else {
-            previousIdx = newpoints.length;
             newpoints.push(point);
           }
-        } else {
-          newpoints.push(point);
-        }
-      });
+        });
+        setState({
+          ...state,
+          position: positionstr,
+          points: [...newpoints],
+        });
+      }
+    } catch (e) {
       setState({
         ...state,
-        points: [...newpoints],
+        position: positionstr,
       });
     }
   };
@@ -135,14 +151,7 @@ export default function SequenceModifySpace() {
   };
 
   const handlePositionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setState({
-      ...state,
-      position: event.target.value,
-    });
-  };
-
-  const handlePositionBlur = (event: React.ChangeEvent<HTMLInputElement>) => {
-    updatePoints();
+    updatePoints(event.target.value);
   };
 
   const importGpxData = () => {
@@ -212,16 +221,21 @@ export default function SequenceModifySpace() {
                   'aria-labelledby': 'input-slider',
                 }}
               />
+              <Typography size="small" align="center" className={classes.info}>
+                {`Source photos will apart ${Math.ceil(
+                  frames / 0.05
+                )} seconds. ${
+                  discarded > 0 ? `${discarded} photos will be removed.` : ''
+                }`}
+              </Typography>
             </Grid>
             <Grid item xs={4}>
               <TextField
                 fullWidth
-                id="outlined-basic"
-                label="Position"
+                label="Minimum distance between images (in meters)"
                 variant="outlined"
-                value={position}
+                value={state.position}
                 onChange={handlePositionChange}
-                onBlur={handlePositionBlur}
               />
             </Grid>
           </Grid>

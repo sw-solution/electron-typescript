@@ -63,7 +63,8 @@ interface State {
   name: string;
   transporttype: TransportType | '';
   model: string;
-  capturedDate: string;
+  capturedStartDate: string;
+  capturedEndDate: string;
 }
 
 export default function ListPageWrapper() {
@@ -78,7 +79,8 @@ export default function ListPageWrapper() {
     name: '',
     transporttype: '',
     model: '',
-    capturedDate: '',
+    capturedStartDate: '',
+    capturedEndDate: '',
   });
 
   if (!loaded) {
@@ -134,11 +136,13 @@ export default function ListPageWrapper() {
   const items: JSX.Element[] = [];
   seqs.forEach((item: Summary) => {
     if (
-      item.name.indexOf(state.name) >= 0 &&
+      item.name.toLowerCase().indexOf(state.name.toLowerCase()) >= 0 &&
       (state.transporttype === '' || item.type === state.transporttype) &&
       (state.model === '' || state.model === item.camera) &&
-      (state.capturedDate === '' ||
-        dayjs(state.capturedDate).diff(dayjs(item.captured), 'day') === 0)
+      (state.capturedStartDate === '' ||
+        dayjs(state.capturedStartDate).isBefore(dayjs(item.captured))) &&
+      (state.capturedEndDate === '' ||
+        dayjs(state.capturedEndDate).isAfter(dayjs(item.captured)))
     ) {
       items.push(<Sequence data={item} key={item.id} />);
     }
@@ -149,7 +153,16 @@ export default function ListPageWrapper() {
   ) => {
     setState({
       ...state,
-      capturedDate: event.target.value,
+      capturedStartDate: event.target.value,
+    });
+  };
+
+  const handleCapturedEndDate = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setState({
+      ...state,
+      capturedEndDate: event.target.value,
     });
   };
 
@@ -207,10 +220,20 @@ export default function ListPageWrapper() {
             </Select>
           </FormControl>
           <TextField
-            label="Captured Date"
-            value={state.capturedDate}
+            label="Captured Start Date"
+            value={state.capturedStartDate}
             type="date"
             onChange={handleCapturedStartDate}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            fullWidth
+          />
+          <TextField
+            label="Captured End Date"
+            value={state.capturedEndDate}
+            type="date"
+            onChange={handleCapturedEndDate}
             InputLabelProps={{
               shrink: true,
             }}

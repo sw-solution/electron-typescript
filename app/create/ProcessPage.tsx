@@ -14,11 +14,14 @@ import {
   setNadirPreview,
 } from './slice';
 
+import { getSequenceBasePath } from '../scripts/utils';
+
 const { ipcRenderer } = window.require('electron');
 
 export default function SequenceProcessPage() {
   const nextStep = useSelector(selProcessPageNext);
   const prevStep = useSelector(selPrevStep);
+  console.log('prevStep: ', prevStep);
   const name = useSelector(selSequenceName);
   const dispatch = useDispatch();
   const [errMessage, setErrMessage] = React.useState<string>('');
@@ -70,10 +73,11 @@ export default function SequenceProcessPage() {
         </Typography>
       </Grid>
       <Grid item xs={12}>
-        {prevStep !== 'imagePath' && (
+        {prevStep !== 'attachType' && (
           <Typography align="center" color="textSecondary">
-            Output can be viewed in [
-{name}] once complete
+            {`Output can be viewed in [${getSequenceBasePath(
+              name
+            )}] once complete`}
           </Typography>
         )}
       </Grid>

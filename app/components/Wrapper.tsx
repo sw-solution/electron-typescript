@@ -39,7 +39,7 @@ export default function Wrapper({ title, children }: Props) {
 
   return (
     <div className={classes.appBarShift}>
-      <AppBar position="static">
+      <AppBar position="static" style={{ backgroundColor: '#28a745' }}>
         <Toolbar>
           <Typography variant="h5">{title}</Typography>
         </Toolbar>
