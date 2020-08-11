@@ -163,16 +163,45 @@ export default function Map(props: Props) {
     );
   });
 
+  const drawLines = (map) => {
+    map.addLayer({
+      id: 'route',
+      type: 'line',
+      source: {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: filteredpoints.map((point) => {
+              return [point.GPSLongitude, point.GPSLatitude];
+            }),
+          },
+        },
+      },
+      layout: {
+        'line-join': 'round',
+        'line-cap': 'round',
+      },
+      paint: {
+        'line-color': '#28a745',
+        'line-width': 2,
+      },
+    });
+  };
+
   return (
     <div>
       <MapBox
-        style="mapbox://styles/mapbox/streets-v8"
+        style="mapbox://styles/mapbox/streets-v9"
         containerStyle={{
           height: `${height.toString()}px`,
           width: '100%',
         }}
         center={centerPoint()}
         fitBounds={fitBounds()}
+        onStyleLoad={drawLines}
       >
         <ZoomControl />
         {markers}
