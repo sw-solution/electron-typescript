@@ -8,7 +8,15 @@
  * When running `yarn build` or `yarn build-main`, this file is compiled to
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  */
-import { app, BrowserWindow, ipcMain, IpcMainEvent, dialog } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  IpcMainEvent,
+  dialog,
+  shell,
+  Menu,
+} from 'electron';
 
 import fs from 'fs';
 import rimraf from 'rimraf';
@@ -35,6 +43,7 @@ import loadCameras from './scripts/camera';
 import loadDefaultNadir from './scripts/nadir';
 
 let mainWindow: BrowserWindow | null = null;
+
 dotenv.config();
 
 if (process.env.NODE_ENV === 'production') {
@@ -66,6 +75,32 @@ const createWindow = async () => {
   ) {
     await installExtensions();
   }
+
+  const menu = Menu.buildFromTemplate([
+    {
+      label: 'help',
+      submenu: [
+        {
+          label: 'Community Support',
+          click() {
+            shell.openExternal('https://campfire.trekview.org/c/support/8');
+          },
+        },
+        {
+          label: 'Mapthepaths.com',
+          click() {
+            shell.openExternal('https://www.mapthepaths.com');
+          },
+        },
+      ],
+    },
+    {
+      label: 'View',
+      submenu: [{ role: 'reload' }, { label: 'custom reload' }],
+    },
+  ]);
+
+  Menu.setApplicationMenu(menu);
 
   mainWindow = new BrowserWindow({
     show: false,

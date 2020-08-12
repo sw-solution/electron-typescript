@@ -26,7 +26,7 @@ const initialState = {
     startTime: '',
     modifyTime: 0,
     modifySpace: {
-      frame: 0.05,
+      frame: 1,
       position: 0,
     },
     outlier: {

@@ -91,7 +91,7 @@ export default function SequenceModifySpace() {
 
   const updatePoints = (positionstr: string, frames: number) => {
     try {
-      const seconds = Math.ceil(frames / 0.05);
+      const seconds = Math.ceil(1 / frames);
       const positionmeter = parseFloat(positionstr);
 
       const temppoints = discardPointsBySeconds(
@@ -199,7 +199,7 @@ export default function SequenceModifySpace() {
                 }}
               />
               <Typography size="small" align="center" className={classes.info}>
-                {`1 photos every ${Math.ceil(state.frames / 0.05)} seconds. ${
+                {`1 photos every ${Math.ceil(1 / state.frames)} seconds. ${
                   discarded > 0 ? `${discarded} photos will be removed.` : ''
                 }`}
               </Typography>

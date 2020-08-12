@@ -69,11 +69,7 @@ export default function SequenceUploadImage() {
         </IconButton>
         <Typography color="primary">Upload</Typography>
       </Grid>
-      <Grid item xs={12}>
-        <Typography variant="h6" align="center" color="textSecondary">
-          Or use an existing file
-        </Typography>
-      </Grid>
+      <Grid item xs={12} />
     </>
   );
 }
