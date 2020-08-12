@@ -37,7 +37,10 @@ const initialState = {
     azimuth: 0,
     tags: [],
     nadirPath: '',
-    previewnadir: '',
+    previewnadir: {
+      preview: '',
+      newnadir: '',
+    },
     blur: false,
   },
   points: [],
@@ -149,7 +152,9 @@ const createSequenceSlice = createSlice({
       state.steps.nadirPath = payload;
     },
     setNadirPreview: (state, { payload }) => {
-      state.steps.previewnadir = payload;
+      state.steps.previewnadir = {
+        ...payload,
+      };
     },
     setProcessStep: (state, { payload }) => {
       state.steps.processPage = payload;
@@ -497,7 +502,7 @@ export const selProcessPageNext = (state: RootState) => {
 };
 
 export const selPreviewNadir = (state: RootState) =>
-  state.create.steps.previewnadir;
+  state.create.steps.previewnadir.preview;
 
 export const selCurrentStep = (state: RootState) => state.create.step.current;
 

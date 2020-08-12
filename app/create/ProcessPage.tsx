@@ -33,8 +33,8 @@ export default function SequenceProcessPage() {
 
     ipcRenderer.on(
       'loaded_preview_nadir',
-      (_event: IpcRendererEvent, previewnadir) => {
-        dispatch(setNadirPreview(previewnadir));
+      (_event: IpcRendererEvent, preview: any) => {
+        dispatch(setNadirPreview(preview));
         dispatch(setCurrentStep('previewNadir'));
       }
     );

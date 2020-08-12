@@ -9,12 +9,11 @@ import Box from '@material-ui/core/Box';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ReactPannellum from 'react-pannellum';
 
-import { setCurrentStep, selPreviewNadir, selPoints } from './slice';
+import { setCurrentStep, selPreviewNadir } from './slice';
 
 export default function SequencePreviewNadir() {
   const dispatch = useDispatch();
   const imagePath = useSelector(selPreviewNadir);
-  const points = useSelector(selPoints);
 
   const resetMode = () => {
     dispatch(setCurrentStep('nadir'));
@@ -46,11 +45,8 @@ export default function SequencePreviewNadir() {
             autoLoad: true,
           }}
           style={{
-            width: '500px',
-            height: `${(
-              (points[0].height / points[0].width) *
-              500
-            ).toString()}px`,
+            width: '100%',
+            height: 500,
           }}
         />
       </Grid>

@@ -6,6 +6,8 @@ import { Result, Summary } from '../../types/Result';
 
 export const resultdirectory = 'mapthepaths';
 
+export const tempLogo = 'output.png';
+
 export function sendToClient(
   win: BrowserWindow | null,
   channelname: string,

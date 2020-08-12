@@ -18,6 +18,7 @@ import {
   OutputType,
   getSequenceOutputPath,
   discardPointsBySeconds,
+  tempLogo,
 } from './utils';
 
 const { Tags, exiftool } = require('exiftool-vendored');
@@ -236,6 +237,64 @@ export function loadImages(
   );
 }
 
+export function modifyLogo(logourl: string, outputfile: string) {
+  return new Promise((resolve, reject) => {
+    jimp
+      .read(logourl)
+      // eslint-disable-next-line promise/always-return
+      .then((logo: any) => {
+        const outputheight = logo.bitmap.height / 2;
+        const outputwidth = logo.bitmap.width;
+        const radius = 360;
+        const cx = Math.round(logo.bitmap.width / 2);
+        const cy = Math.round(logo.bitmap.height / 2);
+
+        // eslint-disable-next-line no-new
+        new jimp(
+          outputwidth,
+          outputheight,
+          0x000000ff,
+          (err: any, outputlogo: any) => {
+            if (err) {
+              console.log('Creating Logo Image Issue: ', err);
+              return reject(err);
+            }
+            for (let y = 0; y < outputheight; y += 1) {
+              for (let x = 0; x < outputwidth; x += 1) {
+                const thetadeg = 360 - (x * 360.0) / outputwidth - 180;
+                const phideg = 90 - (y * 90.0) / outputheight;
+                const r = Math.sin((phideg * Math.PI) / 180);
+                const dx = Math.cos((thetadeg * Math.PI) / 180) * r;
+                const dy = Math.sin((thetadeg * Math.PI) / 180) * r;
+                const inputx = Math.round(dx * radius + cx);
+                const inputy = Math.round(dy * radius + cy);
+                outputlogo.setPixelColor(
+                  logo.getPixelColor(inputx, inputy),
+                  x,
+                  y
+                );
+              }
+            }
+            // outputlogo.resize(image.bitmap.width, image.bitmap.height * percentage);
+            outputlogo
+              .writeAsync(outputfile)
+              .then(() => {
+                return resolve();
+              })
+              .catch((err: any) => {
+                console.log('Error in Writing:', err);
+                reject(err);
+              });
+          }
+        );
+      })
+      .catch((err) => {
+        console.log('Error in Modifying Logo:', err);
+        reject(err);
+      });
+  });
+}
+
 export async function addLogo(imageurl: string, logourl: string) {
   const [image, logo] = await Promise.all([
     jimp.read(imageurl),
@@ -244,24 +303,11 @@ export async function addLogo(imageurl: string, logourl: string) {
 
   const percentage = 0.12;
 
-  logo.rotate(180);
-
-  logo.flip(true, true);
-
+  logo.flip(true, false);
   logo.resize(image.bitmap.width, image.bitmap.height * percentage);
 
   const X = 0;
   const Y = image.bitmap.height - image.bitmap.height * percentage;
-
-  // const LOGO_MARGIN_PERCENTAGE = 10;
-
-  // logo.resize(image.bitmap.width / 10, jimp.AUTO);
-
-  // const xMargin = (image.bitmap.width * LOGO_MARGIN_PERCENTAGE) / 100;
-  // const yMargin = (image.bitmap.width * LOGO_MARGIN_PERCENTAGE) / 100;
-
-  // const X = image.bitmap.width - logo.bitmap.width - xMargin;
-  // const Y = image.bitmap.height - logo.bitmap.height - yMargin;
 
   const blendmode: any = {
     mode: jimp.BLEND_SOURCE_OVER,
@@ -337,9 +383,8 @@ export function writeNadirImages(
         filename,
         OutputType.nadir
       );
-      console.log(`Start Adding Logo: filename ${filename}`);
 
-      const addLogoAsync = addLogo(existingfile, settings.nadirPath)
+      const addLogoAsync = addLogo(existingfile, settings.previewnadir.newnadir)
         .then((image) => {
           return image.writeAsync(outputfile);
         })

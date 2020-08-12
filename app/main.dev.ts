@@ -18,7 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 
 import { processVideo } from './scripts/video';
-import { loadImages, updateImages, addLogo } from './scripts/image';
+import { loadImages, updateImages, addLogo, modifyLogo } from './scripts/image';
 import {
   sendToClient,
   sendPoints,
@@ -28,6 +28,7 @@ import {
   getSequenceGpxPath,
   getSequenceBasePath,
 } from './scripts/utils';
+
 import { readGPX } from './scripts/utils/gpx';
 import { Summary, Result, Photo } from './types/Result';
 import loadCameras from './scripts/camera';
@@ -172,19 +173,30 @@ ipcMain.on('load_gpx', (_event: IpcMainEvent, gpxpath: string) => {
 
 ipcMain.on('upload_nadir', (_event: IpcMainEvent, { nadirpath, imagepath }) => {
   console.log(imagepath, nadirpath);
-  const tempfilename = uuidv4();
-  const outputfile = path.resolve(tempfilename);
-  const addLogoAsync = addLogo(imagepath, nadirpath)
-    .then((image) => {
-      return image.writeAsync(outputfile);
+  const outputfile = `${uuidv4()}.png`;
+  const templogofile = `${uuidv4()}.png`;
+  const modifyLogoAsync = modifyLogo(nadirpath, templogofile)
+    .then(() => {
+      return addLogo(imagepath, templogofile);
     })
     .catch((err) => {
-      console.error(err);
+      sendToClient(mainWindow, 'error', err.message);
     });
 
-  addLogoAsync
-    .then(() => sendToClient(mainWindow, 'loaded_preview_nadir', outputfile))
-    .catch((err) => console.error(err));
+  const addLogoAsync = modifyLogoAsync
+    .then((image: any) => {
+      return image.writeAsync(outputfile);
+    })
+    .catch((err) => sendToClient(mainWindow, 'error', err.message));
+
+  return addLogoAsync
+    .then(() =>
+      sendToClient(mainWindow, 'loaded_preview_nadir', {
+        preview: outputfile,
+        newnadir: templogofile,
+      })
+    )
+    .catch((err) => sendToClient(mainWindow, 'error', err.message));
 });
 
 ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
@@ -192,11 +204,20 @@ ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
   const { Point } = GarminBuilder.MODELS;
 
   updateImages(sequence.points, sequence.steps)
-    .then((resultjson: Result) => {
+    .then(async (resultjson: Result) => {
       fs.writeFileSync(
         getSequenceLogPath(sequence.steps.name),
         JSON.stringify(resultjson)
       );
+
+      if (fs.existsSync(sequence.steps.previewnadir.preview)) {
+        fs.unlinkSync(sequence.steps.previewnadir.preview);
+      }
+
+      if (fs.existsSync(sequence.steps.previewnadir.newnadir)) {
+        fs.unlinkSync(sequence.steps.previewnadir.newnadir);
+      }
+
       const gpxData = new GarminBuilder();
 
       const points = Object.values(resultjson.photo).map((p: Photo) => {
