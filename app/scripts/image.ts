@@ -243,9 +243,9 @@ export function modifyLogo(logourl: string, outputfile: string) {
       .read(logourl)
       // eslint-disable-next-line promise/always-return
       .then((logo: any) => {
-        const outputheight = logo.bitmap.height / 2;
+        const outputheight = Math.round(logo.bitmap.height / 2);
         const outputwidth = logo.bitmap.width;
-        const radius = 360;
+        const radius = 245;
         const cx = Math.round(logo.bitmap.width / 2);
         const cy = Math.round(logo.bitmap.height / 2);
 

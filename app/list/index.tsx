@@ -52,10 +52,7 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(2),
   },
   gridContainer: {
-    alignItems: 'flex-start',
-    '& > *': {
-      marginBottom: theme.spacing(2),
-    },
+    display: 'block',
   },
 }));
 
