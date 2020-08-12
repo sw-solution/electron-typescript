@@ -1,8 +1,15 @@
 import React, { ReactNode } from 'react';
 
-import { Box, AppBar, Toolbar, Typography } from '@material-ui/core';
+import {
+  Box,
+  AppBar,
+  Toolbar,
+  Typography,
+  MuiThemeProvider,
+} from '@material-ui/core';
 
 import { makeStyles } from '@material-ui/core/styles';
+import muiTheme from '../theme/muiTheme';
 
 const drawerWidth = 300;
 const useStyles = makeStyles((theme) => ({
@@ -39,15 +46,17 @@ export default function Wrapper({ title, children }: Props) {
 
   return (
     <div className={classes.appBarShift}>
-      <AppBar position="static" style={{ backgroundColor: '#28a745' }}>
-        <Toolbar>
-          <Typography variant="h5">{title}</Typography>
-        </Toolbar>
-      </AppBar>
+      <MuiThemeProvider theme={muiTheme}>
+        <AppBar position="static" style={{ backgroundColor: '#28a745' }}>
+          <Toolbar>
+            <Typography variant="h5">{title}</Typography>
+          </Toolbar>
+        </AppBar>
 
-      <Box className={classes.contentWrapper}>
-        <Box className={classes.content}>{children}</Box>
-      </Box>
+        <Box className={classes.contentWrapper}>
+          <Box className={classes.content}>{children}</Box>
+        </Box>
+      </MuiThemeProvider>
     </div>
   );
 }
