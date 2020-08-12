@@ -94,11 +94,12 @@ export function getPitch(point1: IGeoPoint, point2: IGeoPoint, distance = -1) {
 }
 
 export function getSequenceBasePath(seqname: string): string {
-  return path.resolve(resultdirectory, seqname);
+  const directoryname = seqname.toLowerCase().replace(/\s/g, '_');
+  return path.resolve(resultdirectory, directoryname);
 }
 
 export function getOriginalBasePath(seqname: string): string {
-  return path.resolve(resultdirectory, seqname, 'originals');
+  return path.resolve(getSequenceBasePath(seqname), 'originals');
 }
 
 export function getSequenceImagePath(
@@ -123,11 +124,13 @@ export function getSequenceOutputPath(
 }
 
 export function getSequenceLogPath(seqname: string): string {
-  return path.join(getSequenceBasePath(seqname), `${seqname}.json`);
+  const logofile = seqname.toLowerCase().replace(/\s/g, '_');
+  return path.join(getSequenceBasePath(seqname), `${logofile}.json`);
 }
 
 export function getSequenceGpxPath(seqname: string): string {
-  return path.join(getSequenceBasePath(seqname), `${seqname}.gpx`);
+  const logofile = seqname.toLowerCase().replace(/\s/g, '_');
+  return path.join(getSequenceBasePath(seqname), `${logofile}.gpx`);
 }
 
 export function discardPointsBySeconds(

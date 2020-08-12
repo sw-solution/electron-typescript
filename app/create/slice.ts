@@ -44,6 +44,7 @@ const initialState = {
     blur: false,
   },
   points: [],
+  passedPoints: {},
   error: null,
 };
 
@@ -68,6 +69,10 @@ const createSequenceSlice = createSlice({
         passed,
       };
       state.error = null;
+      state.passedPoints = {
+        ...state.passedPoints,
+        [payload]: state.points,
+      };
     },
 
     goToPrevStep: (state) => {
@@ -225,6 +230,11 @@ const createSequenceSlice = createSlice({
       state.points = [];
       state.error = null;
     },
+    resetPoints: (state) => {
+      state.points = state.passedPoints[state.step.current]
+        ? [...state.passedPoints[state.step.current]]
+        : [];
+    },
     setError: (state, { payload }) => {
       state.error = payload;
     },
@@ -263,6 +273,8 @@ export const {
   setInit,
   setError,
   setBlur,
+
+  resetPoints,
 } = createSequenceSlice.actions;
 
 export const setSequenceName = (name: string): AppThunk => {
@@ -477,7 +489,9 @@ export const selSequenceAttachType = (state: RootState) =>
 
 export const selPrevStep = (state: RootState) => {
   const passedlength = state.create.step.passed.length;
-  return passedlength ? state.create.step.passed[passedlength - 1] : '';
+  return passedlength && state.create.step.current !== 'processPage'
+    ? state.create.step.passed[passedlength - 1]
+    : '';
 };
 
 export const selGPXRequired = (state: RootState) =>

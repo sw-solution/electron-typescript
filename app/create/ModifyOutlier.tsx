@@ -27,6 +27,7 @@ import {
   selSequenceOutlierMode,
   selPoints,
   setSequencePoints,
+  resetPoints,
 } from './slice';
 
 const useStyles = makeStyles((theme) => ({
@@ -130,6 +131,7 @@ export default function SequenceModifyOutlier() {
   };
 
   const resetMode = () => {
+    dispatch(resetPoints());
     dispatch(setSequenceOutlierMeters(0));
     dispatch(setCurrentStep('modifySpace'));
   };

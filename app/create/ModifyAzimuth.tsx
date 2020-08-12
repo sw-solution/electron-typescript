@@ -11,6 +11,7 @@ import {
   selSequenceAzimuth,
   selPoints,
   setSequencePoints,
+  resetPoints,
 } from './slice';
 import { IGeoPoint } from '../types/IGeoPoint';
 
@@ -48,12 +49,13 @@ export default function SequenceModifyAzimuth() {
   };
 
   const resetMode = () => {
+    dispatch(resetPoints());
     dispatch(setCurrentStep('outlier'));
   };
 
   const confirmMode = () => {
-    setSequencePoints(points);
     dispatch(setCurrentStep('tags'));
+    dispatch(setSequencePoints(points));
   };
 
   return (

@@ -58,7 +58,9 @@ export default function SequenceUploadImage() {
     <>
       <Grid item xs={12}>
         <Typography variant="h6" align="center" color="textSecondary">
-          Please upload the [timelapse photos | video file]
+          {`Please upload the ${
+            attachType === 'Video' ? attachType : 'timelapse photos'
+          }`}
         </Typography>
       </Grid>
       <Grid item xs={12}>

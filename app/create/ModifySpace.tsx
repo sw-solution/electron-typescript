@@ -1,6 +1,5 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import dayjs from 'dayjs';
 
 import Typography from '@material-ui/core/Typography';
 import { Grid, Button, Box, Slider, TextField, Input } from '@material-ui/core';
@@ -18,8 +17,7 @@ import {
   selPoints,
   selSequenceFrame,
   selSequencePosition,
-  selGPXRequired,
-  selGPXPoints,
+  resetPoints,
 } from './slice';
 
 import {
@@ -65,7 +63,6 @@ export default function SequenceModifySpace() {
   const dispatch = useDispatch();
   const propframe = useSelector(selSequenceFrame);
   const propposition = useSelector(selSequencePosition);
-  const gpxRequired = useSelector(selGPXRequired);
   const proppoints = useSelector(selPoints);
 
   const [state, setState] = React.useState<State>({
@@ -76,13 +73,12 @@ export default function SequenceModifySpace() {
 
   const { points } = state;
 
-  const gpxPoints = useSelector(selGPXPoints);
-
   const classes = useStyles();
 
   let discarded = 0;
 
   const resetMode = () => {
+    dispatch(resetPoints());
     dispatch(setSequenceFrame(0));
     dispatch(setSequencePosition(0));
   };
@@ -163,39 +159,6 @@ export default function SequenceModifySpace() {
     updatePoints(event.target.value, state.frames);
   };
 
-  // const importGpxData = () => {
-  //   let importedPoints = 0;
-  //   const newPoints = points.map((point: IGeoPoint) => {
-  //     const pointTime = dayjs(point.GPSDateTime);
-  //     const matchedPoint = gpxPoints.filter(
-  //       (p) => pointTime.diff(dayjs(p.timestamp), 'second') === 0
-  //     );
-  //     if (matchedPoint.length) {
-  //       importedPoints += 1;
-  //       return new IGeoPoint({
-  //         ...point,
-  //         MAPLongitude: matchedPoint[0].longitude,
-  //         MAPLatitude: matchedPoint[0].latitude,
-  //         MAPAltitude: matchedPoint[0].elevation
-  //           ? matchedPoint[0].elevation
-  //           : point.MAPAltitude,
-  //       });
-  //     }
-  //     return point;
-  //   });
-  //   if (importedPoints !== points.length) {
-  //     dispatch(
-  //       setSequenceError(
-  //         `${
-  //           points.length - importedPoints
-  //         } points are not updated. These points may be ignored.`
-  //       )
-  //     );
-  //   }
-  //   dispatch(setSequencePoints(newPoints));
-  //   dispatch(setSequenceGpxImport());
-  // };
-
   const uploadGpx = () => {
     dispatch(setSequenceGpxImport());
     dispatch(setCurrentStep('gpx'));
@@ -236,9 +199,7 @@ export default function SequenceModifySpace() {
                 }}
               />
               <Typography size="small" align="center" className={classes.info}>
-                {`Source photos will apart ${Math.ceil(
-                  state.frames / 0.05
-                )} seconds. ${
+                {`1 photos every ${Math.ceil(state.frames / 0.05)} seconds. ${
                   discarded > 0 ? `${discarded} photos will be removed.` : ''
                 }`}
               </Typography>
