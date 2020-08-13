@@ -5,8 +5,8 @@ import fs from 'fs';
 export default async function loadCameras(app: App | null) {
   const camerasRootPath = path.resolve(app?.getAppPath(), '../cameras');
 
-  const moduleIconPath = 'static/module-icon.png';
-  const moduleConfigPath = 'module.config';
+  const moduleIconPath = 'module-icon.png';
+  const moduleConfigPath = 'module.json';
 
   const modules = fs
     .readdirSync(camerasRootPath)
@@ -17,19 +17,23 @@ export default async function loadCameras(app: App | null) {
         fs.existsSync(path.join(camerasRootPath, name, moduleConfigPath))
     )
     .map((name) => {
-      const config = fs
-        .readFileSync(path.join(camerasRootPath, name, moduleConfigPath))
-        .toString();
-      const result = config.match(/module_name: "(.*)"/);
-      if (result)
+      try {
+        const config = JSON.parse(
+          fs
+            .readFileSync(path.join(camerasRootPath, name, moduleConfigPath))
+            .toString()
+        );
+
         return {
-          module: result[1],
+          module: `${config.module_camera_exif_make} ${config.module_camera_model}`,
           name,
         };
-      return {
-        module: name,
-        name,
-      };
+      } catch (e) {
+        return {
+          module: name,
+          name,
+        };
+      }
     });
   const cameras = modules.map((m) => {
     return {
