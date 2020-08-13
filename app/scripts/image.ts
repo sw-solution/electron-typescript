@@ -18,7 +18,6 @@ import {
   OutputType,
   getSequenceOutputPath,
   discardPointsBySeconds,
-  tempLogo,
 } from './utils';
 
 const { Tags, exiftool } = require('exiftool-vendored');

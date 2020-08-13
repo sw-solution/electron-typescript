@@ -71,7 +71,7 @@ const createSequenceSlice = createSlice({
       state.error = null;
       state.passedPoints = {
         ...state.passedPoints,
-        [payload]: state.points,
+        [payload]: [...state.points],
       };
     },
 

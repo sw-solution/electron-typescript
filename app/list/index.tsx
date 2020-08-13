@@ -210,7 +210,7 @@ export default function ListPageWrapper() {
             >
               <MenuItem value="">Select Camera make / model</MenuItem>
               {cameras.map((t: Camera) => (
-                <MenuItem value={t.name} key={t.name}>
+                <MenuItem value={t.name} key={t.key}>
                   {t.name}
                 </MenuItem>
               ))}
