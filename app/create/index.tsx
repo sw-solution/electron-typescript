@@ -1,21 +1,27 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { push } from 'connected-react-router';
 
-import Drawer from '@material-ui/core/Drawer';
 import { Create as CreateIcon, List as ListIcon } from '@material-ui/icons';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import Box from '@material-ui/core/Box';
-import Grid from '@material-ui/core/Grid';
+
+import {
+  Modal,
+  Button,
+  IconButton,
+  Box,
+  Grid,
+  ListItemText,
+  ListItemIcon,
+  ListItem,
+  List,
+  Drawer,
+} from '@material-ui/core';
+
 import { Alert, AlertTitle } from '@material-ui/lab';
 
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import IconButton from '@material-ui/core/IconButton';
 
 import { IpcRendererEvent } from 'electron';
 
@@ -41,6 +47,7 @@ import BlurPage from './Blur';
 
 import routes from '../constants/routes.json';
 import {
+  selSequenceName,
   selPrevStep,
   selCurrentStep,
   goToPrevStep,
@@ -76,14 +83,34 @@ const useStyles = makeStyles((theme) => ({
       marginBottom: theme.spacing(2),
     },
   },
+
+  paper: {
+    position: 'absolute',
+    width: 400,
+    backgroundColor: theme.palette.background.paper,
+    border: '2px solid #000',
+    boxShadow: theme.shadows[5],
+    padding: theme.spacing(2, 4, 3),
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+  },
 }));
+
+interface State {
+  showModal: boolean;
+}
 
 export default function CreatePageWrapper() {
   const classes = useStyles();
   const prevStep = useSelector(selPrevStep);
   const currentStep = useSelector(selCurrentStep);
+  const name = useSelector(selSequenceName);
   const error = useSelector(selError);
   const dispatch = useDispatch();
+  const [state, setState] = useState<State>({
+    showModal: false,
+  });
 
   const goPrevStep = () => {
     dispatch(goToPrevStep());
@@ -126,6 +153,49 @@ export default function CreatePageWrapper() {
     };
   });
 
+  const gotoListPage = () => {
+    if (name === '') {
+      dispatch(push(routes.LIST));
+    } else {
+      setState({
+        showModal: true,
+      });
+    }
+  };
+
+  const handleClose = () => {
+    setState({
+      showModal: false,
+    });
+  };
+
+  const modalBody = (
+    <div className={classes.paper}>
+      <div>
+        <Alert severity="warning">
+          <AlertTitle>Warn</AlertTitle>
+          <span>
+            All data will be lost. Are you sure you wish to exit sequence
+            creation
+          </span>
+        </Alert>
+      </div>
+      <div style={{ textAlign: 'right' }}>
+        <Button
+          onClick={() => {
+            dispatch(push(routes.LIST));
+          }}
+          color="secondary"
+        >
+          OK
+        </Button>
+        <Button onClick={handleClose} color="primary">
+          Cancel
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <div>
       <Drawer
@@ -150,13 +220,7 @@ export default function CreatePageWrapper() {
             </ListItemIcon>
             <ListItemText>Create Sequence</ListItemText>
           </ListItem>
-          <ListItem
-            button
-            component="a"
-            onClick={() => {
-              dispatch(push(routes.LIST));
-            }}
-          >
+          <ListItem button component="a" onClick={gotoListPage}>
             <ListItemIcon>
               <ListIcon />
             </ListItemIcon>
@@ -211,6 +275,9 @@ export default function CreatePageWrapper() {
           {currentStep === 'processPage' && <ProcessPage />}
           {currentStep === 'blur' && <BlurPage />}
         </Grid>
+        <Modal open={state.showModal} onClose={handleClose}>
+          {modalBody}
+        </Modal>
       </Wrapper>
     </div>
   );

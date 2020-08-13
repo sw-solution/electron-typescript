@@ -207,9 +207,8 @@ ipcMain.on('load_gpx', (_event: IpcMainEvent, gpxpath: string) => {
 });
 
 ipcMain.on('upload_nadir', (_event: IpcMainEvent, { nadirpath, imagepath }) => {
-  console.log(imagepath, nadirpath);
-  const outputfile = path.resolve(`${uuidv4()}.png`);
-  const templogofile = path.resolve(`${uuidv4()}.png`);
+  const outputfile = path.resolve(app.getAppPath(), `${uuidv4()}.png`);
+  const templogofile = path.resolve(app.getAppPath(), `${uuidv4()}.png`);
   const modifyLogoAsync = modifyLogo(nadirpath, templogofile)
     .then(() => {
       return addLogo(imagepath, templogofile);
