@@ -166,6 +166,10 @@ const createSequenceSlice = createSlice({
       state.step = {
         ...state.step,
         current: 'processPage',
+        passed: [
+          ...state.step.passed.filter((step) => step !== state.step.current),
+          state.step.current,
+        ],
       };
     },
     setPoints: (state, { payload }) => {

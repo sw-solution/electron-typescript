@@ -67,7 +67,7 @@ export default function SequenceProcessPage() {
         </Typography>
       </Grid>
       <Grid item xs={12}>
-        {prevStep !== 'attachType' && (
+        {prevStep !== 'imagePath' && (
           <Typography align="center" color="textSecondary">
             {`Output can be viewed in [${getSequenceBasePath(
               name
