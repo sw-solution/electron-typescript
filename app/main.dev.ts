@@ -78,7 +78,7 @@ const createWindow = async () => {
 
   const menu = Menu.buildFromTemplate([
     {
-      label: 'help',
+      label: 'Help',
       submenu: [
         {
           label: 'Community Support',
