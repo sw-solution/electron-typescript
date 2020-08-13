@@ -37,16 +37,44 @@ export default function SequenceMethod() {
   const methods: MethodsModel = {
     Land: [
       {
-        component: <DirectionsWalkIcon fontSize="large" />,
-        label: 'Walk',
-      },
-      {
         component: <DirectionsCarIcon fontSize="large" />,
         label: 'Car',
       },
       {
+        component: <DirectionsCarIcon fontSize="large" />,
+        label: 'Electric Car',
+      },
+      {
         component: <DirectionsBikeIcon fontSize="large" />,
         label: 'Bike',
+      },
+      {
+        component: <DirectionsBikeIcon fontSize="large" />,
+        label: 'eBike',
+      },
+      {
+        component: <DirectionsBikeIcon fontSize="large" />,
+        label: 'Hike',
+      },
+      {
+        component: <DirectionsBikeIcon fontSize="large" />,
+        label: 'Scooter',
+      },
+      {
+        component: <DirectionsBikeIcon fontSize="large" />,
+        label: 'eScooter',
+      },
+      {
+        component: <DirectionsBikeIcon fontSize="large" />,
+        label: 'Electric Car',
+      },
+      {
+        component: <DirectionsBikeIcon fontSize="large" />,
+        label: 'Skateboard',
+      },
+      {
+        component: <DirectionsBikeIcon fontSize="large" />,
+        label: 'Rollerskate',
       },
     ],
     Water: [
@@ -58,11 +86,55 @@ export default function SequenceMethod() {
         component: <RowingIcon fontSize="large" />,
         label: 'Boat',
       },
+      {
+        component: <RowingIcon fontSize="large" />,
+        label: 'Paddleboard',
+      },
+      {
+        component: <RowingIcon fontSize="large" />,
+        label: 'Scuba Dive',
+      },
+      {
+        component: <RowingIcon fontSize="large" />,
+        label: 'Surf',
+      },
+      {
+        component: <RowingIcon fontSize="large" />,
+        label: 'Windsurf',
+      },
+      {
+        component: <RowingIcon fontSize="large" />,
+        label: 'Kiteboard',
+      },
+      {
+        component: <RowingIcon fontSize="large" />,
+        label: 'Canoe',
+      },
+      {
+        component: <RowingIcon fontSize="large" />,
+        label: 'Freedive',
+      },
     ],
     Air: [
       {
         component: <AirplanemodeActiveIcon fontSize="large" />,
         label: 'Plane',
+      },
+      {
+        component: <AirplanemodeActiveIcon fontSize="large" />,
+        label: 'Drone',
+      },
+      {
+        component: <AirplanemodeActiveIcon fontSize="large" />,
+        label: 'Parachute',
+      },
+      {
+        component: <AirplanemodeActiveIcon fontSize="large" />,
+        label: 'Paraglide',
+      },
+      {
+        component: <AirplanemodeActiveIcon fontSize="large" />,
+        label: 'Hanglide',
       },
     ],
   };
