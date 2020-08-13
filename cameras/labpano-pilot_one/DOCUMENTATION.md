@@ -1,3 +1,0 @@
-## LabPano Pilot One
-
-TODO....
