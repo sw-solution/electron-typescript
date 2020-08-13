@@ -20,9 +20,7 @@ export default async function loadCameras(app: App | null) {
       const config = fs
         .readFileSync(path.join(camerasRootPath, name, moduleConfigPath))
         .toString();
-      console.log(config);
       const result = config.match(/module_name: "(.*)"/);
-      console.log(result);
       if (result)
         return {
           module: result[1],

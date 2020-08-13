@@ -99,6 +99,8 @@ export default function SequenceModifySpace() {
         seconds
       );
 
+      console.log(temppoints.length);
+
       if (positionmeter > 0) {
         const newpoints: IGeoPoint[] = [];
 
@@ -120,6 +122,7 @@ export default function SequenceModifySpace() {
           }
         });
         discarded = points.length - newpoints.length;
+        console.log(points.length, newpoints.length, positionmeter);
         setState({
           ...state,
           position: positionstr,

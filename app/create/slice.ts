@@ -56,7 +56,7 @@ const createSequenceSlice = createSlice({
   reducers: {
     setCurrentStep: (state, { payload }) => {
       const passed =
-        state.step.current === 'processPage'
+        state.step.current === 'processPage' || state.step.current === 'gpx'
           ? state.step.passed
           : [
               ...state.step.passed.filter(
@@ -489,9 +489,7 @@ export const selSequenceAttachType = (state: RootState) =>
 
 export const selPrevStep = (state: RootState) => {
   const passedlength = state.create.step.passed.length;
-  return passedlength && state.create.step.current !== 'processPage'
-    ? state.create.step.passed[passedlength - 1]
-    : '';
+  return passedlength ? state.create.step.passed[passedlength - 1] : '';
 };
 
 export const selGPXRequired = (state: RootState) =>

@@ -238,13 +238,22 @@ export function loadImages(
 
 export function modifyLogo(logourl: string, outputfile: string) {
   return new Promise((resolve, reject) => {
-    jimp
+    const rotateAsync = jimp
       .read(logourl)
+      .then((logo: any) => {
+        return logo.rotate(270).flip(false, true);
+      })
+      .catch((err) => {
+        console.log('Error in Modifying Logo:', err);
+        reject(err);
+      });
+
+    rotateAsync
       // eslint-disable-next-line promise/always-return
       .then((logo: any) => {
-        const outputheight = Math.round(logo.bitmap.height / 2);
+        const outputheight = logo.bitmap.height;
         const outputwidth = logo.bitmap.width;
-        const radius = 245;
+        const radius = 360;
         const cx = Math.round(logo.bitmap.width / 2);
         const cy = Math.round(logo.bitmap.height / 2);
 
@@ -260,7 +269,7 @@ export function modifyLogo(logourl: string, outputfile: string) {
             }
             for (let y = 0; y < outputheight; y += 1) {
               for (let x = 0; x < outputwidth; x += 1) {
-                const thetadeg = 360 - (x * 360.0) / outputwidth - 180;
+                const thetadeg = 180 - (x * 360.0) / outputwidth;
                 const phideg = 90 - (y * 90.0) / outputheight;
                 const r = Math.sin((phideg * Math.PI) / 180);
                 const dx = Math.cos((thetadeg * Math.PI) / 180) * r;
@@ -275,7 +284,14 @@ export function modifyLogo(logourl: string, outputfile: string) {
               }
             }
             // outputlogo.resize(image.bitmap.width, image.bitmap.height * percentage);
+
             outputlogo
+              .crop(
+                0,
+                Math.round((outputheight / 100) * 51),
+                outputwidth,
+                Math.round((outputheight / 100) * 49)
+              )
               .writeAsync(outputfile)
               .then(() => {
                 return resolve();
@@ -302,7 +318,6 @@ export async function addLogo(imageurl: string, logourl: string) {
 
   const percentage = 0.12;
 
-  logo.flip(true, false);
   logo.resize(image.bitmap.width, image.bitmap.height * percentage);
 
   const X = 0;

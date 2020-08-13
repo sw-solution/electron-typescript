@@ -174,7 +174,7 @@ export default function CreatePageWrapper() {
           }}
           className={classes.gridContainer}
         >
-          {prevStep !== '' && (
+          {prevStep !== '' && currentStep !== 'processPage' && (
             <Box position="absolute" top={20} left={20} zIndex="modal">
               <IconButton onClick={goPrevStep}>
                 <ChevronLeftIcon />

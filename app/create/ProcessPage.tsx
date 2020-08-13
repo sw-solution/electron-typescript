@@ -21,7 +21,6 @@ const { ipcRenderer } = window.require('electron');
 export default function SequenceProcessPage() {
   const nextStep = useSelector(selProcessPageNext);
   const prevStep = useSelector(selPrevStep);
-  console.log('prevStep: ', prevStep);
   const name = useSelector(selSequenceName);
   const dispatch = useDispatch();
   const [errMessage, setErrMessage] = React.useState<string>('');
@@ -42,8 +41,8 @@ export default function SequenceProcessPage() {
     ipcRenderer.on('error', (_event: IpcRendererEvent, message) => {
       if (message) {
         setErrMessage(message);
+        dispatch(setCurrentStep(prevStep));
       }
-      dispatch(setCurrentStep(prevStep));
     });
 
     return () => {
@@ -60,11 +59,6 @@ export default function SequenceProcessPage() {
         </Typography>
       </Grid>
       <Grid item xs={12}>
-        {errMessage !== '' && (
-          <Typography paragraph align="center" color="secondary">
-            {errMessage}
-          </Typography>
-        )}
         {errMessage === '' && <LinearProgress />}
       </Grid>
       <Grid item xs={12}>

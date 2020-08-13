@@ -31,7 +31,7 @@ export default function SequenceCamera() {
   cameras.forEach((it: Camera) => {
     const color = it.name === camera ? 'secondary' : 'primary';
     items.push(
-      <Grid item key={it.name} xs={4}>
+      <Grid item key={it.key} xs={4}>
         <Button
           size="medium"
           color={color}
