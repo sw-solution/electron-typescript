@@ -18,6 +18,7 @@ import {
   OutputType,
   getSequenceOutputPath,
   discardPointsBySeconds,
+  errorHandler,
 } from './utils';
 
 const { Tags, exiftool } = require('exiftool-vendored');
@@ -283,14 +284,13 @@ export function modifyLogo(logourl: string, outputfile: string) {
                 );
               }
             }
-            // outputlogo.resize(image.bitmap.width, image.bitmap.height * percentage);
 
             outputlogo
               .crop(
                 0,
-                Math.round((outputheight / 100) * 51),
+                Math.round((outputheight / 100) * 51 + 5),
                 outputwidth,
-                Math.round((outputheight / 100) * 49)
+                Math.round((outputheight / 100) * 49 - 5)
               )
               .writeAsync(outputfile)
               .then(() => {
@@ -310,18 +310,13 @@ export function modifyLogo(logourl: string, outputfile: string) {
   });
 }
 
-export async function addLogo(imageurl: string, logourl: string) {
-  const [image, logo] = await Promise.all([
-    jimp.read(imageurl),
-    jimp.read(logourl),
-  ]);
-
-  const percentage = 0.12;
-
-  logo.resize(image.bitmap.width, image.bitmap.height * percentage);
-
-  const X = 0;
-  const Y = image.bitmap.height - image.bitmap.height * percentage;
+export async function addLogo(
+  imageurl: string,
+  logo: any,
+  x: number,
+  y: number
+) {
+  const image = await jimp.read(imageurl);
 
   const blendmode: any = {
     mode: jimp.BLEND_SOURCE_OVER,
@@ -329,7 +324,7 @@ export async function addLogo(imageurl: string, logourl: string) {
     opacityDest: 1,
   };
 
-  return image.composite(logo, X, Y, blendmode);
+  return image.composite(logo, x, y, blendmode);
 }
 
 export function writeExifTags(
@@ -386,10 +381,11 @@ export function writeExifTags(
 export function writeNadirImages(
   item: IGeoPoint,
   settings: any,
-  description: Description
+  description: Description,
+  logo: any
 ) {
   return new Promise((resolve, reject) => {
-    if (settings.nadirPath !== '') {
+    if (settings.nadirPath !== '' && logo) {
       const filename = item.Image || '';
       const existingfile = getSequenceImagePath(settings.name, filename);
       const outputfile = getSequenceOutputPath(
@@ -398,7 +394,12 @@ export function writeNadirImages(
         OutputType.nadir
       );
 
-      const addLogoAsync = addLogo(existingfile, settings.previewnadir.newnadir)
+      const addLogoAsync = addLogo(
+        existingfile,
+        logo,
+        0,
+        item.height - settings.previewnadir.percentage * item.height
+      )
         .then((image) => {
           return image.writeAsync(outputfile);
         })
@@ -479,7 +480,7 @@ export function writeBlurredImage(
   });
 }
 
-export function updateImages(points: IGeoPoint[], settings: any) {
+export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
   return new Promise((resolve, reject) => {
     const updatedPoints = points.map((p) => {
       const newP = new IGeoPoint(p);
@@ -614,7 +615,7 @@ export function updateImages(points: IGeoPoint[], settings: any) {
                 .catch((err) => cb(err));
             },
             (cb: CallableFunction) => {
-              writeNadirImages(item, settings, desc)
+              writeNadirImages(item, settings, desc, logo)
                 .then(() => cb())
                 .catch((err) => {
                   if (err) {

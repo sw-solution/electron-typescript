@@ -24,6 +24,8 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
+import jimp from 'jimp';
+import Async from 'async';
 
 import { processVideo } from './scripts/video';
 import { loadImages, updateImages, addLogo, modifyLogo } from './scripts/image';
@@ -35,6 +37,7 @@ import {
   getSequenceLogPath,
   getSequenceGpxPath,
   getSequenceBasePath,
+  errorHandler,
 } from './scripts/utils';
 
 import { readGPX } from './scripts/utils/gpx';
@@ -177,10 +180,10 @@ ipcMain.on(
     }
     loadImages(
       dirPath,
-      path.resolve(resultdirectory, seqname),
+      getSequenceBasePath(seqname),
       (error: any, result: any) => {
         if (error) {
-          sendToClient(mainWindow, 'error', error.message);
+          errorHandler(mainWindow, error);
         } else {
           const { points, removedfiles } = result;
           if (points.length) {
@@ -206,50 +209,98 @@ ipcMain.on('load_gpx', (_event: IpcMainEvent, gpxpath: string) => {
   });
 });
 
-ipcMain.on('upload_nadir', (_event: IpcMainEvent, { nadirpath, imagepath }) => {
-  const outputfile = path.resolve(app.getAppPath(), `${uuidv4()}.png`);
-  const templogofile = path.resolve(app.getAppPath(), `${uuidv4()}.png`);
-  const modifyLogoAsync = modifyLogo(nadirpath, templogofile)
-    .then(() => {
-      return addLogo(imagepath, templogofile);
-    })
-    .catch((err) => {
-      sendToClient(mainWindow, 'error', err.message);
-    });
+ipcMain.on(
+  'upload_nadir',
+  (_event: IpcMainEvent, { nadirpath, imagepath, width, height }) => {
+    const results = {};
+    const templogofile = path.resolve(app.getAppPath(), `${uuidv4()}.png`);
 
-  const addLogoAsync = modifyLogoAsync
-    .then((image: any) => {
-      return image.writeAsync(outputfile);
-    })
-    .catch((err) => sendToClient(mainWindow, 'error', err.message));
-
-  return addLogoAsync
-    .then(() =>
-      sendToClient(mainWindow, 'loaded_preview_nadir', {
-        preview: outputfile,
-        newnadir: templogofile,
+    const modifyLogoAsync = modifyLogo(nadirpath, templogofile)
+      .then(() => {
+        return jimp.read(templogofile);
       })
-    )
-    .catch((err) => sendToClient(mainWindow, 'error', err.message));
-});
+      .catch((err) => {
+        errorHandler(mainWindow, err);
+      });
+
+    modifyLogoAsync
+      .then((logo: any) => {
+        return Async.eachOfLimit(
+          Array(16),
+          4,
+          (_item: unknown, key: any, cb: CallableFunction) => {
+            const outputfile = path.resolve(
+              app.getAppPath(),
+              `${uuidv4()}.png`
+            );
+            const percentage = (10 + parseInt(key, 10)) / 100;
+            const logoHeight = height * percentage;
+
+            // eslint-disable-next-line promise/no-nesting
+            const addLogoAsync = addLogo(
+              imagepath,
+              logo.resize(width, logoHeight),
+              0,
+              height - logoHeight
+            )
+              .then((image: any) => image.writeAsync(outputfile))
+              .catch((err: any) => errorHandler(mainWindow, err));
+
+            // eslint-disable-next-line promise/no-nesting
+            addLogoAsync
+              .then(() => {
+                results[percentage.toString()] = outputfile;
+                return cb();
+              })
+              .catch((err: any) => cb(err));
+          },
+          (err) => {
+            if (err) {
+              errorHandler(mainWindow, err);
+            } else {
+              sendToClient(mainWindow, 'loaded_preview_nadir', {
+                logofile: templogofile,
+                items: results,
+              });
+            }
+          }
+        );
+        // return addLogo(imagepath, logo, 0, height - logoHeight);
+      })
+      .catch((err) => errorHandler(mainWindow, err));
+  }
+);
 
 ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
   const { buildGPX, GarminBuilder } = require('gpx-builder');
   const { Point } = GarminBuilder.MODELS;
 
-  updateImages(sequence.points, sequence.steps)
+  const logo =
+    sequence.steps.previewnadir.logofile !== ''
+      ? await jimp.read(sequence.steps.previewnadir.logofile)
+      : null;
+  if (sequence.steps.previewnadir.logofile !== '' && logo) {
+    logo.resize(
+      sequence.points[0].width,
+      sequence.points[0].height * sequence.steps.previewnadir.percentage
+    );
+  }
+
+  updateImages(sequence.points, sequence.steps, logo)
     .then(async (resultjson: Result) => {
       fs.writeFileSync(
         getSequenceLogPath(sequence.steps.name),
         JSON.stringify(resultjson)
       );
 
-      if (fs.existsSync(sequence.steps.previewnadir.preview)) {
-        fs.unlinkSync(sequence.steps.previewnadir.preview);
-      }
+      Object.keys(sequence.steps.previewnadir.items).forEach((f: string) => {
+        if (fs.existsSync(sequence.steps.previewnadir.items[f])) {
+          fs.unlinkSync(sequence.steps.previewnadir.items[f]);
+        }
+      });
 
-      if (fs.existsSync(sequence.steps.previewnadir.newnadir)) {
-        fs.unlinkSync(sequence.steps.previewnadir.newnadir);
+      if (fs.existsSync(sequence.steps.previewnadir.logofile)) {
+        fs.unlinkSync(sequence.steps.previewnadir.logofile);
       }
 
       const gpxData = new GarminBuilder();

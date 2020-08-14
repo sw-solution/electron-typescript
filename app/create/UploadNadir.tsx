@@ -28,9 +28,12 @@ export default function SequenceUploadNadir() {
   const setPath = (url: string) => {
     dispatch(setSequenceNadirPath(url));
     dispatch(setProcessStep('previewNadir'));
+    const point = points[0];
     ipcRenderer.send('upload_nadir', {
       nadirpath: url,
       imagepath: getSequenceImagePath(name, points[0].Image),
+      width: point.width,
+      height: point.height,
     });
   };
 

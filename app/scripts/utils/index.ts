@@ -190,3 +190,7 @@ export function discardPointsBySeconds(
 
   return newpoints;
 }
+
+export const errorHandler = (mainWindow: BrowserWindow | null, err: any) => {
+  sendToClient(mainWindow, 'error', err.message || err);
+};

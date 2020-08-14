@@ -11,7 +11,13 @@ import {
 
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
-import { selBlur, selSequence, setProcessStep, setBlur } from './slice';
+import {
+  selBlur,
+  selSequence,
+  setProcessStep,
+  setBlur,
+  setError,
+} from './slice';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -21,8 +27,12 @@ export default function SequenceBur() {
   const sequence = useSelector(selSequence);
 
   const confirmMode = () => {
-    dispatch(setProcessStep('name'));
-    ipcRenderer.send('update_images', sequence);
+    if (sequence.points.length) {
+      dispatch(setProcessStep('name'));
+      ipcRenderer.send('update_images', sequence);
+    } else {
+      dispatch(setError('There is no photos.'));
+    }
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,14 +49,14 @@ export default function SequenceBur() {
       <Grid item xs={12}>
         <FormControlLabel
           color="primary"
-          control={(
+          control={
             <Checkbox
               checked={blurred}
               onChange={handleChange}
               name="checkedB"
               color="primary"
             />
-          )}
+          }
           label="Blur"
         />
       </Grid>

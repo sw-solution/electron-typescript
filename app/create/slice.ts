@@ -38,8 +38,9 @@ const initialState = {
     tags: [],
     nadirPath: '',
     previewnadir: {
-      preview: '',
-      newnadir: '',
+      items: {},
+      percentage: 0.15,
+      logofile: '',
     },
     blur: false,
   },
@@ -156,9 +157,14 @@ const createSequenceSlice = createSlice({
     setNadirPath: (state, { payload }) => {
       state.steps.nadirPath = payload;
     },
+    setNadirPercentage: (state, { payload }) => {
+      state.steps.previewnadir.percentage = payload;
+    },
     setNadirPreview: (state, { payload }) => {
       state.steps.previewnadir = {
-        ...payload,
+        ...state.steps.previewnadir,
+        items: payload.items,
+        logofile: payload.logofile,
       };
     },
     setProcessStep: (state, { payload }) => {
@@ -265,6 +271,7 @@ export const {
   setTags,
   setNadirPath,
   setNadirPreview,
+  setNadirPercentage,
   setProcessStep,
   setPoints,
   setGpxPoints,
@@ -518,7 +525,10 @@ export const selProcessPageNext = (state: RootState) => {
 };
 
 export const selPreviewNadir = (state: RootState) =>
-  state.create.steps.previewnadir.preview;
+  state.create.steps.previewnadir.items;
+
+export const selPreviewNadirPercentage = (state: RootState) =>
+  state.create.steps.previewnadir.percentage;
 
 export const selCurrentStep = (state: RootState) => state.create.step.current;
 

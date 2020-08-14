@@ -5,7 +5,7 @@ import { BrowserWindow } from 'electron';
 
 import { VGeoPoint, VGeoPointModel } from '../types/VGeoPoint';
 import { IGeoPoint } from '../types/IGeoPoint';
-import { sendPoints, sendToClient } from './utils';
+import { sendPoints, sendToClient, errorHandler } from './utils';
 import { calculatePoints } from './image';
 
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path.replace(
@@ -247,7 +247,7 @@ export async function splitVideos(
 }
 
 export function splitVideoToImage(
-  win: BrowserWindow,
+  win: BrowserWindow | null,
   tags: any,
   videoPath: string,
   outputPath: string
@@ -285,11 +285,11 @@ export function splitVideoToImage(
               sendPoints(win, result.points);
               sendToClient(win, 'finish');
             } else {
-              sendToClient(win, 'error', error);
+              errorHandler(win, error);
             }
           });
         } else {
-          sendToClient(win, 'error', err);
+          errorHandler(win, err);
         }
       }
     );
@@ -299,8 +299,8 @@ export function splitVideoToImage(
 export function loadVideo(videoPath: string, callback: CallableFunction) {
   exiftool
     .read(videoPath, ['-ee', '-G3', '-s', '-api', 'largefilesupport=1'])
-    .then((tags: typeof Tags) => callback(tags))
-    .catch((err: Error) => console.log('Something terrible happened: ', err));
+    .then((tags: typeof Tags) => callback(null, tags))
+    .catch((err: Error) => callback(err));
 }
 
 export function processVideo(
@@ -308,7 +308,11 @@ export function processVideo(
   videoPath: string,
   outputPath: string
 ) {
-  loadVideo(videoPath, (tags: typeof Tags) => {
-    splitVideoToImage(win, tags, videoPath, outputPath);
+  loadVideo(videoPath, (error: any, tags: typeof Tags) => {
+    if (error) {
+      errorHandler(win, error);
+    } else {
+      splitVideoToImage(win, tags, videoPath, outputPath);
+    }
   });
 }

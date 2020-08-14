@@ -1,27 +1,105 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
-import Typography from '@material-ui/core/Typography';
-import Grid from '@material-ui/core/Grid';
-
-import Button from '@material-ui/core/Button';
-import Box from '@material-ui/core/Box';
+import {
+  Slider,
+  Typography,
+  Grid,
+  Input,
+  Button,
+  Box,
+} from '@material-ui/core';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ReactPannellum from 'react-pannellum';
+import { makeStyles } from '@material-ui/core/styles';
 
-import { setCurrentStep, selPreviewNadir } from './slice';
+import {
+  setCurrentStep,
+  selPreviewNadir,
+  selPreviewNadirPercentage,
+  setNadirPercentage,
+} from './slice';
+
+const useStyles = makeStyles((theme) => ({
+  sliderHeader: {
+    width: 100,
+  },
+  slider: {
+    width: 180,
+  },
+  sliderInput: {
+    width: 42,
+  },
+  sliderWrapper: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    '& > *': {
+      margin: theme.spacing(1),
+    },
+  },
+  info: {
+    color: 'grey',
+    width: '100%',
+  },
+}));
+
+interface State {
+  percentage: number;
+}
 
 export default function SequencePreviewNadir() {
   const dispatch = useDispatch();
-  const imagePath = useSelector(selPreviewNadir);
+  const items = useSelector(selPreviewNadir);
+  const percentage = useSelector(selPreviewNadirPercentage);
+  const classes = useStyles();
+  const [state, setState] = useState<State>({
+    percentage,
+  });
 
   const resetMode = () => {
     dispatch(setCurrentStep('nadir'));
   };
 
   const confirmMode = () => {
+    dispatch(setNadirPercentage(state.percentage));
     dispatch(setCurrentStep('blur'));
   };
+
+  const handlePercentageSliderChange = (
+    _event: React.ChangeEvent,
+    newValue: number
+  ) => {
+    setState({
+      percentage: newValue,
+    });
+  };
+
+  const handlePercentageChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setState({
+      percentage: parseFloat(event.target.value),
+    });
+  };
+
+  const previews = Object.keys(items).reduce((prev: any, key: string) => {
+    prev[key] = (
+      <ReactPannellum
+        imageSource={items[key]}
+        id={key}
+        sceneId={key}
+        config={{
+          autoLoad: true,
+        }}
+        style={{
+          width: '100%',
+          height: 500,
+        }}
+      />
+    );
+    return prev;
+  }, {});
 
   return (
     <>
@@ -33,22 +111,47 @@ export default function SequencePreviewNadir() {
           Here’s an example of how your nadir will appear
         </Typography>
       </Grid>
-      <Grid item xs={12}>
-        <Typography align="center" color="textSecondary" />
-      </Grid>
-      <Grid item xs={12}>
-        <ReactPannellum
-          imageSource={imagePath}
-          id="preview_nadir"
-          sceneId="1"
-          config={{
-            autoLoad: true,
-          }}
-          style={{
-            width: '100%',
-            height: 500,
+      <Grid item xs={12} className={classes.sliderWrapper}>
+        <Typography align="right" className={classes.sliderHeader}>
+          Percentage of Height
+        </Typography>
+        <Slider
+          value={state.percentage}
+          onChange={handlePercentageSliderChange}
+          aria-labelledby="input-slider"
+          step={0.01}
+          min={0.1}
+          max={0.25}
+          className={classes.slider}
+        />
+        <Input
+          style={{ width: 50 }}
+          value={state.percentage}
+          margin="dense"
+          onChange={handlePercentageChange}
+          inputProps={{
+            step: 0.01,
+            min: 0.1,
+            max: 0.25,
+            type: 'number',
+            'aria-labelledby': 'input-slider',
           }}
         />
+      </Grid>
+      <Grid item xs={12}>
+        {Object.keys(previews).map((item, idx) => {
+          return (
+            <div
+              key={idx}
+              style={{
+                display:
+                  item === state.percentage.toString() ? 'block' : 'none',
+              }}
+            >
+              {previews[item]}
+            </div>
+          );
+        })}
       </Grid>
       <Grid item xs={12}>
         <Box mr={1} display="inline-block">
