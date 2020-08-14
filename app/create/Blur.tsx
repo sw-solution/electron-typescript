@@ -42,8 +42,11 @@ export default function SequenceBur() {
   return (
     <>
       <Grid item xs={12}>
+        <Typography variant="h5" align="center" color="textSecondary">
+          Create a blurred copy
+        </Typography>
         <Typography variant="h6" align="center" color="textSecondary">
-          Do you want to get the blurred images too?
+          You can create a copy of the sequence images with publicly identifiable information blurred. Only recommended if you plan to use services that do not blur content automatically (e.g. Facebook) and images contain lots of sensitive data because it requires a high amount of computing power.
         </Typography>
       </Grid>
       <Grid item xs={12}>
@@ -57,7 +60,7 @@ export default function SequenceBur() {
               color="primary"
             />
           }
-          label="Blur"
+          label="Blur images?"
         />
       </Grid>
       <Grid item xs={12}>
