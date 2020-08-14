@@ -242,7 +242,7 @@ export function modifyLogo(logourl: string, outputfile: string) {
     const rotateAsync = jimp
       .read(logourl)
       .then((logo: any) => {
-        return logo.rotate(270).flip(false, true);
+        return logo.flip(false, true);
       })
       .catch((err) => {
         console.log('Error in Modifying Logo:', err);
@@ -252,12 +252,11 @@ export function modifyLogo(logourl: string, outputfile: string) {
     rotateAsync
       // eslint-disable-next-line promise/always-return
       .then((logo: any) => {
-        const outputheight = logo.bitmap.height;
+        const outputheight = logo.bitmap.height / 2;
         const outputwidth = logo.bitmap.width;
-        const radius = 360;
-        const cx = Math.round(logo.bitmap.width / 2);
-        const cy = Math.round(logo.bitmap.height / 2);
-
+        const radius = logo.bitmap.height / 2;
+        const cx = logo.bitmap.width / 2;
+        const cy = logo.bitmap.height / 2;
         // eslint-disable-next-line no-new
         new jimp(
           outputwidth,
@@ -286,12 +285,7 @@ export function modifyLogo(logourl: string, outputfile: string) {
             }
 
             outputlogo
-              .crop(
-                0,
-                Math.round((outputheight / 100) * 51 + 5),
-                outputwidth,
-                Math.round((outputheight / 100) * 49 - 5)
-              )
+              .crop(0, 20, outputwidth, outputheight - 20)
               .writeAsync(outputfile)
               .then(() => {
                 return resolve();

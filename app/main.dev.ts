@@ -227,19 +227,22 @@ ipcMain.on(
       .then((logo: any) => {
         return Async.eachOfLimit(
           Array(16),
-          4,
+          1,
           (_item: unknown, key: any, cb: CallableFunction) => {
             const outputfile = path.resolve(
               app.getAppPath(),
               `${uuidv4()}.png`
             );
             const percentage = (10 + parseInt(key, 10)) / 100;
-            const logoHeight = height * percentage;
+            // const percentage = 0.15;
+            const logoHeight = Math.round(height * percentage);
+            console.log(percentage, logoHeight);
 
+            logo.resize(width, logoHeight);
             // eslint-disable-next-line promise/no-nesting
             const addLogoAsync = addLogo(
               imagepath,
-              logo.resize(width, logoHeight),
+              logo,
               0,
               height - logoHeight
             )

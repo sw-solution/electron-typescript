@@ -78,9 +78,12 @@ export default function SequencePreviewNadir() {
   const handlePercentageChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setState({
-      percentage: parseFloat(event.target.value),
-    });
+    const val = parseFloat(event.target.value);
+    if (val <= 0.25 && val >= 0.1) {
+      setState({
+        percentage: val,
+      });
+    }
   };
   return (
     <>
@@ -131,10 +134,6 @@ export default function SequencePreviewNadir() {
                 sceneId={key}
                 config={{
                   autoLoad: true,
-                }}
-                style={{
-                  width: '100%',
-                  height: 500,
                 }}
               />
             );
