@@ -57,6 +57,7 @@ import {
   setSequenceInit,
   setSequenceError,
   selError,
+  setInit,
 } from './slice';
 
 import { setConfigLoadEnd } from '../base/slice';
@@ -183,6 +184,7 @@ export default function CreatePageWrapper() {
       <div style={{ textAlign: 'right' }}>
         <Button
           onClick={() => {
+            dispatch(setInit());
             dispatch(push(routes.LIST));
           }}
           color="secondary"

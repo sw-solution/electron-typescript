@@ -82,25 +82,6 @@ export default function SequencePreviewNadir() {
       percentage: parseFloat(event.target.value),
     });
   };
-
-  const previews = Object.keys(items).reduce((prev: any, key: string) => {
-    prev[key] = (
-      <ReactPannellum
-        imageSource={items[key]}
-        id={key}
-        sceneId={key}
-        config={{
-          autoLoad: true,
-        }}
-        style={{
-          width: '100%',
-          height: 500,
-        }}
-      />
-    );
-    return prev;
-  }, {});
-
   return (
     <>
       <Grid item xs={12}>
@@ -139,19 +120,25 @@ export default function SequencePreviewNadir() {
         />
       </Grid>
       <Grid item xs={12}>
-        {Object.keys(previews).map((item, idx) => {
-          return (
-            <div
-              key={idx}
-              style={{
-                display:
-                  item === state.percentage.toString() ? 'block' : 'none',
-              }}
-            >
-              {previews[item]}
-            </div>
-          );
-        })}
+        {Object.keys(items)
+          .filter((key) => key === state.percentage.toString())
+          .map((key) => {
+            return (
+              <ReactPannellum
+                key={key}
+                imageSource={items[key]}
+                id={key}
+                sceneId={key}
+                config={{
+                  autoLoad: true,
+                }}
+                style={{
+                  width: '100%',
+                  height: 500,
+                }}
+              />
+            );
+          })}
       </Grid>
       <Grid item xs={12}>
         <Box mr={1} display="inline-block">
