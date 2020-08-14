@@ -22,7 +22,7 @@ import {
 
 const useStyles = makeStyles((theme) => ({
   sliderHeader: {
-    width: 100,
+    width: 200,
   },
   slider: {
     width: 180,
@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
   },
   sliderWrapper: {
     display: 'flex',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     alignItems: 'center',
     '& > *': {
       margin: theme.spacing(1),
