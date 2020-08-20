@@ -98,20 +98,23 @@ export default function SequenceModifySpace() {
         seconds
       );
 
-      console.log(temppoints.length);
-
       if (positionmeter > 0) {
         const newpoints: IGeoPoint[] = [];
 
         let previousIdx = 0;
-        temppoints.forEach((point: IGeoPoint, idx: number) => {
+        for (let idx = 0; idx < temppoints.length; idx += 1) {
+          const point: IGeoPoint = temppoints[idx];
           if (idx > 0 && idx < temppoints.length - 1) {
             if (point.Distance < positionmeter) {
               const prevpoint = newpoints[previousIdx];
               const nextpoint = temppoints[idx + 1];
-              prevpoint.setDistance(getDistance(prevpoint, nextpoint));
-              prevpoint.setAzimuth(getBearing(prevpoint, nextpoint));
-              prevpoint.setPitch(getPitch(prevpoint, nextpoint));
+              newpoints[previousIdx].setDistance(
+                getDistance(prevpoint, nextpoint)
+              );
+              newpoints[previousIdx].setAzimuth(
+                getBearing(prevpoint, nextpoint)
+              );
+              newpoints[previousIdx].setPitch(getPitch(prevpoint, nextpoint));
             } else {
               previousIdx = newpoints.length;
               newpoints.push(point);
@@ -119,7 +122,7 @@ export default function SequenceModifySpace() {
           } else {
             newpoints.push(point);
           }
-        });
+        }
         discarded = points.length - newpoints.length;
         console.log(points.length, newpoints.length, positionmeter);
         setState({

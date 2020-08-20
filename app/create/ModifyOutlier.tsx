@@ -74,15 +74,13 @@ export default function SequenceModifyOutlier() {
         );
 
         let previousIdx = 0;
-        temppoints.forEach((point: IGeoPoint, idx: number) => {
+        for (let idx = 0; idx < temppoints.length; idx += 1) {
+          const point: IGeoPoint = temppoints[idx];
           if (idx > 0 && idx < temppoints.length - 1) {
             const prevpoint = newpoints[previousIdx];
             const nextpoint = temppoints[idx + 1];
-
-            if (
-              (prevpoint.Distance || 0) > meters &&
-              (point.Distance || 0) > meters
-            ) {
+            const distance = getDistance(prevpoint, point);
+            if (distance > meters && (point.Distance || 0) > meters) {
               if (m === 'S') {
                 const newpoint = new IGeoPoint({
                   ...point,
@@ -90,28 +88,40 @@ export default function SequenceModifyOutlier() {
                     (prevpoint.MAPLongitude + nextpoint.MAPLongitude) / 2,
                   MAPLatitude:
                     (prevpoint.MAPLatitude + nextpoint.MAPLatitude) / 2,
+                  MAPAltitude:
+                    (prevpoint.MAPAltitude + nextpoint.MAPAltitude) / 2,
                 });
                 console.log(
+                  newpoints.length,
                   previousIdx,
                   idx + 1,
                   meters,
                   prevpoint.MAPLongitude,
                   newpoint.MAPLongitude,
                   nextpoint.MAPLongitude,
-                  mode
+                  m
                 );
-                prevpoint.setDistance(getDistance(prevpoint, newpoint));
-                prevpoint.setAzimuth(getBearing(prevpoint, newpoint));
-                prevpoint.setPitch(getPitch(prevpoint, newpoint));
+                newpoints[previousIdx].setDistance(
+                  getDistance(prevpoint, newpoint)
+                );
+                newpoints[previousIdx].setAzimuth(
+                  getBearing(prevpoint, newpoint)
+                );
+                newpoints[previousIdx].setPitch(getPitch(prevpoint, newpoint));
 
                 newpoint.setDistance(getDistance(nextpoint, newpoint));
                 newpoint.setAzimuth(getBearing(newpoint, nextpoint));
                 newpoint.setPitch(getPitch(newpoint, nextpoint));
+                previousIdx = newpoints.length;
                 newpoints.push(newpoint);
               } else {
-                prevpoint.setDistance(getDistance(prevpoint, nextpoint));
-                prevpoint.setAzimuth(getBearing(prevpoint, nextpoint));
-                prevpoint.setPitch(getPitch(prevpoint, nextpoint));
+                newpoints[previousIdx].setDistance(
+                  getDistance(prevpoint, nextpoint)
+                );
+                newpoints[previousIdx].setAzimuth(
+                  getBearing(prevpoint, nextpoint)
+                );
+                newpoints[previousIdx].setPitch(getPitch(prevpoint, nextpoint));
               }
             } else {
               previousIdx = newpoints.length;
@@ -120,7 +130,7 @@ export default function SequenceModifyOutlier() {
           } else {
             newpoints.push(point);
           }
-        });
+        }
         setState({
           ...state,
           metersStr: meterstr,
