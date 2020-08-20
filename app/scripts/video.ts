@@ -16,7 +16,7 @@ const ffmpeg = require('fluent-ffmpeg');
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
-const { Tags, exiftool } = require('exiftool-vendored');
+const { Tags, ExifTool, exiftool } = require('exiftool-vendored');
 
 export function getSeconds(timeStr: string) {
   const re = /(\d+\.?\d*) s/g;
@@ -227,22 +227,16 @@ export async function splitVideos(
   inputPath: string,
   splitTimes: number[],
   outputPath: string,
-
   callback: CallableFunction
 ) {
-  let filenames: string[] = [];
-  console.log('Split Times:', splitTimes);
-  ffmpeg(inputPath)
-    .on('filenames', function (fns: string[]) {
-      filenames = fns;
-    })
+  const filenames: string[] = [];
+
+  const video = ffmpeg(inputPath);
+
+  video
+    .outputOptions('-vframes', '1', path.join(outputPath, '1.png'))
     .on('end', function () {
-      callback(filenames);
-    })
-    .screenshots({
-      timestamps: splitTimes,
-      filename: '%s.png',
-      folder: outputPath,
+      console.log('end');
     });
 }
 
@@ -254,7 +248,6 @@ export function splitVideoToImage(
 ) {
   const { dataList, commonData } = getGPSVideoData(tags);
   const duration = Math.floor(commonData['Main:Duration']);
-  console.log('Video Duration', duration);
   if (dataList) {
     Async.waterfall(
       [
@@ -297,10 +290,21 @@ export function splitVideoToImage(
 }
 
 export function loadVideo(videoPath: string, callback: CallableFunction) {
-  exiftool
+  const exif = new ExifTool({
+    taskTimeoutMillis: 1073741824,
+    maxProcAgeMillis: 1073741825,
+  });
+  exif
     .read(videoPath, ['-ee', '-G3', '-s', '-api', 'largefilesupport=1'])
-    .then((tags: typeof Tags) => callback(null, tags))
-    .catch((err: Error) => callback(err));
+    .then((tags: typeof Tags) => {
+      exif.end();
+      return callback(null, tags);
+    })
+    .catch((err: Error) => {
+      console.log('Loading Video: ', err);
+      exif.end();
+      callback(err);
+    });
 }
 
 export function processVideo(

@@ -4,6 +4,7 @@ import path from 'path';
 import dayjs from 'dayjs';
 import { v4 as uuidv4 } from 'uuid';
 import jimp from 'jimp';
+import { exception } from 'console';
 import { IGeoPoint } from '../types/IGeoPoint';
 import {
   Result,
@@ -174,7 +175,7 @@ export const calculatePoints = (
         );
       }).length > 0;
     if (existedFarPoint) {
-      throw 'some photos are too far apart by time';
+      throw new Error('some photos are too far apart by time');
     }
 
     if (
@@ -242,10 +243,12 @@ export function modifyLogo(logourl: string, outputfile: string) {
     const rotateAsync = jimp
       .read(logourl)
       .then((logo: any) => {
+        if (logo.bitmap.width < 500 || logo.bitmap.height < 500) {
+          throw new Error('Logo size must be at least 500px x 500px');
+        }
         return logo.flip(false, true);
       })
       .catch((err) => {
-        console.log('Error in Modifying Logo:', err);
         reject(err);
       });
 
@@ -298,7 +301,6 @@ export function modifyLogo(logourl: string, outputfile: string) {
         );
       })
       .catch((err) => {
-        console.log('Error in Modifying Logo:', err);
         reject(err);
       });
   });

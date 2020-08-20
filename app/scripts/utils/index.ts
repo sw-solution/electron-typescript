@@ -1,5 +1,7 @@
 import { BrowserWindow } from 'electron';
 import path from 'path';
+import fs from 'fs';
+import rimraf from 'rimraf';
 
 import { IGeoPoint } from '../../types/IGeoPoint';
 import { Result, Summary } from '../../types/Result';
@@ -57,7 +59,6 @@ export function getDistance(point1: any, point2: any) {
 
 export function createdData2List(data: Result): Summary {
   const { sequence, photo } = data;
-  console.log(photo);
   return {
     id: sequence.id,
     tags: sequence.uploader_tags,
@@ -193,4 +194,31 @@ export function discardPointsBySeconds(
 
 export const errorHandler = (mainWindow: BrowserWindow | null, err: any) => {
   sendToClient(mainWindow, 'error', err.message || err);
+};
+
+export const removeDirectory = async (directoryPath: string) => {
+  if (fs.existsSync(directoryPath)) {
+    await rimraf.sync(directoryPath);
+  }
+  return true;
+};
+
+export const removeTempFiles = async (sequence: any) => {
+  Object.keys(sequence.steps.previewnadir.items).forEach((f: string) => {
+    if (fs.existsSync(sequence.steps.previewnadir.items[f])) {
+      fs.unlinkSync(sequence.steps.previewnadir.items[f]);
+    }
+  });
+
+  if (fs.existsSync(sequence.steps.previewnadir.logofile)) {
+    fs.unlinkSync(sequence.steps.previewnadir.logofile);
+  }
+  return true;
+};
+
+export const resetSequence = async (sequence: any) => {
+  await Promise.all([
+    removeDirectory(getSequenceBasePath(sequence.steps.name)),
+    removeTempFiles(sequence),
+  ]);
 };

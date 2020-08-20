@@ -13,7 +13,6 @@ import {
   BrowserWindow,
   ipcMain,
   IpcMainEvent,
-  dialog,
   shell,
   Menu,
 } from 'electron';
@@ -38,6 +37,8 @@ import {
   getSequenceGpxPath,
   getSequenceBasePath,
   errorHandler,
+  removeTempFiles,
+  resetSequence,
 } from './scripts/utils';
 
 import { readGPX } from './scripts/utils/gpx';
@@ -136,15 +137,8 @@ const createWindow = async () => {
   });
 
   mainWindow.on('close', async (e) => {
-    const response = dialog.showMessageBoxSync(mainWindow, {
-      type: 'question',
-      buttons: ['Yes', 'No'],
-      title: 'Confirm',
-      message: 'Are you sure you want to quit?',
-    });
-    if (response === 1) {
-      e.preventDefault();
-    }
+    e.preventDefault();
+    sendToClient(mainWindow, 'close_app');
   });
 
   // const menuBuilder = new MenuBuilder(mainWindow);
@@ -219,9 +213,7 @@ ipcMain.on(
       .then(() => {
         return jimp.read(templogofile);
       })
-      .catch((err) => {
-        errorHandler(mainWindow, err);
-      });
+      .catch((err) => errorHandler(mainWindow, err));
 
     modifyLogoAsync
       .then((logo: any) => {
@@ -236,7 +228,6 @@ ipcMain.on(
             const percentage = (10 + parseInt(key, 10)) / 100;
             // const percentage = 0.15;
             const logoHeight = Math.round(height * percentage);
-            console.log(percentage, logoHeight);
 
             logo.resize(width, logoHeight);
             // eslint-disable-next-line promise/no-nesting
@@ -247,7 +238,10 @@ ipcMain.on(
               height - logoHeight
             )
               .then((image: any) => image.writeAsync(outputfile))
-              .catch((err: any) => errorHandler(mainWindow, err));
+              .catch((err: any) => {
+                errorHandler(mainWindow, err);
+                cb(err);
+              });
 
             // eslint-disable-next-line promise/no-nesting
             addLogoAsync
@@ -296,15 +290,7 @@ ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
         JSON.stringify(resultjson)
       );
 
-      Object.keys(sequence.steps.previewnadir.items).forEach((f: string) => {
-        if (fs.existsSync(sequence.steps.previewnadir.items[f])) {
-          fs.unlinkSync(sequence.steps.previewnadir.items[f]);
-        }
-      });
-
-      if (fs.existsSync(sequence.steps.previewnadir.logofile)) {
-        fs.unlinkSync(sequence.steps.previewnadir.logofile);
-      }
+      removeTempFiles(sequence);
 
       const gpxData = new GarminBuilder();
 
@@ -354,6 +340,20 @@ ipcMain.on('sequences', async (_event: IpcMainEvent) => {
 ipcMain.on('remove_sequence', async (_event: IpcMainEvent, name: string) => {
   if (fs.existsSync(getSequenceBasePath(name))) {
     rimraf.sync(getSequenceBasePath(name));
+  }
+});
+
+ipcMain.on('reset_sequence', async (_event, sequence) => {
+  resetSequence(sequence);
+});
+
+ipcMain.on('closed_app', async (_event, sequence) => {
+  if (sequence) {
+    await resetSequence(sequence);
+  }
+  mainWindow?.destroy();
+  if (process.platform !== 'darwin') {
+    app.quit();
   }
 });
 

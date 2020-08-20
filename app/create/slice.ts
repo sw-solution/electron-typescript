@@ -69,7 +69,9 @@ const createSequenceSlice = createSlice({
         current: payload,
         passed,
       };
-      state.error = null;
+      if (state.step.current === 'processPage') {
+        state.error = null;
+      }
       state.passedPoints = {
         ...state.passedPoints,
         [payload]: [...state.points],
@@ -177,6 +179,7 @@ const createSequenceSlice = createSlice({
           state.step.current,
         ],
       };
+      state.error = null;
     },
     setPoints: (state, { payload }) => {
       state.points = [...payload];
@@ -191,6 +194,13 @@ const createSequenceSlice = createSlice({
         return item;
       });
       state.points = [...points];
+    },
+
+    setOutlierMode: (state, { payload }) => {
+      state.steps.outlier = {
+        ...state.steps.outlier,
+        mode: payload,
+      };
     },
 
     setSmooth: (state) => {
@@ -246,7 +256,7 @@ const createSequenceSlice = createSlice({
         : [];
     },
     setError: (state, { payload }) => {
-      state.error = payload;
+      if (!state.error) state.error = payload;
     },
   },
 });
@@ -276,6 +286,7 @@ export const {
   setPoints,
   setGpxPoints,
   setModifyPoints,
+  setOutlierMode,
   setDiscard,
   setSmooth,
   setOutlierMeters,
@@ -430,7 +441,11 @@ export const setSequenceInit = (): AppThunk => {
 };
 
 export const setSequenceError = (error: any): AppThunk => {
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const state = getState();
+    if (state.create.step.current === 'processPage') {
+      dispatch(goToPrevStep());
+    }
     dispatch(setError(error));
   };
 };

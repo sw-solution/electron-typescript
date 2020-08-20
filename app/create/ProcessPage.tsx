@@ -23,7 +23,6 @@ export default function SequenceProcessPage() {
   const prevStep = useSelector(selPrevStep);
   const name = useSelector(selSequenceName);
   const dispatch = useDispatch();
-  const [errMessage, setErrMessage] = React.useState<string>('');
 
   useEffect(() => {
     ipcRenderer.on('finish', (_event: IpcRendererEvent) => {
@@ -38,16 +37,8 @@ export default function SequenceProcessPage() {
       }
     );
 
-    ipcRenderer.on('error', (_event: IpcRendererEvent, message) => {
-      if (message) {
-        setErrMessage(message);
-        dispatch(setCurrentStep(prevStep));
-      }
-    });
-
     return () => {
       ipcRenderer.removeAllListeners('finish');
-      ipcRenderer.removeAllListeners('error');
     };
   });
 
@@ -59,7 +50,7 @@ export default function SequenceProcessPage() {
         </Typography>
       </Grid>
       <Grid item xs={12}>
-        {errMessage === '' && <LinearProgress />}
+        <LinearProgress />
       </Grid>
       <Grid item xs={12}>
         <Typography align="center" color="textSecondary">

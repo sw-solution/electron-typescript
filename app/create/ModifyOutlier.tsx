@@ -21,8 +21,7 @@ import { getDistance, getBearing, getPitch } from '../scripts/utils';
 import {
   selSequenceOutlierMeter,
   setCurrentStep,
-  setSequenceSmooth,
-  setSequenceDiscard,
+  setOutlierMode,
   setSequenceOutlierMeters,
   selSequenceOutlierMode,
   selPoints,
@@ -45,27 +44,29 @@ const useStyles = makeStyles((theme) => ({
 interface State {
   points: IGeoPoint[];
   metersStr: string;
+  mode: string;
 }
 
 export default function SequenceModifyOutlier() {
   const dispatch = useDispatch();
   const propmeters = useSelector(selSequenceOutlierMeter);
-  const mode = useSelector(selSequenceOutlierMode);
+  const propmode = useSelector(selSequenceOutlierMode);
 
   const proppoints = useSelector(selPoints);
   const [state, setState] = React.useState<State>({
     points: proppoints,
     metersStr: propmeters.toString(),
+    mode: propmode,
   });
 
-  const { points, metersStr } = state;
+  const { points, metersStr, mode } = state;
 
   const classes = useStyles();
 
-  const updatePoints = () => {
+  const updatePoints = (meterstr: string, m: string) => {
     try {
-      const meters = parseFloat(metersStr);
-      if (meters > 0 && mode !== '') {
+      const meters = parseFloat(meterstr);
+      if (meters > 0 && m !== '') {
         const newpoints: IGeoPoint[] = [];
 
         const temppoints = proppoints.map(
@@ -77,11 +78,12 @@ export default function SequenceModifyOutlier() {
           if (idx > 0 && idx < temppoints.length - 1) {
             const prevpoint = newpoints[previousIdx];
             const nextpoint = temppoints[idx + 1];
+
             if (
               (prevpoint.Distance || 0) > meters &&
               (point.Distance || 0) > meters
             ) {
-              if (mode === 'S') {
+              if (m === 'S') {
                 const newpoint = new IGeoPoint({
                   ...point,
                   MAPLongitude:
@@ -89,6 +91,15 @@ export default function SequenceModifyOutlier() {
                   MAPLatitude:
                     (prevpoint.MAPLatitude + nextpoint.MAPLatitude) / 2,
                 });
+                console.log(
+                  previousIdx,
+                  idx + 1,
+                  meters,
+                  prevpoint.MAPLongitude,
+                  newpoint.MAPLongitude,
+                  nextpoint.MAPLongitude,
+                  mode
+                );
                 prevpoint.setDistance(getDistance(prevpoint, newpoint));
                 prevpoint.setAzimuth(getBearing(prevpoint, newpoint));
                 prevpoint.setPitch(getPitch(prevpoint, newpoint));
@@ -112,7 +123,16 @@ export default function SequenceModifyOutlier() {
         });
         setState({
           ...state,
+          metersStr: meterstr,
           points: [...newpoints],
+          mode: m,
+        });
+        console.log('newpoints length: ', newpoints.length);
+      } else {
+        setState({
+          ...state,
+          metersStr: meterstr,
+          mode: m,
         });
       }
     } catch (e) {
@@ -121,19 +141,16 @@ export default function SequenceModifyOutlier() {
   };
 
   const smoothMode = () => {
-    dispatch(setSequenceSmooth());
-    updatePoints();
+    if (mode !== 'S') updatePoints(metersStr, 'S');
   };
 
   const removeMode = () => {
-    dispatch(setSequenceDiscard());
-    updatePoints();
+    if (mode !== 'D') updatePoints(metersStr, 'D');
   };
 
   const resetMode = () => {
     dispatch(resetPoints());
     dispatch(setSequenceOutlierMeters(0));
-    dispatch(setCurrentStep('modifySpace'));
   };
 
   const confirmMode = () => {
@@ -141,14 +158,11 @@ export default function SequenceModifyOutlier() {
     dispatch(setSequenceOutlierMeters(meters));
     dispatch(setCurrentStep('azimuth'));
     dispatch(setSequencePoints(points));
+    dispatch(setOutlierMode(mode));
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setState({
-      ...state,
-      metersStr: event.target.value,
-    });
-    updatePoints();
+    updatePoints(event.target.value, mode);
   };
 
   return (
@@ -162,7 +176,7 @@ export default function SequenceModifyOutlier() {
             label="Meters"
             placeholder="0"
             onChange={handleChange}
-            value={metersStr.toString()}
+            value={metersStr}
           />
 
           <Tooltip

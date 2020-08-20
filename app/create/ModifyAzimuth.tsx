@@ -35,7 +35,7 @@ export default function SequenceModifyAzimuth() {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.value) {
       const newazimuth = parseFloat(event.target.value);
-      const newpoints = points.map((p: IGeoPoint) => {
+      const newpoints = proppoints.map((p: IGeoPoint) => {
         return new IGeoPoint({
           ...p,
           Azimuth: (p.Azimuth || 0) + newazimuth,
@@ -50,7 +50,6 @@ export default function SequenceModifyAzimuth() {
 
   const resetMode = () => {
     dispatch(resetPoints());
-    dispatch(setCurrentStep('outlier'));
   };
 
   const confirmMode = () => {

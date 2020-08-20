@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import ReactMapboxGl, { Marker, ZoomControl } from 'react-mapbox-gl';
+import dayjs from 'dayjs';
 
-import { Modal, ButtonGroup, IconButton, Box } from '@material-ui/core';
+import {
+  Modal,
+  ButtonGroup,
+  IconButton,
+  Box,
+  Chip,
+  Avatar,
+} from '@material-ui/core';
 import ReactPannellum from 'react-pannellum';
 import { makeStyles } from '@material-ui/core/styles';
 
 import ChevronLeftRoundedIcon from '@material-ui/icons/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@material-ui/icons/ChevronRightRounded';
+import Rotate90DegreesCcwIcon from '@material-ui/icons/Rotate90DegreesCcw';
+import SpeedIcon from '@material-ui/icons/Speed';
 import { getSequenceImagePath } from '../scripts/utils';
 
 import { IGeoPoint } from '../types/IGeoPoint';
@@ -54,17 +64,19 @@ export default function Map(props: Props) {
     (point: IGeoPoint) => point.MAPLatitude && point.MAPLongitude
   );
 
+  console.log(filteredpoints.length);
+
   const centerPoint = () => {
-    if (points.length) {
-      const centerIdx = Math.floor(points.length / 2);
-      const centerpoint = points[centerIdx];
+    if (filteredpoints.length) {
+      const centerIdx = Math.floor(filteredpoints.length / 2);
+      const centerpoint = filteredpoints[centerIdx];
       return [centerpoint.MAPLongitude, centerpoint.MAPLatitude];
     }
     return [51.5, -0.09];
   };
 
   const fitBounds = () => {
-    return (showPopup ? proppoints : filteredpoints)
+    return (showPopup ? filteredpoints : proppoints)
       .filter((point) => point.MAPLatitude && point.MAPLongitude)
       .map((point) => {
         return [point.MAPLongitude, point.MAPLatitude];
@@ -111,18 +123,42 @@ export default function Map(props: Props) {
   let photos = [];
 
   if (showPopup && name) {
-    photos = filteredpoints.map((_point: IGeoPoint, idx: number) => (
-      <ReactPannellum
-        key={idx}
-        style={{ width: '100%', height: 250 }}
-        imageSource={getpath(idx)}
-        id={`image_${idx.toString()}`}
-        sceneId={idx.toString()}
-        config={{
-          autoLoad: true,
-        }}
-      />
-    ));
+    photos = filteredpoints.map((point: IGeoPoint, idx: number) => {
+      let difftime = 0;
+      if (idx < filteredpoints.length - 1) {
+        difftime = dayjs(filteredpoints[idx + 1].GPSDateTime).diff(
+          dayjs(point.GPSDateTime),
+          'second'
+        );
+      }
+      return (
+        <>
+          <div style={{ marginBottom: '5px' }}>
+            <Chip
+              avatar={<Avatar>M</Avatar>}
+              color="primary"
+              label={point.Distance ? point.Distance.toFixed(2) : 0}
+            />
+            <Chip
+              icon={<Rotate90DegreesCcwIcon />}
+              color="secondary"
+              label={point.Azimuth ? point.Azimuth.toFixed(2) : 0}
+            />
+            <Chip icon={<SpeedIcon />} color="primary" label={difftime} />
+          </div>
+          <ReactPannellum
+            key={idx}
+            style={{ width: '100%', height: 250 }}
+            imageSource={getpath(idx)}
+            id={`image_${idx.toString()}`}
+            sceneId={idx.toString()}
+            config={{
+              autoLoad: true,
+            }}
+          />
+        </>
+      );
+    });
   }
 
   const modalBody = (
