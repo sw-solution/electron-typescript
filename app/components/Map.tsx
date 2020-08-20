@@ -145,6 +145,7 @@ export default function Map(props: Props) {
               label={point.Azimuth ? point.Azimuth.toFixed(2) : 0}
             />
             <Chip icon={<SpeedIcon />} color="primary" label={difftime} />
+            <Chip icon={<SpeedIcon />} label={idx + 1} />
           </div>
           <ReactPannellum
             key={idx}
@@ -202,6 +203,8 @@ export default function Map(props: Props) {
       </Marker>
     );
   });
+
+  console.log('Markers Length: ', markers.length);
 
   const drawLines = (map) => {
     map.addLayer({
