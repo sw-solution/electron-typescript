@@ -2,7 +2,7 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import Typography from '@material-ui/core/Typography';
-import { Grid, Button, Box, Slider, TextField, Input } from '@material-ui/core';
+import { Grid, Button, Box, Slider } from '@material-ui/core';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import AddIcon from '@material-ui/icons/Add';
 import { makeStyles } from '@material-ui/core/styles';
@@ -29,23 +29,10 @@ import {
 import { IGeoPoint } from '../types/IGeoPoint';
 
 const useStyles = makeStyles((theme) => ({
-  sliderHeader: {
-    width: 80,
-  },
   slider: {
     width: 180,
   },
-  sliderInput: {
-    width: 42,
-  },
-  sliderWrapper: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    '& > *': {
-      margin: theme.spacing(1),
-    },
-  },
+
   info: {
     color: 'grey',
     width: '100%',
@@ -53,8 +40,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 interface State {
-  frames: number | string;
-  position: string;
+  frames: number;
+  position: number;
   points: IGeoPoint[];
 }
 
@@ -66,7 +53,7 @@ export default function SequenceModifySpace() {
 
   const [state, setState] = React.useState<State>({
     frames: propframe,
-    position: propposition.toString(),
+    position: propposition,
     points: proppoints,
   });
 
@@ -88,10 +75,8 @@ export default function SequenceModifySpace() {
     dispatch(setCurrentStep('outlier'));
   };
 
-  const updatePoints = (positionstr: string, frames: number) => {
+  const updatePoints = (positionmeter: number, frames: number) => {
     try {
-      const positionmeter = parseFloat(positionstr);
-
       const temppoints = discardPointsBySeconds(
         proppoints.map((point: IGeoPoint) => new IGeoPoint({ ...point })),
         frames
@@ -125,7 +110,7 @@ export default function SequenceModifySpace() {
         discarded = points.length - newpoints.length;
         setState({
           ...state,
-          position: positionstr,
+          position: positionmeter,
           frames,
           points: [...newpoints],
         });
@@ -133,7 +118,7 @@ export default function SequenceModifySpace() {
         discarded = points.length - temppoints.length;
         setState({
           ...state,
-          position: positionstr,
+          position: positionmeter,
           frames,
           points: [...temppoints],
         });
@@ -141,7 +126,7 @@ export default function SequenceModifySpace() {
     } catch (e) {
       setState({
         ...state,
-        position: positionstr,
+        position: positionmeter,
         frames,
       });
     }
@@ -154,40 +139,11 @@ export default function SequenceModifySpace() {
     updatePoints(state.position, newValue);
   };
 
-  const handleFrameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      const seconds = parseInt(event.target.value, 10);
-      if (!isNaN(seconds)) {
-        updatePoints(state.position, seconds);
-      } else {
-        setState({
-          ...state,
-          frames: event.target.value,
-        });
-      }
-    } catch (e) {
-      setState({
-        ...state,
-        frames: event.target.value,
-      });
-    }
-  };
-
-  const blurFrameChange = () => {
-    let { frames } = state;
-    if (state.frames < 1) {
-      frames = 1;
-    } else if (state.frames > 20) {
-      frames = 20;
-    }
-    updatePoints(state.position, frames);
-  };
-
-  const handlePositionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    updatePoints(
-      event.target.value,
-      typeof state.frames === 'number' ? state.frames : 1
-    );
+  const handlePositionChange = (
+    _event: React.ChangeEvent,
+    newValue: number
+  ) => {
+    updatePoints(newValue, state.frames);
   };
 
   const uploadGpx = () => {
@@ -203,32 +159,15 @@ export default function SequenceModifySpace() {
         </Typography>
         <Box mb={1}>
           <Grid container spacing={3}>
-            <Grid item xs={8} className={classes.sliderWrapper}>
-              <Typography align="right" className={classes.sliderHeader}>
-                Seconds
-              </Typography>
+            <Grid item xs={6}>
+              <Typography align="right">Seconds</Typography>
               <Slider
-                value={typeof state.frames === 'number' ? state.frames : 0}
+                value={state.frames}
                 onChange={handleFrameSliderChange}
-                aria-labelledby="input-slider"
                 step={1}
                 min={1}
                 max={20}
-                className={classes.slider}
-              />
-              <Input
-                style={{ width: 50 }}
-                value={state.frames}
-                margin="dense"
-                onChange={handleFrameChange}
-                onBlur={blurFrameChange}
-                inputProps={{
-                  step: 1,
-                  min: 1,
-                  max: 20,
-                  type: 'number',
-                  'aria-labelledby': 'input-slider',
-                }}
+                valueLabelDisplay="on"
               />
               <Typography size="small" align="center" className={classes.info}>
                 {`1 photos every ${state.frames} seconds. ${
@@ -236,13 +175,15 @@ export default function SequenceModifySpace() {
                 }`}
               </Typography>
             </Grid>
-            <Grid item xs={4}>
-              <TextField
-                fullWidth
-                label="Minimum distance between images (in meters)"
-                variant="outlined"
+            <Grid item xs={6}>
+              <Typography align="right">Minimum distance</Typography>
+              <Slider
                 value={state.position}
                 onChange={handlePositionChange}
+                step={1}
+                min={1}
+                max={20}
+                valueLabelDisplay="on"
               />
             </Grid>
           </Grid>

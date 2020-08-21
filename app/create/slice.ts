@@ -520,8 +520,10 @@ export const selPrevStep = (state: RootState) => {
 export const selGPXRequired = (state: RootState) =>
   state.create.points.filter(
     (point: IGeoPoint) =>
-      !point.MAPAltitude || !point.MAPLatitude || !point.MAPLongitude
-  );
+      typeof point.MAPAltitude === 'undefined' ||
+      typeof point.MAPLatitude === 'undefined' ||
+      typeof point.MAPLongitude === 'undefined'
+  ).length > 0;
 
 export const selGPXImport = (state: RootState) => state.create.steps.gpx.import;
 

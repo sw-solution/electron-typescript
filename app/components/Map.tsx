@@ -254,23 +254,27 @@ export default function Map(props: Props) {
 
   return (
     <div>
-      <MapBox
-        style="mapbox://styles/mapbox/streets-v9"
-        containerStyle={{
-          height: `${height.toString()}px`,
-          width: '100%',
-        }}
-        center={centerPoint()}
-        fitBounds={fitBounds()}
-        onStyleLoad={drawLines}
-      >
-        <ZoomControl />
-        {markers}
-      </MapBox>
-      {state.selected >= 0 && showPopup && (
-        <Modal open={state.isopen} onClose={handleClose}>
-          {modalBody}
-        </Modal>
+      {points.length && (
+        <>
+          <MapBox
+            style="mapbox://styles/mapbox/streets-v9"
+            containerStyle={{
+              height: `${height.toString()}px`,
+              width: '100%',
+            }}
+            center={centerPoint()}
+            fitBounds={fitBounds()}
+            onStyleLoad={drawLines}
+          >
+            <ZoomControl />
+            {markers}
+          </MapBox>
+          {state.selected >= 0 && showPopup && (
+            <Modal open={state.isopen} onClose={handleClose}>
+              {modalBody}
+            </Modal>
+          )}
+        </>
       )}
     </div>
   );
