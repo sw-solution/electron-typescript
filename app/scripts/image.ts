@@ -243,8 +243,13 @@ export function modifyLogo(logourl: string, outputfile: string) {
     const rotateAsync = jimp
       .read(logourl)
       .then((logo: any) => {
-        if (logo.bitmap.width < 500 || logo.bitmap.height < 500) {
-          throw new Error('Logo size must be at least 500px x 500px');
+        if (
+          logo.bitmap.width < 500 ||
+          logo.bitmap.height !== logo.bitmap.width
+        ) {
+          throw new Error(
+            'Logo size must be at least 500px x 500px and square'
+          );
         }
         return logo.flip(false, true);
       })
