@@ -79,7 +79,7 @@ export default function Map(props: Props) {
   };
 
   const fitBounds = () => {
-    return (showPopup ? filteredpoints : proppoints)
+    return (showPopup ? proppoints : filteredpoints)
       .filter((point) => point.MAPLatitude && point.MAPLongitude)
       .map((point) => {
         return [point.MAPLongitude, point.MAPLatitude];
