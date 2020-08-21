@@ -33,14 +33,9 @@ export interface Connections {
 }
 
 export interface Photo {
-  id: string;
-  cli_frame_rate_set: '';
-  GPSDateTime?: string;
   MAPAltitude?: number;
   MAPLatitude?: number;
   MAPLongitude?: number;
-  Azimuth?: number;
-  Image?: string;
 
   MAPCaptureTime: string;
   MTPSequenceName: string;
@@ -49,14 +44,6 @@ export interface Photo {
   MTPSequenceTags: string[];
   MTPImageCopy: string;
   MTPImageProjection: string;
-
-  software_version: number;
-
-  uploader_photo_from_video: boolean;
-  uploader_nadir_added: boolean;
-  uploader_blur_added: boolean;
-
-  connections: Connections;
 }
 
 export interface Photos {

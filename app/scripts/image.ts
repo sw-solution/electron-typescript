@@ -339,7 +339,7 @@ export async function addLogo(
 export function writeExifTags(
   input_file: string,
   item: IGeoPoint,
-  description: Description,
+  description: Photo,
   outputfile: any = false
 ) {
   return new Promise((resolve, reject) => {
@@ -419,8 +419,8 @@ export function writeNadirImages(
       const writeExifAsync = addLogoAsync
         .then(() =>
           writeExifTags(outputfile, item, {
-            ...description,
-            photo: { ...description.photo, uploader_nadir_added: true },
+            ...description.photo,
+            MTPImageCopy: 'nadir',
           })
         )
         .catch((err) => {
@@ -467,12 +467,7 @@ export function writeBlurredImage(
         return reject(err);
       });
     const writeExifAsync = jimpAsync
-      .then(() =>
-        writeExifTags(outputfile, item, {
-          ...description,
-          photo: { ...description.photo, uploader_blur_added: true },
-        })
-      )
+      .then(() => writeExifTags(outputfile, item, { ...description.photo }))
       .catch((err) => {
         console.log(`Write Error in Jimp: ${filename} - `, err);
         return reject(err);
@@ -541,38 +536,7 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
     const descriptions: Descriptions = {};
 
     updatedPoints.forEach((p: IGeoPoint, idx: number) => {
-      const connections: Connections = {};
-      if (idx !== 0) {
-        const prevItem = updatedPoints[idx - 1];
-        const deltatime = p.getDate().diff(prevItem.getDate(), 'second');
-        const distance = p.Distance || 0;
-        connections[prevItem.id] = {
-          distance_mtrs: distance,
-          heading_deg: prevItem.Azimuth || 0,
-          pitch_deg: prevItem.Pitch || 0,
-          time_sec: deltatime,
-          speed_kmh:
-            deltatime !== 0 ? (distance * 3600) / (deltatime * 1000) : 0,
-        };
-      }
-      if (idx < updatedPoints.length - 1) {
-        const nextItem = updatedPoints[idx + 1];
-        const deltatime = p.getDate().diff(nextItem.getDate(), 'second');
-        const distance = p.Distance || 0;
-        connections[nextItem.id] = {
-          distance_mtrs: distance,
-          heading_deg: p.Azimuth || 0,
-          pitch_deg: p.Pitch || 0,
-          time_sec: deltatime,
-          speed_kmh:
-            deltatime !== 0 ? (distance * 3600) / (deltatime * 1000) : 0,
-        };
-      }
       const photodict: Photo = {
-        id: p.id,
-        cli_frame_rate_set: settings.modifySpace.frame,
-        GPSDateTime: p.getDateStr(),
-
         MAPAltitude: p.MAPAltitude,
         MAPLatitude: p.MAPLatitude,
         MAPLongitude: p.MAPLongitude,
@@ -583,17 +547,7 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
         MTPSequenceTransport: `${settings.type}-${settings.method}`,
         MTPSequenceTags: settings.tags,
         MTPImageCopy: 'original',
-        MTPImageProjection: 'equirectangular',
-
-        Azimuth: p.Azimuth,
-        Image: p.Image,
-        software_version: 1.0,
-
-        uploader_photo_from_video: settings.type === 'Video',
-        uploader_nadir_added: settings.nadirPath !== '',
-        uploader_blur_added: false,
-
-        connections,
+        MTPImageProjection: p.equirectangular ? 'equirectangular' : 'flat',
       };
 
       resultjson.photo[(idx + 1).toString()] = photodict;
@@ -619,7 +573,7 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
                 filename,
                 OutputType.raw
               );
-              writeExifTags(inputfile, item, desc, outputfile)
+              writeExifTags(inputfile, item, desc.photo, outputfile)
                 .then(() => cb())
                 .catch((err) => cb(err));
             },
