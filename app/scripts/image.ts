@@ -4,6 +4,7 @@ import path from 'path';
 import dayjs from 'dayjs';
 import { v4 as uuidv4 } from 'uuid';
 import jimp from 'jimp';
+import rimraf from 'rimraf';
 import { IGeoPoint } from '../types/IGeoPoint';
 import {
   Result,
@@ -218,13 +219,20 @@ export function loadImages(
       (cb1: CallableFunction) => {
         const originalpath = path.join(outputpath, 'originals');
         fs.exists(originalpath, (existed: boolean) => {
-          if (!existed) {
-            fs.mkdir(originalpath, () => {
-              cb1(null, files, dirPath, originalpath);
+          if (existed) {
+            rimraf(originalpath, (error: any) => {
+              if (error) cb1(error);
+              else cb1(null);
             });
           } else {
-            cb1(null, files, dirPath, originalpath);
+            cb1(null);
           }
+        });
+      },
+      (cb1: CallableFunction) => {
+        const originalpath = path.join(outputpath, 'originals');
+        fs.mkdir(originalpath, () => {
+          cb1(null, files, dirPath, originalpath);
         });
       },
       // filterCorruptImages,

@@ -136,14 +136,14 @@ export default function SequenceModifySpace() {
     _event: React.ChangeEvent,
     newValue: number
   ) => {
-    updatePoints(state.position, newValue);
+    updatePoints(1, newValue);
   };
 
   const handlePositionChange = (
     _event: React.ChangeEvent,
     newValue: number
   ) => {
-    updatePoints(newValue, state.frames);
+    updatePoints(newValue, 1);
   };
 
   const uploadGpx = () => {
@@ -160,7 +160,7 @@ export default function SequenceModifySpace() {
         <Box mb={1}>
           <Grid container spacing={3}>
             <Grid item xs={6}>
-              <Typography align="right">Seconds</Typography>
+              <Typography>Seconds</Typography>
               <Slider
                 value={state.frames}
                 onChange={handleFrameSliderChange}
@@ -176,7 +176,7 @@ export default function SequenceModifySpace() {
               </Typography>
             </Grid>
             <Grid item xs={6}>
-              <Typography align="right">Minimum distance</Typography>
+              <Typography>Minimum distance</Typography>
               <Slider
                 value={state.position}
                 onChange={handlePositionChange}

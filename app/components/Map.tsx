@@ -21,7 +21,7 @@ import SpeedIcon from '@material-ui/icons/Speed';
 import { getSequenceImagePath } from '../scripts/utils';
 
 import { IGeoPoint } from '../types/IGeoPoint';
-import { selSequenceName, selPoints } from '../create/slice';
+import { selSequenceName } from '../create/slice';
 
 import markerImg from '../assets/images/marker.svg';
 
@@ -57,7 +57,6 @@ interface State {
 
 export default function Map(props: Props) {
   const { points, height, showPopup } = props;
-  const proppoints = useSelector(selPoints);
   const name = useSelector(selSequenceName);
   const [state, setState] = useState<State>({
     isopen: false,
@@ -76,14 +75,6 @@ export default function Map(props: Props) {
       return [centerpoint.MAPLongitude, centerpoint.MAPLatitude];
     }
     return [51.5, -0.09];
-  };
-
-  const fitBounds = () => {
-    return (showPopup ? proppoints : filteredpoints)
-      .filter((point) => point.MAPLatitude && point.MAPLongitude)
-      .map((point) => {
-        return [point.MAPLongitude, point.MAPLatitude];
-      });
   };
 
   const showPhoto = (idx: number) => () => {
@@ -263,8 +254,8 @@ export default function Map(props: Props) {
               width: '100%',
             }}
             center={centerPoint()}
-            fitBounds={fitBounds()}
             onStyleLoad={drawLines}
+            zoom={[22]}
           >
             <ZoomControl />
             {markers}

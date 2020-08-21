@@ -323,9 +323,19 @@ ipcMain.on('sequences', async (_event: IpcMainEvent) => {
     .readdirSync(resultdirectory)
     .filter(
       (name) =>
-        fs.lstatSync(path.join(resultdirectory, name)).isDirectory() &&
+        fs.lstatSync(getSequenceBasePath(name)).isDirectory() &&
         fs.existsSync(getSequenceLogPath(name))
     );
+
+  fs.readdirSync(resultdirectory)
+    .filter(
+      (name) =>
+        fs.lstatSync(getSequenceBasePath(name)).isDirectory() &&
+        !fs.existsSync(getSequenceLogPath(name))
+    )
+    .forEach((d: string) => {
+      rimraf.sync(getSequenceBasePath(d));
+    });
 
   const result: Summary[] = sequences.map((name: string) => {
     const logdata = JSON.parse(
