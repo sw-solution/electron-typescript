@@ -91,16 +91,7 @@ export default function SequenceModifyOutlier() {
                   MAPAltitude:
                     (prevpoint.MAPAltitude + nextpoint.MAPAltitude) / 2,
                 });
-                console.log(
-                  newpoints.length,
-                  previousIdx,
-                  idx + 1,
-                  meters,
-                  prevpoint.MAPLongitude,
-                  newpoint.MAPLongitude,
-                  nextpoint.MAPLongitude,
-                  m
-                );
+
                 newpoints[previousIdx].setDistance(
                   getDistance(prevpoint, newpoint)
                 );
@@ -137,7 +128,6 @@ export default function SequenceModifyOutlier() {
           points: [...newpoints],
           mode: m,
         });
-        console.log('newpoints length: ', newpoints.length);
       } else {
         setState({
           ...state,

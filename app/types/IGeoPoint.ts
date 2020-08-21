@@ -24,6 +24,8 @@ export interface IGeoPointModel {
 
   camera_model?: string;
 
+  equirectangular: boolean;
+
   width: number;
   height: number;
 }
@@ -47,6 +49,8 @@ export class IGeoPoint {
 
   public Azimuth?: number;
 
+  public equirectangular: boolean;
+
   width: number;
 
   height: number;
@@ -68,6 +72,7 @@ export class IGeoPoint {
 
     camera_make,
     camera_model,
+    equirectangular,
     width,
     height,
   }: IGeoPointModel) {
@@ -80,6 +85,9 @@ export class IGeoPoint {
     this.Pitch = Pitch;
     this.Azimuth = Azimuth;
     this.Distance = Distance;
+
+    this.equirectangular = equirectangular;
+
     this.width = width;
     this.height = height;
 

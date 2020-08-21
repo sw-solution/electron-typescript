@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, ReactNode } from 'react';
 import { useSelector } from 'react-redux';
 import ReactMapboxGl, { Marker, ZoomControl } from 'react-mapbox-gl';
 import dayjs from 'dayjs';
@@ -37,6 +37,11 @@ const useStyles = makeStyles((theme) => ({
     left: '50%',
     transform: 'translate(-50%, -50%)',
   },
+  imageWrapper: {
+    width: '100%',
+    height: 250,
+    backgroundSize: '100%',
+  },
 }));
 
 interface Props {
@@ -63,8 +68,6 @@ export default function Map(props: Props) {
   const filteredpoints = points.filter(
     (point: IGeoPoint) => point.MAPLatitude && point.MAPLongitude
   );
-
-  console.log(filteredpoints.length);
 
   const centerPoint = () => {
     if (filteredpoints.length) {
@@ -116,11 +119,19 @@ export default function Map(props: Props) {
     return getSequenceImagePath(name, filteredpoints[idx.toString()].Image);
   };
 
+  const get2dpath = (idx: number) => {
+    const path = getSequenceImagePath(
+      name,
+      filteredpoints[idx.toString()].Image
+    );
+    return path.replace(/\\/g, '/');
+  };
+
   const MapBox = ReactMapboxGl({
     accessToken: process.env.MAPBOX_TOKEN || '',
   });
 
-  let photos = [];
+  let photos: ReactNode[] = [];
 
   if (showPopup && name) {
     photos = filteredpoints.map((point: IGeoPoint, idx: number) => {
@@ -145,18 +156,27 @@ export default function Map(props: Props) {
               label={point.Azimuth ? point.Azimuth.toFixed(2) : 0}
             />
             <Chip icon={<SpeedIcon />} color="primary" label={difftime} />
-            <Chip icon={<SpeedIcon />} label={idx + 1} />
           </div>
-          <ReactPannellum
-            key={idx}
-            style={{ width: '100%', height: 250 }}
-            imageSource={getpath(idx)}
-            id={`image_${idx.toString()}`}
-            sceneId={idx.toString()}
-            config={{
-              autoLoad: true,
-            }}
-          />
+          {point.equirectangular && (
+            <ReactPannellum
+              key={idx}
+              style={{ width: '100%', height: 250 }}
+              imageSource={getpath(idx)}
+              id={`image_${idx.toString()}`}
+              sceneId={idx.toString()}
+              config={{
+                autoLoad: true,
+              }}
+            />
+          )}
+          {!point.equirectangular && (
+            <div
+              className={classes.imageWrapper}
+              style={{
+                backgroundImage: `url(${get2dpath(idx)})`,
+              }}
+            />
+          )}
         </>
       );
     });
@@ -203,8 +223,6 @@ export default function Map(props: Props) {
       </Marker>
     );
   });
-
-  console.log('Markers Length: ', markers.length);
 
   const drawLines = (map) => {
     map.addLayer({

@@ -53,7 +53,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 interface State {
-  frames: number;
+  frames: number | string;
   position: string;
   points: IGeoPoint[];
 }
@@ -90,12 +90,11 @@ export default function SequenceModifySpace() {
 
   const updatePoints = (positionstr: string, frames: number) => {
     try {
-      const seconds = Math.ceil(1 / frames);
       const positionmeter = parseFloat(positionstr);
 
       const temppoints = discardPointsBySeconds(
         proppoints.map((point: IGeoPoint) => new IGeoPoint({ ...point })),
-        seconds
+        frames
       );
 
       if (positionmeter > 0) {
@@ -124,7 +123,6 @@ export default function SequenceModifySpace() {
           }
         }
         discarded = points.length - newpoints.length;
-        console.log(points.length, newpoints.length, positionmeter);
         setState({
           ...state,
           position: positionstr,
@@ -157,11 +155,39 @@ export default function SequenceModifySpace() {
   };
 
   const handleFrameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    updatePoints(state.position, parseFloat(event.target.value));
+    try {
+      const seconds = parseInt(event.target.value, 10);
+      if (!isNaN(seconds)) {
+        updatePoints(state.position, seconds);
+      } else {
+        setState({
+          ...state,
+          frames: event.target.value,
+        });
+      }
+    } catch (e) {
+      setState({
+        ...state,
+        frames: event.target.value,
+      });
+    }
+  };
+
+  const blurFrameChange = () => {
+    let { frames } = state;
+    if (state.frames < 1) {
+      frames = 1;
+    } else if (state.frames > 20) {
+      frames = 20;
+    }
+    updatePoints(state.position, frames);
   };
 
   const handlePositionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    updatePoints(event.target.value, state.frames);
+    updatePoints(
+      event.target.value,
+      typeof state.frames === 'number' ? state.frames : 1
+    );
   };
 
   const uploadGpx = () => {
@@ -179,15 +205,15 @@ export default function SequenceModifySpace() {
           <Grid container spacing={3}>
             <Grid item xs={8} className={classes.sliderWrapper}>
               <Typography align="right" className={classes.sliderHeader}>
-                Frames
+                Seconds
               </Typography>
               <Slider
-                value={state.frames}
+                value={typeof state.frames === 'number' ? state.frames : 0}
                 onChange={handleFrameSliderChange}
                 aria-labelledby="input-slider"
-                step={0.05}
-                min={0.05}
-                max={1}
+                step={1}
+                min={1}
+                max={20}
                 className={classes.slider}
               />
               <Input
@@ -195,16 +221,17 @@ export default function SequenceModifySpace() {
                 value={state.frames}
                 margin="dense"
                 onChange={handleFrameChange}
+                onBlur={blurFrameChange}
                 inputProps={{
-                  step: 0.05,
-                  min: 0.05,
-                  max: 1,
+                  step: 1,
+                  min: 1,
+                  max: 20,
                   type: 'number',
                   'aria-labelledby': 'input-slider',
                 }}
               />
               <Typography size="small" align="center" className={classes.info}>
-                {`1 photos every ${Math.ceil(1 / state.frames)} seconds. ${
+                {`1 photos every ${state.frames} seconds. ${
                   discarded > 0 ? `${discarded} photos will be removed.` : ''
                 }`}
               </Typography>

@@ -176,6 +176,8 @@ export async function writeTags2Image(
           camera_make: commonData['Main:Make'],
           width: commonData['Main:ImageWidth'],
           height: commonData['Main:ImageHeight'],
+          equirectangular:
+            commonData['Main:ProjectionType'] === 'equirectangular',
         });
       } else {
         nextitem = datalist[datalist.length - 1];
@@ -189,6 +191,8 @@ export async function writeTags2Image(
           camera_make: commonData['Main:Make'],
           width: commonData['Main:ImageWidth'],
           height: commonData['Main:ImageHeight'],
+          equirectangular:
+            commonData['Main:ProjectionType'] === 'equirectangular',
         });
       }
 
@@ -248,6 +252,8 @@ export function splitVideoToImage(
 ) {
   const { dataList, commonData } = getGPSVideoData(tags);
   const duration = Math.floor(commonData['Main:Duration']);
+  console.log('commonData:', commonData);
+
   if (dataList) {
     Async.waterfall(
       [

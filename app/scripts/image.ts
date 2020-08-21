@@ -4,7 +4,6 @@ import path from 'path';
 import dayjs from 'dayjs';
 import { v4 as uuidv4 } from 'uuid';
 import jimp from 'jimp';
-import { exception } from 'console';
 import { IGeoPoint } from '../types/IGeoPoint';
 import {
   Result,
@@ -106,6 +105,7 @@ export function getPoint(dirpath: string, filename: string) {
             Pitch: pitch,
             camera_make: tags.Make,
             camera_model: tags.Model,
+            equirectangular: (tags.ProjectionType || '') === 'equirectangular',
             width: tags.ImageWidth,
             height: tags.ImageHeight,
           });
