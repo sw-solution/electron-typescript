@@ -7,12 +7,18 @@ import Button from '@material-ui/core/Button';
 
 import ChipInput from 'material-ui-chip-input';
 
-import { setSequenceTags, selSequenceTags } from './slice';
+import {
+  setSequenceTags,
+  selSequenceTags,
+  setCurrentStep,
+  isRequiredNadir,
+} from './slice';
 
 export default function SequenceTags() {
   const propsTags = useSelector(selSequenceTags);
   const [tags, setTags] = React.useState<string[]>(propsTags);
   const dispatch = useDispatch();
+  const isrequirednadir = useSelector(isRequiredNadir);
 
   const handleAddTag = (tag: string) => {
     setTags([...tags, tag]);
@@ -24,6 +30,11 @@ export default function SequenceTags() {
 
   const storeSequenceTags = () => {
     dispatch(setSequenceTags(tags));
+    if (isrequirednadir) {
+      dispatch(setCurrentStep('nadir'));
+    } else {
+      dispatch(setCurrentStep('blur'));
+    }
   };
 
   return (

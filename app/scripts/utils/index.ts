@@ -6,7 +6,7 @@ import rimraf from 'rimraf';
 import { IGeoPoint } from '../../types/IGeoPoint';
 import { Result, Summary } from '../../types/Result';
 
-export const resultdirectory = 'mapthepaths';
+export const resultdirectory = 'sequences';
 
 export const tempLogo = 'output.png';
 

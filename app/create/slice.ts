@@ -375,7 +375,6 @@ export const setSequenceNadirPath = (paths: string): AppThunk => {
 export const setSequenceTags = (tags: string[]): AppThunk => {
   return (dispatch) => {
     dispatch(setTags(tags));
-    dispatch(setCurrentStep('nadir'));
   };
 };
 
@@ -567,3 +566,7 @@ export const selSequenceAzimuth = (state: RootState) =>
 export const selError = (state: RootState) => state.create.error;
 
 export const selBlur = (state: RootState) => state.create.steps.blur;
+
+export const isRequiredNadir = (state: RootState) =>
+  state.create.points.filter((point: IGeoPoint) => !point.equirectangular)
+    .length === 0 && state.create.points.length;
