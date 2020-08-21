@@ -249,7 +249,7 @@ export default function CreatePageWrapper() {
           )}
 
           {error && (
-            <Grid xs={12}>
+            <Grid xs={12} item>
               <Alert severity="error">
                 <AlertTitle>Error</AlertTitle>
                 <span>{error}</span>

@@ -259,7 +259,7 @@ export function modifyLogo(logourl: string, outputfile: string) {
             'Logo size must be at least 500px x 500px and square'
           );
         }
-        return logo.flip(false, true);
+        return logo.rotate(270).flip(false, true);
       })
       .catch((err) => {
         reject(err);
@@ -301,7 +301,7 @@ export function modifyLogo(logourl: string, outputfile: string) {
             }
 
             outputlogo
-              .crop(0, 20, outputwidth, outputheight - 20)
+              .crop(0, 25, outputwidth, outputheight - 25)
               .writeAsync(outputfile)
               .then(() => {
                 return resolve();

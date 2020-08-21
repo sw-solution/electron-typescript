@@ -172,6 +172,16 @@ ipcMain.on(
     if (!fs.existsSync(resultdirectory)) {
       fs.mkdirSync(resultdirectory);
     }
+    if (
+      fs
+        .readdirSync(dirPath)
+        .filter(
+          (name: string) => !name.endsWith('.png') && !name.endsWith('.jpg')
+        ).length
+    ) {
+      return errorHandler(mainWindow, 'The images should be png or jpg');
+    }
+
     loadImages(
       dirPath,
       getSequenceBasePath(seqname),

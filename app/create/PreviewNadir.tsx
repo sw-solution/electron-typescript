@@ -102,24 +102,11 @@ export default function SequencePreviewNadir() {
         <Slider
           value={state.percentage}
           onChange={handlePercentageSliderChange}
-          aria-labelledby="input-slider"
           step={0.01}
           min={0.1}
           max={0.25}
           className={classes.slider}
-        />
-        <Input
-          style={{ width: 50 }}
-          value={state.percentage}
-          margin="dense"
-          onChange={handlePercentageChange}
-          inputProps={{
-            step: 0.01,
-            min: 0.1,
-            max: 0.25,
-            type: 'number',
-            'aria-labelledby': 'input-slider',
-          }}
+          valueLabelDisplay="on"
         />
       </Grid>
       <Grid item xs={12}>
