@@ -164,7 +164,7 @@ export default function SequenceModifySpace() {
         <Box mb={1}>
           <Grid container spacing={3}>
             <Grid item xs={6}>
-              <Typography>Seconds</Typography>
+              <Typography>Min time (secs)</Typography>
               <Slider
                 value={state.frames}
                 onChange={handleFrameSliderChange}
@@ -184,7 +184,7 @@ export default function SequenceModifySpace() {
               )}
             </Grid>
             <Grid item xs={6}>
-              <Typography>Minimum distance</Typography>
+              <Typography>Min distance (meters)</Typography>
               <Slider
                 value={state.position}
                 onChange={handlePositionChange}
