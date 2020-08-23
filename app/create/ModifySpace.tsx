@@ -64,9 +64,12 @@ export default function SequenceModifySpace() {
   let discarded = 0;
 
   const resetMode = () => {
-    dispatch(resetPoints());
-    dispatch(setSequenceFrame(0));
-    dispatch(setSequencePosition(0));
+    setState({
+      ...state,
+      frames: 1,
+      position: 1,
+      points: proppoints,
+    });
   };
 
   const confirmMode = () => {
@@ -170,11 +173,15 @@ export default function SequenceModifySpace() {
                 max={20}
                 valueLabelDisplay="on"
               />
-              <Typography size="small" align="center" className={classes.info}>
-                {`1 photos every ${state.frames} seconds. ${
-                  discarded > 0 ? `${discarded} photos will be removed.` : ''
-                }`}
-              </Typography>
+              {state.frames > 1 && (
+                <Typography
+                  size="small"
+                  align="center"
+                  className={classes.info}
+                >
+                  {`1 photos every ${state.frames} seconds.`}
+                </Typography>
+              )}
             </Grid>
             <Grid item xs={6}>
               <Typography>Minimum distance</Typography>
@@ -186,6 +193,15 @@ export default function SequenceModifySpace() {
                 max={20}
                 valueLabelDisplay="on"
               />
+              {state.position > 1 && (
+                <Typography
+                  size="small"
+                  align="center"
+                  className={classes.info}
+                >
+                  {`1 photos every ${state.position} meters.`}
+                </Typography>
+              )}
             </Grid>
           </Grid>
         </Box>

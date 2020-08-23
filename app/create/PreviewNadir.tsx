@@ -75,16 +75,6 @@ export default function SequencePreviewNadir() {
     });
   };
 
-  const handlePercentageChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const val = parseFloat(event.target.value);
-    if (val <= 0.25 && val >= 0.1) {
-      setState({
-        percentage: val,
-      });
-    }
-  };
   return (
     <>
       <Grid item xs={12}>

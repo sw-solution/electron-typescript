@@ -149,8 +149,12 @@ export default function SequenceModifyOutlier() {
   };
 
   const resetMode = () => {
-    dispatch(resetPoints());
-    dispatch(setSequenceOutlierMeters(0));
+    setState({
+      ...state,
+      metersStr: '0',
+      mode: '',
+      points: proppoints,
+    });
   };
 
   const confirmMode = () => {
