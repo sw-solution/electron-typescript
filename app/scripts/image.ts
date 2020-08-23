@@ -562,6 +562,8 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
 
     updatedPoints.forEach((p: IGeoPoint, idx: number) => {
       const photodict: Photo = {
+        MTPUploaderSequenceUUID: sequenceId,
+        MTPUploaderPhotoUUID: p.id,
         MAPAltitude: p.MAPAltitude,
         MAPLatitude: p.MAPLatitude,
         MAPLongitude: p.MAPLongitude,

@@ -1,6 +1,9 @@
+/* eslint-disable promise/always-return */
+/* eslint-disable promise/catch-or-return */
 import dayjs, { Dayjs } from 'dayjs';
 import path from 'path';
 import Async from 'async';
+import fs from 'fs';
 import { BrowserWindow } from 'electron';
 
 import { VGeoPoint, VGeoPointModel } from '../types/VGeoPoint';
@@ -8,13 +11,7 @@ import { IGeoPoint } from '../types/IGeoPoint';
 import { sendPoints, sendToClient, errorHandler } from './utils';
 import { calculatePoints } from './image';
 
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path.replace(
-  'app.asar',
-  'app.asar.unpacked'
-);
-const ffmpeg = require('fluent-ffmpeg');
-
-ffmpeg.setFfmpegPath(ffmpegPath);
+const ffmpeg = require('ffmpeg');
 
 const { Tags, ExifTool, exiftool } = require('exiftool-vendored');
 
@@ -65,7 +62,7 @@ export function getAltudeMeters(atlStr: string) {
 }
 
 export function getGPSVideoData(tags: typeof Tags) {
-  const re = /(Doc\d+):MAPLatitude/g;
+  const re = /(Doc\d+):GPSLatitude/g;
 
   const tagsText = JSON.stringify(tags);
   const availableKeys = [];
@@ -76,6 +73,8 @@ export function getGPSVideoData(tags: typeof Tags) {
       availableKeys.push(m[1]);
     }
   } while (m);
+
+  console.log('availableKeys: ', availableKeys);
 
   const dataList: VGeoPoint[] = [];
   availableKeys.forEach((k: string) => {
@@ -123,7 +122,7 @@ export async function writeTags2Image(
   callback: any
 ) {
   const strStartTime = commonData['Main:GPSDateTime'];
-  const duration = commonData['Main:Duration'];
+  const duration = Math.ceil(commonData['Main:Duration']);
   let starttime: Dayjs;
   if (strStartTime) {
     starttime = dayjs(strStartTime);
@@ -146,7 +145,7 @@ export async function writeTags2Image(
           nextitem = item2;
         }
       }
-      const filename = `${seconds}.png`;
+      const filename = `_${seconds + 1}.jpg`;
       let item: IGeoPoint;
       if (previtem && nextitem) {
         const totaldiff = nextitem.SampleTime - previtem.SampleTime;
@@ -203,9 +202,9 @@ export async function writeTags2Image(
             AllDates: datetime.format('YYYY-MM-DDTHH:mm:ss'),
             GPSTimeStamp: datetime.format('HH:mm:ss'),
             GPSDateStamp: datetime.format('YYYY-MM-DD'),
-            MAPLatitude: item.MAPLatitude,
-            MAPLongitude: item.MAPLongitude,
-            MAPAltitude: item.MAPAltitude,
+            GPSLatitude: item.MAPLatitude,
+            GPSLongitude: item.MAPLongitude,
+            GPSAltitude: item.MAPAltitude,
             ProjectionType: commonData['Main:ProjectionType'],
             Make: commonData['Main:Make'],
           },
@@ -229,23 +228,35 @@ export async function writeTags2Image(
 
 export async function splitVideos(
   inputPath: string,
-  splitTimes: number[],
+  duration: number,
   outputPath: string,
   callback: CallableFunction
 ) {
-  let filenames: string[] = [];
-  ffmpeg(inputPath)
-    .on('filenames', function (fns: string[]) {
-      filenames = fns;
-    })
-    .on('end', function () {
-      callback(filenames);
-    })
-    .screenshots({
-      timestamps: splitTimes,
-      filename: '%s.png',
-      folder: outputPath,
-    });
+  // eslint-disable-next-line new-cap
+  const process = new ffmpeg(inputPath);
+  process.then(
+    (video) => {
+      video.fnExtractFrameToJPG(
+        outputPath,
+        {
+          number: Math.ceil(duration) + 1,
+          file_name: '',
+        },
+        async (err: any, files: string[]) => {
+          console.log('Extracting Images:', files);
+          if (!err) {
+            callback(null, files);
+          } else {
+            console.log('splitVideos: ', err);
+            callback(err, []);
+          }
+        }
+      );
+    },
+    (err) => {
+      console.log('Reading Video Error:', err);
+    }
+  );
 }
 
 export function splitVideoToImage(
@@ -263,10 +274,14 @@ export function splitVideoToImage(
         (cb: CallableFunction) => {
           splitVideos(
             videoPath,
-            Array.from({ length: duration }, (_, index) => index),
+            duration,
             outputPath,
-            (_filenames: string[]) => {
-              cb(null);
+            (err: any, filenames: string[]) => {
+              if (err) {
+                cb(err);
+              } else {
+                cb(null);
+              }
             }
           );
         },

@@ -36,6 +36,7 @@ import {
   getSequenceLogPath,
   getSequenceGpxPath,
   getSequenceBasePath,
+  getOriginalBasePath,
   errorHandler,
   removeTempFiles,
   resetSequence,
@@ -162,7 +163,13 @@ ipcMain.on(
     if (!fs.existsSync(resultdirectory)) {
       fs.mkdirSync(resultdirectory);
     }
-    processVideo(mainWindow, videoPath, path.resolve(resultdirectory, seqname));
+    const sequencebasepath = getSequenceBasePath(seqname);
+    if (fs.existsSync(sequencebasepath)) {
+      await rimraf.sync(sequencebasepath);
+    }
+    fs.mkdirSync(sequencebasepath);
+
+    processVideo(mainWindow, videoPath, getOriginalBasePath(seqname));
   }
 );
 
