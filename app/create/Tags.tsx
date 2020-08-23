@@ -41,7 +41,10 @@ export default function SequenceTags() {
     <>
       <Grid item xs={12}>
         <Typography variant="h6" align="center" color="textSecondary">
-          How would you classify this sequence?
+          Tags
+        </Typography>
+        <Typography paragraph>
+          Tags help people discover your sequence on Map the Paths. Good example of tags include what you saw, the weather, or anything else people would use to search. For example “sun”, “daffodils”. Tags can only contain letters, numbers and the "-" character.
         </Typography>
       </Grid>
       <Grid item xs={12}>
@@ -53,11 +56,6 @@ export default function SequenceTags() {
         />
       </Grid>
       <Grid item xs={12}>
-        <Typography paragraph>
-          We have automatically identified some objects in your images. Tags
-          help people discover your sequence. They should highlight what you saw
-          in the sequence “sun”, “daffodils”. You can add any we have missed.
-        </Typography>
       </Grid>
       <Grid item xs={12}>
         <Button

@@ -159,13 +159,16 @@ export default function SequenceModifySpace() {
   return (
     <>
       <Grid item xs={12}>
-        <Typography variant="h6" align="center" color="textSecondary">
-          Modify GPS
+        <Typography variant="h5" align="center" color="textSecondary">
+          Set image spacing
+        </Typography>
+        <Typography paragraph>
+          You can space images by either time OR distance (not both). This is useful if you have photos very close together, and want to space them out. For example, you could set a minimum distance of 1 meters to discard photos taken in the same spot (when you we're standing still, I mean resting).
         </Typography>
         <Box mb={1}>
           <Grid container spacing={3}>
             <Grid item xs={6}>
-              <Typography>Min time (secs)</Typography>
+              <Typography>Minimum time between photos (seconds)</Typography>
               <Slider
                 value={state.frames}
                 onChange={handleFrameSliderChange}
@@ -185,7 +188,7 @@ export default function SequenceModifySpace() {
               )}
             </Grid>
             <Grid item xs={6}>
-              <Typography>Min distance (meters)</Typography>
+              <Typography>Minimum distance between photos (meters)</Typography>
               <Slider
                 value={state.position}
                 onChange={handlePositionChange}

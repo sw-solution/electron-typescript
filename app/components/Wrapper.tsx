@@ -110,9 +110,9 @@ export default function Wrapper({ title, children }: Props) {
     <div className={classes.paper}>
       <div>
         <Alert severity="warning">
-          <AlertTitle>Warn</AlertTitle>
+          <AlertTitle>WARNING!</AlertTitle>
           <span>
-            All data will be lost. Are you sure you wish to exit sequence
+            All sequence data will be lost if you exit before completing the creation process. Are you sure you want to exit?
             creation
           </span>
         </Alert>

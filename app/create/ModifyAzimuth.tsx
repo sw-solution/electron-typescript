@@ -68,9 +68,12 @@ export default function SequenceModifyAzimuth() {
         <Typography variant="h6" align="center" color="textSecondary">
           Modify Heading
         </Typography>
+        <Typography paragraph>
+          You can adjust the heading of all images. This is useful if you know the heading of images is incorrect by a certain degree. Heading value is inherited from camera, or if no value reported by the camera, calculated to face the next photo in the sequence.
+        </Typography>
         <TextField
           id="outlined-basic"
-          label="Azimuth"
+          label="Heading (degrees)"
           variant="outlined"
           value={azimuth}
           onChange={handleChange}
