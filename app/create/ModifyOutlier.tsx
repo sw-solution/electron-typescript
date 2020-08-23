@@ -173,7 +173,10 @@ export default function SequenceModifyOutlier() {
     <>
       <Grid item xs={12}>
         <Typography variant="h6" align="center" color="textSecondary">
-          Edit Photo Outliers
+          Fix Photo Outliers
+        </Typography>
+        <Typography paragraph>
+          You can remove OR normalise images that have incorrect geo-tags (not both). This is useful if you have corrupted GPS, but no backup GPS track. Discard simply removes any photos futher than the value entered from the expected path. Normalise estimates the correct position and assigns that position to the image.
         </Typography>
         <Box mb={1} className={classes.wrapper}>
           <TextField
