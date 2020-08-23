@@ -27,8 +27,8 @@ export default function SequenceNadir() {
         <Typography variant="h6" align="center" color="textSecondary">
           Add Nadir
         </Typography>
-        <Typography align="center" color="textSecondary">
-          You can add a nadir with a branded logo
+        <Typography paragraph>
+          You can add a nadir with a branded logo. Please be aware of branding guidelines for upload destinations.
         </Typography>
       </Grid>
       <Grid item xs={12}>
@@ -50,11 +50,6 @@ export default function SequenceNadir() {
             <Typography color="primary">Skip This Step</Typography>
           </Grid>
         </Grid>
-      </Grid>
-      <Grid item xs={12}>
-        <Typography align="center" color="textSecondary">
-          Please be aware of branding guidelines for upload destinations
-        </Typography>
       </Grid>
     </>
   );
