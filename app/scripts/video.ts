@@ -233,14 +233,18 @@ export async function splitVideos(
   outputPath: string,
   callback: CallableFunction
 ) {
-  const filenames: string[] = [];
-
-  const video = ffmpeg(inputPath);
-
-  video
-    .outputOptions('-vframes', '1', path.join(outputPath, '1.png'))
+  let filenames: string[] = [];
+  ffmpeg(inputPath)
+    .on('filenames', function (fns: string[]) {
+      filenames = fns;
+    })
     .on('end', function () {
-      console.log('end');
+      callback(filenames);
+    })
+    .screenshots({
+      timestamps: splitTimes,
+      filename: '%s.png',
+      folder: outputPath,
     });
 }
 
@@ -252,7 +256,6 @@ export function splitVideoToImage(
 ) {
   const { dataList, commonData } = getGPSVideoData(tags);
   const duration = Math.floor(commonData['Main:Duration']);
-  console.log('commonData:', commonData);
 
   if (dataList) {
     Async.waterfall(

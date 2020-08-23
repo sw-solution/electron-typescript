@@ -28,6 +28,8 @@ export interface IGeoPointModel {
 
   width: number;
   height: number;
+
+  tags?: any;
 }
 
 export class IGeoPoint {
@@ -59,6 +61,8 @@ export class IGeoPoint {
 
   readonly camera_model?: string;
 
+  readonly tags?: any;
+
   constructor({
     id,
     GPSDateTime,
@@ -75,6 +79,7 @@ export class IGeoPoint {
     equirectangular,
     width,
     height,
+    tags,
   }: IGeoPointModel) {
     this.id = id || uuidv4();
     this.GPSDateTime = GPSDateTime;
@@ -93,6 +98,7 @@ export class IGeoPoint {
 
     this.camera_make = camera_make;
     this.camera_model = camera_model;
+    this.tags = tags;
   }
 
   setImage(imgpath: string) {

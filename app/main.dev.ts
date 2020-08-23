@@ -176,7 +176,9 @@ ipcMain.on(
       fs
         .readdirSync(dirPath)
         .filter(
-          (name: string) => !name.endsWith('.png') && !name.endsWith('.jpg')
+          (name: string) =>
+            !name.toLowerCase().endsWith('.png') &&
+            !name.toLowerCase().endsWith('.jpg')
         ).length
     ) {
       return errorHandler(mainWindow, 'The images should be png or jpg');

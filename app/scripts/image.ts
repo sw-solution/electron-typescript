@@ -6,13 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import jimp from 'jimp';
 import rimraf from 'rimraf';
 import { IGeoPoint } from '../types/IGeoPoint';
-import {
-  Result,
-  Photo,
-  Connections,
-  Descriptions,
-  Description,
-} from '../types/Result';
+import { Result, Photo, Descriptions, Description } from '../types/Result';
 
 import {
   getSequenceImagePath,
@@ -95,6 +89,33 @@ export function getPoint(dirpath: string, filename: string) {
             ? dayjs(tags.DateTimeOrignal)
             : undefined;
 
+        const itemTags = { ...tags };
+
+        const deleteTagKeys = [
+          'SourceFile',
+          'tz',
+          'tzSource',
+          'errors',
+          'Directory',
+          'ExifToolVersion',
+          'Megapixels',
+          'EncodingProcess',
+          'GPSPosition',
+          'ColorComponents',
+          'MIMEType',
+        ];
+
+        Object.keys(tags).forEach((k) => {
+          if (
+            deleteTagKeys.indexOf(k) >= 0 ||
+            k.indexOf('File') >= 0 ||
+            k.indexOf('Date') >= 0 ||
+            k.indexOf('Version') >= 0
+          ) {
+            delete itemTags[k];
+          }
+        });
+
         if (datetime) {
           const item = new IGeoPoint({
             GPSDateTime: datetime,
@@ -109,6 +130,7 @@ export function getPoint(dirpath: string, filename: string) {
             equirectangular: (tags.ProjectionType || '') === 'equirectangular',
             width: tags.ImageWidth,
             height: tags.ImageHeight,
+            tags: itemTags,
           });
           return resolve(item);
         }
@@ -358,24 +380,27 @@ export function writeExifTags(
 
     const azimuth = (item.Azimuth || 0) > 0 ? item.Azimuth : 360 + item.Azimuth;
 
+    let tags = item.tags || {};
+
+    tags = {
+      ...tags,
+      AllDates: datetime.format('YYYY-MM-DDTHH:mm:ss'),
+      GPSTimeStamp: datetime.format('HH:mm:ss'),
+      GPSDateStamp: datetime.format('YYYY-MM-DD'),
+      GPSLatitude: item.MAPLatitude,
+      GPSLongitude: item.MAPLongitude,
+      GPSAltitude: item.MAPAltitude,
+      PoseHeadingDegrees: azimuth,
+      GPSImgDirection: azimuth,
+      CameraElevationAngle: item.Pitch,
+      PosePitchDegrees: item.Pitch,
+      ImageDescription: JSON.stringify(description),
+    };
+
+    console.log('Writing Tags: ', tags);
+
     exiftool
-      .write(
-        input_file,
-        {
-          AllDates: datetime.format('YYYY-MM-DDTHH:mm:ss'),
-          GPSTimeStamp: datetime.format('HH:mm:ss'),
-          GPSDateStamp: datetime.format('YYYY-MM-DD'),
-          GPSLatitude: item.MAPLatitude,
-          GPSLongitude: item.MAPLongitude,
-          GPSAltitude: item.MAPAltitude,
-          PoseHeadingDegrees: azimuth,
-          GPSImgDirection: azimuth,
-          CameraElevationAngle: item.Pitch,
-          PosePitchDegrees: item.Pitch,
-          ImageDescription: JSON.stringify(description),
-        },
-        options
-      )
+      .write(input_file, tags, options)
       .then(() => {
         console.log(`End Updating Exiftool: filename ${input_file}`);
         return resolve();
