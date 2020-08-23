@@ -6,14 +6,8 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import dayjs from 'dayjs';
 
-import {
-  selStartTime,
-  selModifyTime,
-  setSequenceModifyTime,
-  selGPXPoints,
-} from './slice';
+import { selStartTime, selModifyTime, setSequenceModifyTime } from './slice';
 
 import { IGeoPoint } from '../types/IGeoPoint';
 

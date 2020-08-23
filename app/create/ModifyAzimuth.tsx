@@ -49,6 +49,11 @@ export default function SequenceModifyAzimuth() {
   };
 
   const resetMode = () => {
+    setState({
+      ...state,
+      points: proppoints,
+      azimuth: 0,
+    });
     dispatch(resetPoints());
   };
 
