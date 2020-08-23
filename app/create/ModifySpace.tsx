@@ -93,8 +93,9 @@ export default function SequenceModifySpace() {
           const point: IGeoPoint = temppoints[idx];
           if (idx > 0 && idx < temppoints.length - 1) {
             const prevpoint = newpoints[previousIdx];
+            console.log(previousIdx, prevpoint.Distance);
             const nextpoint = temppoints[idx + 1];
-            const distance = getDistance(point, nextpoint);
+            const distance = getDistance(point, prevpoint);
             if (distance < positionmeter) {
               newpoints[previousIdx].setDistance(
                 getDistance(prevpoint, nextpoint)
