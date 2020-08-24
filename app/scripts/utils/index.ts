@@ -257,5 +257,5 @@ export const importGpx = (
       );
     }
   });
-  return discardPointsBySeconds(newPoints, 1, true);
+  return newPoints.length ? discardPointsBySeconds(newPoints, 1, true) : [];
 };

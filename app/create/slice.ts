@@ -3,7 +3,6 @@ import dayjs from 'dayjs';
 // eslint-disable-next-line import/no-cycle
 import { AppThunk, RootState } from '../store';
 import { IGeoPoint } from '../types/IGeoPoint';
-import { discardPointsBySeconds } from '../scripts/utils';
 
 const initialState = {
   step: {
