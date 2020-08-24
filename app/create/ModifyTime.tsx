@@ -58,7 +58,7 @@ export default function SequenceStartTime() {
           Occasionally photo capture times (original date time) are reported incorrectly (usually when clocks change and camera time is not updated). You can set an offset in seconds to change the photo times to match correct times in GPX track by setting an offset value below.
         </Typography>
         <Typography paragraph>
-          The start time of your GPS Track is: 
+          The start time of your GPX Track is: 
           {gpxStartTime}
         </Typography>
         <Typography paragraph>
