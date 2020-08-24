@@ -39,13 +39,14 @@ export default function SequenceStartTime() {
     <>
       <Grid item xs={12}>
         <Typography variant="h6" align="center" color="textSecondary">
-          The start time of your GPS Track is:
+          Confirm GPX Track
+        </Typography>
+        <Typography paragraph>
+          The start time of your GPS Track is: 
           {gpxStartTime}
         </Typography>
-      </Grid>
-      <Grid item xs={12}>
-        <Typography color="primary">
-          The time in the first photo in the sequence is:
+        <Typography paragraph>
+          The time in the first photo in the sequence is: 
           {startTime}
         </Typography>
       </Grid>
@@ -70,8 +71,8 @@ export default function SequenceStartTime() {
         </Button>
       </Grid>
       <Grid item xs={12}>
-        <Typography color="primary">
-          This process will overwrite any existing geotags
+        <Typography paragraph>
+          This process will overwrite any existing geotags. Any photos that do not match exactly to GPX track will be discarded.
         </Typography>
       </Grid>
     </>
