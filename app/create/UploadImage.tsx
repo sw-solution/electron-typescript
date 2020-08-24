@@ -26,7 +26,7 @@ export default function SequenceUploadImage() {
     const parentWindow = remote.getCurrentWindow();
     let options: OpenDialogSyncOptions;
     let channelName: string;
-    if (attachType === 'Video') {
+    if (attachType === 'video') {
       channelName = 'load_video';
       options = {
         properties: ['openFile'],
@@ -59,9 +59,10 @@ export default function SequenceUploadImage() {
       <Grid item xs={12}>
         <Typography variant="h6" align="center" color="textSecondary">
           {`Please upload the ${
-            attachType === 'Video' ? attachType : 'timelapse photos'
+            attachType === 'video' ? attachType : 'timelapse photos'
           }`}
         </Typography>
+
       </Grid>
       <Grid item xs={12}>
         <IconButton onClick={openFileDialog} color="primary">
