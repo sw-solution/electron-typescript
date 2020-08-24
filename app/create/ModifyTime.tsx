@@ -52,12 +52,20 @@ export default function SequenceStartTime() {
     <>
       <Grid item xs={12}>
         <Typography variant="h6" align="center" color="textSecondary">
-          The start time of your GPS Track is:
+          Set Photo Time Offset
+        </Typography>
+        <Typography paragraph>
+          Occasionally photo capture times (original date time) are reported incorrectly (usually when clocks change and camera time is not updated). You can set an offset in seconds to change the photo times to match correct times in GPX track by setting an offset value below.
+        </Typography>
+        <Typography paragraph>
+          The start time of your GPS Track is: 
+          {gpxStartTime}
+        </Typography>
+        <Typography paragraph>
+          The time in the first photo in the sequence is: 
           {startTime}
         </Typography>
-      </Grid>
-      <Grid item xs={12}>
-        <Typography color="primary">
+        <Typography paragraph>
           Add the following time offset to all photos (in second, can be + or
           -):
         </Typography>
