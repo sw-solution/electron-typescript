@@ -103,6 +103,10 @@ const createWindow = async () => {
       label: 'View',
       submenu: [{ role: 'reload' }, { label: 'custom reload' }],
     },
+    {
+      label: 'About',
+      submenu: [],
+    },
   ]);
 
   Menu.setApplicationMenu(menu);
