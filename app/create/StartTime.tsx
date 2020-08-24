@@ -9,6 +9,7 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
 import {
   selStartTime,
+  selGPXStartTime,
   setCurrentStep,
   setSequenceModifyTime,
   selPoints,
@@ -20,6 +21,7 @@ import { importGpx } from '../scripts/utils';
 export default function SequenceStartTime() {
   const dispatch = useDispatch();
   const startTime = useSelector(selStartTime);
+  const gpxStartTime = useSelector(selGPXStartTime);
   const points = useSelector(selPoints);
   const gpxPoints = useSelector(selGPXPoints);
 
@@ -38,7 +40,7 @@ export default function SequenceStartTime() {
       <Grid item xs={12}>
         <Typography variant="h6" align="center" color="textSecondary">
           The start time of your GPS Track is:
-          {startTime}
+          {gpxStartTime}
         </Typography>
       </Grid>
       <Grid item xs={12}>

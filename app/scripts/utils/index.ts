@@ -237,30 +237,25 @@ export const importGpx = (
       timestamp: dayjs(point.GPSDateTime).add(modifyTime, 'second'),
     };
   });
-  let newPoints = points
-    .map((point: IGeoPoint) => {
-      const pointTime = dayjs(point.GPSDateTime);
-      const matchedPoint = gpxPoints.filter(
-        (p) => pointTime.diff(dayjs(p.timestamp), 'second') === 0
-      );
-      if (matchedPoint.length) {
-        return new IGeoPoint({
+  const newPoints: IGeoPoint[] = [];
+
+  points.forEach((point: IGeoPoint) => {
+    const pointTime = dayjs(point.GPSDateTime);
+    const matchedPoint = gpxPoints.filter(
+      (p) => pointTime.diff(dayjs(p.timestamp), 'second') === 0
+    );
+    if (matchedPoint.length) {
+      newPoints.push(
+        new IGeoPoint({
           ...point,
           MAPLongitude: matchedPoint[0].longitude,
           MAPLatitude: matchedPoint[0].latitude,
           MAPAltitude: matchedPoint[0].elevation
             ? matchedPoint[0].elevation
             : point.MAPAltitude,
-        });
-      }
-      return point;
-    })
-    .filter(
-      (point: IGeoPoint) =>
-        typeof point.MAPAltitude === 'undefined' ||
-        typeof point.MAPLatitude === 'undefined' ||
-        typeof point.MAPLongitude === 'undefined'
-    );
-  newPoints = discardPointsBySeconds(points, 1, true);
-  return newPoints;
+        })
+      );
+    }
+  });
+  return discardPointsBySeconds(newPoints, 1, true);
 };

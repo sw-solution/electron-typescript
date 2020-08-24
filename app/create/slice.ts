@@ -490,6 +490,11 @@ export const selGPXPoints = (state: RootState) => state.create.steps.gpx.points;
 export const selStartTime = (state: RootState) =>
   state.create.points.length ? state.create.points[0].GPSDateTime : null;
 
+export const selGPXStartTime = (state: RootState) =>
+  state.create.steps.gpx.points.length
+    ? state.create.steps.gpx.points[0].timestamp
+    : null;
+
 export const selModifyTime = (state: RootState) =>
   state.create.steps.modifyTime;
 
