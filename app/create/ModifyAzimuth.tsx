@@ -104,7 +104,7 @@ export default function SequenceModifyAzimuth() {
             onClick={resetMode}
             variant="contained"
           >
-            Reset Mods
+            Reset Changes
           </Button>
         </Box>
         <Button

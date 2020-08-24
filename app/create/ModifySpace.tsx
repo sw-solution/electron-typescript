@@ -227,7 +227,7 @@ export default function SequenceModifySpace() {
             onClick={resetMode}
             variant="contained"
           >
-            Reset Mods
+            Reset Changes
           </Button>
         </Box>
         <Button

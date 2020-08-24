@@ -225,7 +225,7 @@ export default function SequenceModifyOutlier() {
             onClick={resetMode}
             variant="contained"
           >
-            Reset Mods
+            Reset Changes
           </Button>
         </Box>
         <Button
