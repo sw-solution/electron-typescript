@@ -66,14 +66,14 @@ export default function SequenceStartTime() {
           {startTime}
         </Typography>
         <Typography paragraph>
-          Add the following time offset to all photos (in second, can be + or
-          -):
+          Add the following time offset to all photos (in seconds, can be + or
+          -). For example 3600 = add one hour to all reported photo times.
         </Typography>
       </Grid>
       <Grid item xs={12}>
         <TextField
           id="outlined-basic"
-          label="Sequence Name"
+          label="Offset (seconds)"
           variant="outlined"
           value={modifyTime}
           onChange={handleChange}
@@ -86,7 +86,7 @@ export default function SequenceStartTime() {
           onClick={correctTime}
           variant="contained"
         >
-          Corret
+          Add offset
         </Button>
       </Grid>
     </>

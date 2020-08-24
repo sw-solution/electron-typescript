@@ -70,7 +70,7 @@ export default function SequenceStartTime() {
           onClick={correctTime}
           variant="contained"
         >
-          Corret
+          Geotag Images
         </Button>
       </Grid>
     </>
