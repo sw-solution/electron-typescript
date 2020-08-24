@@ -238,9 +238,10 @@ ipcMain.on(
 
     modifyLogoAsync
       .then((logo: any) => {
-        return Async.everySeries(
-          Array.from({ length: 16 }, (_, index) => index),
-          (key: number, cb: CallableFunction) => {
+        return Async.eachOfLimit(
+          Array(16),
+          1,
+          (_item: unknown, key: any, cb: CallableFunction) => {
             const outputfile = path.resolve(
               app.getAppPath(),
               `../${uuidv4()}.png`
