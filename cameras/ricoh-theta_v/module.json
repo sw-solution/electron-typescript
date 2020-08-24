@@ -1,0 +1,10 @@
+{
+	"module_developer": "Trek View",
+	"module_support_url": "https://campfire.trekview.org/",
+	"module_name": "Ricoh Theta V",
+	"module_description": "Advanced model with greatly improved video performance, transfer speed and extensibility.",
+	"module_camera_exif_make": "Ricoh",
+	"module_camera_model": "Theta Z1",
+	"module_camara_supports": ["mp4", "jpg"],
+	"module_camara_video_telemetry": "camm"
+}
