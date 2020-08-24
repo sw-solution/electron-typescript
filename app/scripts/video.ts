@@ -247,7 +247,6 @@ export async function splitVideos(
           if (!err) {
             callback(null, files);
           } else {
-            console.log('splitVideos: ', err);
             callback(err, []);
           }
         }

@@ -89,7 +89,6 @@ export default function SequenceModifySpace() {
           const point: IGeoPoint = temppoints[idx];
           if (idx > 0 && idx < temppoints.length - 1) {
             const prevpoint = newpoints[previousIdx];
-            console.log(previousIdx, prevpoint.Distance);
             const nextpoint = temppoints[idx + 1];
             const distance = getDistance(point, prevpoint);
             if (distance < positionmeter) {
@@ -108,7 +107,6 @@ export default function SequenceModifySpace() {
             newpoints.push(point);
           }
         }
-        discarded = points.length - newpoints.length;
         setState({
           ...state,
           position: positionmeter,
@@ -116,7 +114,6 @@ export default function SequenceModifySpace() {
           points: [...newpoints],
         });
       } else {
-        discarded = points.length - temppoints.length;
         setState({
           ...state,
           position: positionmeter,
