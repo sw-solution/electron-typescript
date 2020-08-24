@@ -221,7 +221,7 @@ export default function SequenceModifyOutlier() {
             onClick={resetMode}
             variant="contained"
           >
-            Reset Mods
+            Reset Changes
           </Button>
         </Box>
         <Button
@@ -230,7 +230,7 @@ export default function SequenceModifyOutlier() {
           onClick={confirmMode}
           variant="contained"
         >
-          Confirm Mods
+          Confirm Changes
         </Button>
       </Grid>
     </>
