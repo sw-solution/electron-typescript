@@ -13,19 +13,24 @@ import {
   selGPXRequired,
   selGPXImport,
   setProcessStep,
+  setSequencePoints,
+  selPoints,
+  setError,
 } from './slice';
+
+import { IGeoPoint } from '../types/IGeoPoint';
 
 const { ipcRenderer, remote } = window.require('electron');
 
 export default function SequenceUploadGpx() {
   const dispatch = useDispatch();
+  const proppoints = useSelector(selPoints);
 
   const required = useSelector(selGPXRequired);
-  console.log('required', required);
   const importgpx = useSelector(selGPXImport);
 
   useEffect(() => {
-    if (!required && !importgpx) {
+    if (!required && !importgpx && proppoints.length) {
       dispatch(setCurrentStep('modifySpace'));
     }
   });
@@ -45,6 +50,21 @@ export default function SequenceUploadGpx() {
       dispatch(setSequenceGpxPath(result[0]));
       dispatch(setProcessStep('startTime'));
       ipcRenderer.send('load_gpx', result[0]);
+    }
+  };
+
+  const discardPoints = () => {
+    const points = proppoints.filter(
+      (p: IGeoPoint) =>
+        typeof p.MAPAltitude !== 'undefined' &&
+        typeof p.MAPLatitude !== 'undefined' &&
+        typeof p.MAPLongitude !== 'undefined'
+    );
+    dispatch(setSequencePoints(points));
+    if (points.length) {
+      dispatch(setCurrentStep('modifySpace'));
+    } else {
+      dispatch(setError('There will be no images.'));
     }
   };
 
@@ -69,20 +89,15 @@ export default function SequenceUploadGpx() {
         <div>
           <IconButton onClick={openFileDialog} color="primary">
             <CloudUploadIcon fontSize="large" />
+            <Typography color="primary">Upload</Typography>
           </IconButton>
-          <Typography color="primary">Upload</Typography>
         </div>
         {!importgpx && (
           <div>
-            <IconButton
-              onClick={() => {
-                dispatch(setCurrentStep('modifySpace'));
-              }}
-              color="secondary"
-            >
+            <IconButton onClick={discardPoints} color="secondary">
               <DeleteForeverIcon fontSize="large" />
+              <Typography color="secondary">Discard</Typography>
             </IconButton>
-            <Typography color="secondary">Discard</Typography>
           </div>
         )}
       </Grid>

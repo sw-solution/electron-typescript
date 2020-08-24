@@ -19,7 +19,6 @@ import {
   OutputType,
   getSequenceOutputPath,
   discardPointsBySeconds,
-  errorHandler,
 } from './utils';
 
 const { Tags, exiftool } = require('exiftool-vendored');
@@ -91,8 +90,8 @@ export function getPoint(dirpath: string, filename: string) {
 
         let datetime = tags.GPSDateTime ? dayjs(tags.GPSDateTime) : undefined;
         if (!datetime)
-          datetime = tags.DateTimeOrignal
-            ? dayjs(tags.DateTimeOrignal)
+          datetime = tags.DateTimeOriginal
+            ? dayjs(tags.DateTimeOriginal)
             : undefined;
 
         const itemTags = { ...tags };

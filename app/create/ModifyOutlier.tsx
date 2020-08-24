@@ -186,6 +186,7 @@ export default function SequenceModifyOutlier() {
           <TextField
             label="Meters"
             placeholder="0"
+            variant="outlined"
             onChange={handleChange}
             value={metersStr}
           />
