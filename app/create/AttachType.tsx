@@ -26,11 +26,11 @@ export default function SequenceAttachType() {
   const attachTypes: AttachTypeModel[] = [
     {
       component: <VideocamIcon fontSize="large" />,
-      label: 'Video',
+      label: 'video',
     },
     {
       component: <PhotoCameraIcon fontSize="large" />,
-      label: 'Image',
+      label: 'image',
     },
   ];
 
