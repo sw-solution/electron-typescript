@@ -112,7 +112,7 @@ export function getSequenceImagePath(
 
 export enum OutputType {
   raw = 'final_raw',
-  nadir = 'final_unblurred',
+  nadir = 'final_nadir',
   blur = 'final_blurred',
 }
 

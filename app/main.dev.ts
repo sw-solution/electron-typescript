@@ -185,10 +185,11 @@ ipcMain.on(
         .filter(
           (name: string) =>
             !name.toLowerCase().endsWith('.png') &&
+            !name.toLowerCase().endsWith('.jpeg') &&
             !name.toLowerCase().endsWith('.jpg')
         ).length
     ) {
-      return errorHandler(mainWindow, 'The images should be png or jpg');
+      return errorHandler(mainWindow, 'The images should be jpeg or jpg');
     }
 
     loadImages(
@@ -199,15 +200,12 @@ ipcMain.on(
           errorHandler(mainWindow, error);
         } else {
           const { points, removedfiles } = result;
-          if (points.length) {
-            sendPoints(mainWindow, points);
-          }
+          sendPoints(mainWindow, points);
 
           if (removedfiles.length) {
             sendToClient(mainWindow, 'removed_files', removedfiles);
           }
-
-          sendToClient(mainWindow, 'finish');
+          if (points.length) sendToClient(mainWindow, 'finish');
         }
       }
     );
@@ -226,7 +224,7 @@ ipcMain.on(
   'upload_nadir',
   (_event: IpcMainEvent, { nadirpath, imagepath, width, height }) => {
     const results = {};
-    const templogofile = path.resolve(app.getAppPath(), `${uuidv4()}.png`);
+    const templogofile = path.resolve(app.getAppPath(), `../${uuidv4()}.png`);
 
     const modifyLogoAsync = modifyLogo(nadirpath, templogofile)
       .then(() => {
@@ -236,15 +234,14 @@ ipcMain.on(
 
     modifyLogoAsync
       .then((logo: any) => {
-        return Async.eachOfLimit(
-          Array(16),
-          1,
-          (_item: unknown, key: any, cb: CallableFunction) => {
+        return Async.everySeries(
+          Array.from({ length: 16 }, (_, index) => index),
+          (key: number, cb: CallableFunction) => {
             const outputfile = path.resolve(
               app.getAppPath(),
-              `${uuidv4()}.png`
+              `../${uuidv4()}.png`
             );
-            const percentage = (10 + parseInt(key, 10)) / 100;
+            const percentage = (10 + key) / 100;
             // const percentage = 0.15;
             const logoHeight = Math.round(height * percentage);
 

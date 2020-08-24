@@ -43,7 +43,9 @@ export default function SequenceCamera() {
             width="70"
             height="70"
           />
-          <Typography color={color}>{it.name}</Typography>
+          <Typography color={color} style={{ textTransform: 'none' }}>
+            {it.name}
+          </Typography>
         </Button>
       </Grid>
     );

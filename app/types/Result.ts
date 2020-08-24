@@ -46,6 +46,8 @@ export interface Photo {
   MTPImageProjection: string;
   MTPUploaderPhotoUUID: string;
   MTPUploaderSequenceUUID: string;
+
+  connections?: Connections;
 }
 
 export interface Photos {

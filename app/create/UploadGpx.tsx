@@ -21,6 +21,7 @@ export default function SequenceUploadGpx() {
   const dispatch = useDispatch();
 
   const required = useSelector(selGPXRequired);
+  console.log('required', required);
   const importgpx = useSelector(selGPXImport);
 
   useEffect(() => {

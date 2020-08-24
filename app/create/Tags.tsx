@@ -7,18 +7,12 @@ import Button from '@material-ui/core/Button';
 
 import ChipInput from 'material-ui-chip-input';
 
-import {
-  setSequenceTags,
-  selSequenceTags,
-  setCurrentStep,
-  isRequiredNadir,
-} from './slice';
+import { setSequenceTags, selSequenceTags, setCurrentStep } from './slice';
 
 export default function SequenceTags() {
   const propsTags = useSelector(selSequenceTags);
   const [tags, setTags] = React.useState<string[]>(propsTags);
   const dispatch = useDispatch();
-  const isrequirednadir = useSelector(isRequiredNadir);
 
   const handleAddTag = (tag: string) => {
     setTags([...tags, tag]);
@@ -30,11 +24,7 @@ export default function SequenceTags() {
 
   const storeSequenceTags = () => {
     dispatch(setSequenceTags(tags));
-    if (isrequirednadir) {
-      dispatch(setCurrentStep('nadir'));
-    } else {
-      dispatch(setCurrentStep('blur'));
-    }
+    dispatch(setCurrentStep('type'));
   };
 
   return (
@@ -44,7 +34,10 @@ export default function SequenceTags() {
           Tags
         </Typography>
         <Typography paragraph>
-          Tags help people discover your sequence on Map the Paths. Good example of tags include what you saw, the weather, or anything else people would use to search. For example “sun”, “daffodils”. Tags can only contain letters, numbers and the "-" character.
+          Tags help people discover your sequence on Map the Paths. Good example
+          of tags include what you saw, the weather, or anything else people
+          would use to search. For example “sun”, “daffodils”. Tags can only
+          contain letters, numbers and the "-" character.
         </Typography>
       </Grid>
       <Grid item xs={12}>
@@ -55,8 +48,7 @@ export default function SequenceTags() {
           newChipKeyCodes={[13, 32]}
         />
       </Grid>
-      <Grid item xs={12}>
-      </Grid>
+      <Grid item xs={12} />
       <Grid item xs={12}>
         <Button
           variant="contained"

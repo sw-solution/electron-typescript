@@ -12,18 +12,20 @@ import {
   selPoints,
   setSequencePoints,
   resetPoints,
+  isRequiredNadir,
 } from './slice';
 import { IGeoPoint } from '../types/IGeoPoint';
 
 interface State {
   points: IGeoPoint[];
-  azimuth: number;
+  azimuth: number | string;
 }
 
 export default function SequenceModifyAzimuth() {
   const dispatch = useDispatch();
   const propazimuth = useSelector(selSequenceAzimuth);
   const proppoints = useSelector(selPoints);
+  const isrequirednadir = useSelector(isRequiredNadir);
 
   const [state, setState] = React.useState<State>({
     points: proppoints,
@@ -45,6 +47,11 @@ export default function SequenceModifyAzimuth() {
         azimuth: newazimuth,
         points: newpoints,
       });
+    } else {
+      setState({
+        azimuth: '',
+        points: proppoints,
+      });
     }
   };
 
@@ -58,8 +65,12 @@ export default function SequenceModifyAzimuth() {
   };
 
   const confirmMode = () => {
-    dispatch(setCurrentStep('tags'));
     dispatch(setSequencePoints(points));
+    if (isrequirednadir) {
+      dispatch(setCurrentStep('nadir'));
+    } else {
+      dispatch(setCurrentStep('blur'));
+    }
   };
 
   return (
@@ -69,7 +80,10 @@ export default function SequenceModifyAzimuth() {
           Modify Heading
         </Typography>
         <Typography paragraph>
-          You can adjust the heading of all images. This is useful if you know the heading of images is incorrect by a certain degree. Heading value is inherited from camera, or if no value reported by the camera, calculated to face the next photo in the sequence.
+          You can adjust the heading of all images. This is useful if you know
+          the heading of images is incorrect by a certain degree. Heading value
+          is inherited from camera, or if no value reported by the camera,
+          calculated to face the next photo in the sequence.
         </Typography>
         <TextField
           id="outlined-basic"
@@ -99,7 +113,7 @@ export default function SequenceModifyAzimuth() {
           onClick={confirmMode}
           variant="contained"
         >
-          Confirm Mods
+          {`${azimuth === propazimuth ? 'Skip This Step' : 'Confirm Changes'}`}
         </Button>
       </Grid>
     </>

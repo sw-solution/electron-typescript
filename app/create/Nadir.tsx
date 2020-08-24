@@ -28,7 +28,8 @@ export default function SequenceNadir() {
           Add Nadir
         </Typography>
         <Typography paragraph>
-          You can add a nadir with a branded logo. Please be aware of branding guidelines for upload destinations.
+          You can add a nadir with a branded logo. Please be aware of branding
+          guidelines for upload destinations.
         </Typography>
       </Grid>
       <Grid item xs={12}>
@@ -40,14 +41,14 @@ export default function SequenceNadir() {
               onClick={storeSequenceNadir}
             >
               <AddIcon fontSize="large" />
+              <Typography color="secondary">Add Nadir</Typography>
             </IconButton>
-            <Typography color="secondary">Add Nadir</Typography>
           </Grid>
           <Grid item>
             <IconButton size="medium" color="primary" onClick={processPage}>
               <SkipNextIcon fontSize="large" />
+              <Typography color="primary">Skip This Step</Typography>
             </IconButton>
-            <Typography color="primary">Skip This Step</Typography>
           </Grid>
         </Grid>
       </Grid>

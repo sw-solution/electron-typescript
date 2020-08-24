@@ -27,7 +27,7 @@ const initialState = {
     modifyTime: 0,
     modifySpace: {
       frame: 1,
-      position: 0,
+      position: 1,
     },
     outlier: {
       meters: 0,
@@ -256,7 +256,8 @@ const createSequenceSlice = createSlice({
         : [];
     },
     setError: (state, { payload }) => {
-      if (!state.error) state.error = payload;
+      if (!state.error && payload) state.error = payload;
+      else if (!payload) state.error = null;
     },
   },
 });
@@ -309,7 +310,7 @@ export const setSequenceName = (name: string): AppThunk => {
 export const setSequenceDescription = (description: string): AppThunk => {
   return (dispatch) => {
     dispatch(setDescription(description));
-    dispatch(setCurrentStep('type'));
+    dispatch(setCurrentStep('tags'));
   };
 };
 
@@ -381,12 +382,6 @@ export const setSequenceTags = (tags: string[]): AppThunk => {
 export const setSequencePoints = (points: IGeoPoint[]): AppThunk => {
   return (dispatch) => {
     dispatch(setPoints(points));
-    dispatch(
-      setGpxRequired(
-        points.filter((p: IGeoPoint) => !p.MAPLatitude || !p.MAPLongitude)
-          .length > 0
-      )
-    );
   };
 };
 
@@ -520,9 +515,7 @@ export const selPrevStep = (state: RootState) => {
 export const selGPXRequired = (state: RootState) =>
   state.create.points.filter(
     (point: IGeoPoint) =>
-      typeof point.MAPAltitude === 'undefined' ||
-      typeof point.MAPLatitude === 'undefined' ||
-      typeof point.MAPLongitude === 'undefined'
+      !point.MAPAltitude || !point.MAPLatitude || !point.MAPLongitude
   ).length > 0;
 
 export const selGPXImport = (state: RootState) => state.create.steps.gpx.import;

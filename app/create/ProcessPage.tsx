@@ -9,7 +9,6 @@ import { IpcRendererEvent } from 'electron';
 import {
   selSequenceName,
   selProcessPageNext,
-  selPrevStep,
   setCurrentStep,
   setNadirPreview,
 } from './slice';
@@ -20,7 +19,6 @@ const { ipcRenderer } = window.require('electron');
 
 export default function SequenceProcessPage() {
   const nextStep = useSelector(selProcessPageNext);
-  const prevStep = useSelector(selPrevStep);
   const name = useSelector(selSequenceName);
   const dispatch = useDispatch();
 

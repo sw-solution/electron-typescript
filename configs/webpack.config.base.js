@@ -54,5 +54,6 @@ export default {
     new webpack.DefinePlugin({
       'process.env.FLUENTFFMPEG_COV': false,
     }),
+    new webpack.IgnorePlugin(/vertx/),
   ],
 };

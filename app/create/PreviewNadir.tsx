@@ -34,6 +34,7 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     flexWrap: 'nowrap',
     alignItems: 'center',
+    justifyContent: 'center',
     '& > *': {
       margin: theme.spacing(1),
     },
@@ -111,6 +112,10 @@ export default function SequencePreviewNadir() {
                 sceneId={key}
                 config={{
                   autoLoad: true,
+                }}
+                style={{
+                  width: '100%',
+                  height: '500px',
                 }}
               />
             );

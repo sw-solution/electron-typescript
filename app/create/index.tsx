@@ -57,6 +57,7 @@ import {
   setSequenceInit,
   setSequenceError,
   selError,
+  setError,
   setInit,
 } from './slice';
 
@@ -115,11 +116,16 @@ export default function CreatePageWrapper() {
 
   const goPrevStep = () => {
     dispatch(goToPrevStep());
+    dispatch(setError(null));
   };
 
   useEffect(() => {
     ipcRenderer.on('loaded_points', (_event: IpcRendererEvent, points) => {
-      dispatch(setSequencePoints(points));
+      if (points.length) {
+        dispatch(setSequencePoints(points));
+      } else {
+        dispatch(setSequenceError('There are no images.'));
+      }
     });
 
     ipcRenderer.on('start_time', (_event: IpcRendererEvent, starttime) => {
@@ -176,7 +182,8 @@ export default function CreatePageWrapper() {
         <Alert severity="warning">
           <AlertTitle>WARNING!</AlertTitle>
           <span>
-             All sequence data will be lost if you exit before completing the creation process. Are you sure you want to exit?
+            All sequence data will be lost if you exit before completing the
+            creation process. Are you sure you want to exit?
           </span>
         </Alert>
       </div>

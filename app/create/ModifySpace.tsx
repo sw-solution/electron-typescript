@@ -10,14 +10,12 @@ import Map from '../components/Map';
 
 import {
   setCurrentStep,
-  setSequencePosition,
   setSequenceFrame,
   setSequencePoints,
   setSequenceGpxImport,
   selPoints,
   selSequenceFrame,
   selSequencePosition,
-  resetPoints,
 } from './slice';
 
 import {
@@ -60,8 +58,6 @@ export default function SequenceModifySpace() {
   const { points } = state;
 
   const classes = useStyles();
-
-  let discarded = 0;
 
   const resetMode = () => {
     setState({
@@ -163,7 +159,11 @@ export default function SequenceModifySpace() {
           Set image spacing
         </Typography>
         <Typography paragraph>
-          You can space images by either time OR distance (not both). This is useful if you have photos very close together, and want to space them out. For example, you could set a minimum distance of 1 meters to discard photos taken in the same spot (when you we're standing still, I mean resting).
+          You can space images by either time OR distance (not both). This is
+          useful if you have photos very close together, and want to space them
+          out. For example, you could set a minimum distance of 1 meters to
+          discard photos taken in the same spot (when you we're standing still,
+          I mean resting).
         </Typography>
         <Box mb={1}>
           <Grid container spacing={3}>
@@ -236,7 +236,11 @@ export default function SequenceModifySpace() {
           onClick={confirmMode}
           variant="contained"
         >
-          Confirm Mods
+          {`${
+            state.frames === 1 && state.position === 1
+              ? 'Skip This Step'
+              : 'Save Changes'
+          }`}
         </Button>
       </Grid>
     </>

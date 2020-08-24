@@ -46,7 +46,11 @@ export default function SequenceBur() {
           Create a blurred copy
         </Typography>
         <Typography variant="h6" align="center" color="textSecondary">
-          You can create a copy of the sequence images with publicly identifiable information blurred. Only recommended if you plan to use services that do not blur content automatically (e.g. Facebook) and images contain lots of sensitive data because it requires a high amount of computing power.
+          You can create a copy of the sequence images with publicly
+          identifiable information blurred. Only recommended if you plan to use
+          services that do not blur content automatically (e.g. Facebook) and
+          images contain lots of sensitive data because it requires a high
+          amount of computing power.
         </Typography>
       </Grid>
       <Grid item xs={12}>
@@ -70,7 +74,7 @@ export default function SequenceBur() {
           onClick={confirmMode}
           variant="contained"
         >
-          Confirm Mods
+          {`${blurred ? 'Confirm Changes' : 'Skip This Step'}`}
         </Button>
       </Grid>
     </>

@@ -6,7 +6,13 @@ import { v4 as uuidv4 } from 'uuid';
 import jimp from 'jimp';
 import rimraf from 'rimraf';
 import { IGeoPoint } from '../types/IGeoPoint';
-import { Result, Photo, Descriptions, Description } from '../types/Result';
+import {
+  Result,
+  Photo,
+  Descriptions,
+  Description,
+  Connections,
+} from '../types/Result';
 
 import {
   getSequenceImagePath,
@@ -202,6 +208,7 @@ export const calculatePoints = (
     }
 
     if (
+      points.length &&
       points.filter(
         (item: IGeoPoint) => !item.MAPLatitude || !item.MAPLongitude
       ).length === 0
@@ -213,9 +220,7 @@ export const calculatePoints = (
     }
   } catch (e) {
     console.log('Calculation points issue', e);
-    next({
-      message: e,
-    });
+    next(e);
   }
 };
 
@@ -561,6 +566,33 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
     const descriptions: Descriptions = {};
 
     updatedPoints.forEach((p: IGeoPoint, idx: number) => {
+      const connections: Connections = {};
+      if (idx !== 0) {
+        const prevItem = updatedPoints[idx - 1];
+        const deltatime = p.getDate().diff(prevItem.getDate(), 'second');
+        const distance = p.Distance || 0;
+        connections[prevItem.id] = {
+          distance_mtrs: distance,
+          heading_deg: prevItem.Azimuth || 0,
+          pitch_deg: prevItem.Pitch || 0,
+          time_sec: deltatime,
+          speed_kmh:
+            deltatime !== 0 ? (distance * 3600) / (deltatime * 1000) : 0,
+        };
+      }
+      if (idx < updatedPoints.length - 1) {
+        const nextItem = updatedPoints[idx + 1];
+        const deltatime = p.getDate().diff(nextItem.getDate(), 'second');
+        const distance = p.Distance || 0;
+        connections[nextItem.id] = {
+          distance_mtrs: distance,
+          heading_deg: p.Azimuth || 0,
+          pitch_deg: p.Pitch || 0,
+          time_sec: deltatime,
+          speed_kmh:
+            deltatime !== 0 ? (distance * 3600) / (deltatime * 1000) : 0,
+        };
+      }
       const photodict: Photo = {
         MTPUploaderSequenceUUID: sequenceId,
         MTPUploaderPhotoUUID: p.id,
@@ -575,12 +607,16 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
         MTPSequenceTags: settings.tags,
         MTPImageCopy: 'original',
         MTPImageProjection: p.equirectangular ? 'equirectangular' : 'flat',
+        connections,
       };
 
       resultjson.photo[(idx + 1).toString()] = photodict;
 
       descriptions[p.id] = {
-        photo: photodict,
+        photo: {
+          ...photodict,
+          connections: undefined,
+        },
         sequence: resultjson.sequence,
       };
     });

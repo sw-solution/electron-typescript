@@ -176,7 +176,11 @@ export default function SequenceModifyOutlier() {
           Fix Photo Outliers
         </Typography>
         <Typography paragraph>
-          You can remove OR normalise images that have incorrect geo-tags (not both). This is useful if you have corrupted GPS, but no backup GPS track. Discard simply removes any photos futher than the value entered from the expected path. Normalise estimates the correct position and assigns that position to the image.
+          You can remove OR normalise images that have incorrect geo-tags (not
+          both). This is useful if you have corrupted GPS, but no backup GPS
+          track. Discard simply removes any photos futher than the value entered
+          from the expected path. Normalise estimates the correct position and
+          assigns that position to the image.
         </Typography>
         <Box mb={1} className={classes.wrapper}>
           <TextField
@@ -230,7 +234,11 @@ export default function SequenceModifyOutlier() {
           onClick={confirmMode}
           variant="contained"
         >
-          Confirm Mods
+          {`${
+            metersStr === '0' && mode === ''
+              ? 'Skip This Step'
+              : 'Confirm Changes'
+          }`}
         </Button>
       </Grid>
     </>
