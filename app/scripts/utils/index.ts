@@ -136,7 +136,8 @@ export function getSequenceGpxPath(seqname: string): string {
 
 export function discardPointsBySeconds(
   points: IGeoPoint[],
-  seconds: number
+  seconds: number,
+  forceUpdate = false
 ): IGeoPoint[] {
   const newpoints = [];
   let nextIdx = 1;
@@ -169,7 +170,7 @@ export function discardPointsBySeconds(
       seconds * 1000
     ) {
       let azimuth = point.Azimuth;
-      if (!azimuth) {
+      if (!azimuth || forceUpdate) {
         azimuth = getBearing(point, nextPoint);
         point.setAzimuth(azimuth);
       }
@@ -178,7 +179,7 @@ export function discardPointsBySeconds(
       point.setDistance(distance);
 
       let pitch = point.Pitch;
-      if (!pitch) {
+      if (!pitch || forceUpdate) {
         pitch = getPitch(point, nextPoint, distance);
         point.setPitch(pitch);
       }

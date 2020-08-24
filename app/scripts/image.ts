@@ -515,11 +515,18 @@ export function writeBlurredImage(
 
 export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
   return new Promise((resolve, reject) => {
-    const updatedPoints = points.map((p) => {
-      const newP = new IGeoPoint(p);
-      newP.convertStrToDate();
-      return newP;
-    });
+    const updatedPoints = points
+      .filter(
+        (p) =>
+          typeof p.MAPAltitude !== 'undefined' &&
+          typeof p.MAPLatitude !== 'undefined' &&
+          typeof p.MAPLongitude !== 'undefined'
+      )
+      .map((p) => {
+        const newP = new IGeoPoint(p);
+        newP.convertStrToDate();
+        return newP;
+      });
 
     const sequenceId = uuidv4();
 

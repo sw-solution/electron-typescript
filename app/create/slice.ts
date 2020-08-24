@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 // eslint-disable-next-line import/no-cycle
 import { AppThunk, RootState } from '../store';
 import { IGeoPoint } from '../types/IGeoPoint';
+import { discardPointsBySeconds } from '../scripts/utils';
 
 const initialState = {
   step: {
@@ -457,24 +458,32 @@ export const setSequenceModifyTime = (modifyTime: number): AppThunk => {
     });
 
     let importedPoints = 0;
-    const newPoints = points.map((point: IGeoPoint) => {
-      const pointTime = dayjs(point.GPSDateTime);
-      const matchedPoint = gpxPoints.filter(
-        (p) => pointTime.diff(dayjs(p.timestamp), 'second') === 0
+    let newPoints = points
+      .map((point: IGeoPoint) => {
+        const pointTime = dayjs(point.GPSDateTime);
+        const matchedPoint = gpxPoints.filter(
+          (p) => pointTime.diff(dayjs(p.timestamp), 'second') === 0
+        );
+        if (matchedPoint.length) {
+          importedPoints += 1;
+          return new IGeoPoint({
+            ...point,
+            MAPLongitude: matchedPoint[0].longitude,
+            MAPLatitude: matchedPoint[0].latitude,
+            MAPAltitude: matchedPoint[0].elevation
+              ? matchedPoint[0].elevation
+              : point.MAPAltitude,
+          });
+        }
+        return point;
+      })
+      .filter(
+        (point: IGeoPoint) =>
+          typeof point.MAPAltitude === 'undefined' ||
+          typeof point.MAPLatitude === 'undefined' ||
+          typeof point.MAPLongitude === 'undefined'
       );
-      if (matchedPoint.length) {
-        importedPoints += 1;
-        return new IGeoPoint({
-          ...point,
-          MAPLongitude: matchedPoint[0].longitude,
-          MAPLatitude: matchedPoint[0].latitude,
-          MAPAltitude: matchedPoint[0].elevation
-            ? matchedPoint[0].elevation
-            : point.MAPAltitude,
-        });
-      }
-      return point;
-    });
+    newPoints = discardPointsBySeconds(points, 1, true);
     if (importedPoints !== points.length) {
       dispatch(
         setSequenceError(
