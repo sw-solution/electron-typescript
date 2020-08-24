@@ -401,8 +401,6 @@ export function writeExifTags(
       ImageDescription: JSON.stringify(description),
     };
 
-    console.log('Writing Tags: ', tags);
-
     exiftool
       .write(input_file, tags, options)
       .then(() => {

@@ -2,8 +2,9 @@ import { BrowserWindow } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import rimraf from 'rimraf';
+import dayjs from 'dayjs';
 
-import { IGeoPoint } from '../../types/IGeoPoint';
+import { IGeoPoint, IGeoPointModel } from '../../types/IGeoPoint';
 import { Result, Summary } from '../../types/Result';
 
 export const resultdirectory = 'sequences';
@@ -222,4 +223,44 @@ export const resetSequence = async (sequence: any) => {
     removeDirectory(getSequenceBasePath(sequence.steps.name)),
     removeTempFiles(sequence),
   ]);
+};
+
+export const importGpx = (
+  proppoints: IGeoPointModel[],
+  oldGpxPoints: any[],
+  modifyTime = 0
+) => {
+  const points = proppoints.map((p: IGeoPointModel) => new IGeoPoint({ ...p }));
+  const gpxPoints = oldGpxPoints.map((point: any) => {
+    return {
+      ...point,
+      timestamp: dayjs(point.GPSDateTime).add(modifyTime, 'second'),
+    };
+  });
+  let newPoints = points
+    .map((point: IGeoPoint) => {
+      const pointTime = dayjs(point.GPSDateTime);
+      const matchedPoint = gpxPoints.filter(
+        (p) => pointTime.diff(dayjs(p.timestamp), 'second') === 0
+      );
+      if (matchedPoint.length) {
+        return new IGeoPoint({
+          ...point,
+          MAPLongitude: matchedPoint[0].longitude,
+          MAPLatitude: matchedPoint[0].latitude,
+          MAPAltitude: matchedPoint[0].elevation
+            ? matchedPoint[0].elevation
+            : point.MAPAltitude,
+        });
+      }
+      return point;
+    })
+    .filter(
+      (point: IGeoPoint) =>
+        typeof point.MAPAltitude === 'undefined' ||
+        typeof point.MAPLatitude === 'undefined' ||
+        typeof point.MAPLongitude === 'undefined'
+    );
+  newPoints = discardPointsBySeconds(points, 1, true);
+  return newPoints;
 };

@@ -7,17 +7,29 @@ import Button from '@material-ui/core/Button';
 import Box from '@material-ui/core/Box';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
-import { selStartTime, setCurrentStep, setSequenceModifyTime } from './slice';
+import {
+  selStartTime,
+  setCurrentStep,
+  setSequenceModifyTime,
+  selPoints,
+  selGPXPoints,
+  setSequencePoints,
+} from './slice';
+import { importGpx } from '../scripts/utils';
 
 export default function SequenceStartTime() {
   const dispatch = useDispatch();
   const startTime = useSelector(selStartTime);
+  const points = useSelector(selPoints);
+  const gpxPoints = useSelector(selGPXPoints);
 
   const modifyTime = () => {
     dispatch(setCurrentStep('modifyTime'));
   };
 
   const correctTime = () => {
+    const newpoints = importGpx(points, gpxPoints);
+    dispatch(setSequencePoints(newpoints));
     dispatch(setSequenceModifyTime(0));
   };
 

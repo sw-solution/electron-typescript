@@ -446,54 +446,8 @@ export const setSequenceError = (error: any): AppThunk => {
 };
 
 export const setSequenceModifyTime = (modifyTime: number): AppThunk => {
-  return (dispatch, getState) => {
-    const state = getState();
+  return (dispatch) => {
     dispatch(setModifyTime(modifyTime));
-    const { points } = state.create;
-    const gpxPoints = state.create.steps.gpx.points.map((point: any) => {
-      return {
-        ...point,
-        timestamp: dayjs(point.GPSDateTime).add(modifyTime, 'second'),
-      };
-    });
-
-    let importedPoints = 0;
-    let newPoints = points
-      .map((point: IGeoPoint) => {
-        const pointTime = dayjs(point.GPSDateTime);
-        const matchedPoint = gpxPoints.filter(
-          (p) => pointTime.diff(dayjs(p.timestamp), 'second') === 0
-        );
-        if (matchedPoint.length) {
-          importedPoints += 1;
-          return new IGeoPoint({
-            ...point,
-            MAPLongitude: matchedPoint[0].longitude,
-            MAPLatitude: matchedPoint[0].latitude,
-            MAPAltitude: matchedPoint[0].elevation
-              ? matchedPoint[0].elevation
-              : point.MAPAltitude,
-          });
-        }
-        return point;
-      })
-      .filter(
-        (point: IGeoPoint) =>
-          typeof point.MAPAltitude === 'undefined' ||
-          typeof point.MAPLatitude === 'undefined' ||
-          typeof point.MAPLongitude === 'undefined'
-      );
-    newPoints = discardPointsBySeconds(points, 1, true);
-    if (importedPoints !== points.length) {
-      dispatch(
-        setSequenceError(
-          `${
-            points.length - importedPoints
-          } points are not updated. These points may be ignored.`
-        )
-      );
-    }
-    dispatch(setPoints(newPoints));
     dispatch(setCurrentStep('modifySpace'));
   };
 };
