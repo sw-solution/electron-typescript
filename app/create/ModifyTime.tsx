@@ -14,6 +14,7 @@ import {
   selGPXPoints,
   setSequencePoints,
   selModifyTime,
+  selGPXStartTime,
 } from './slice';
 import { importGpx } from '../scripts/utils';
 
@@ -25,6 +26,7 @@ export default function SequenceStartTime() {
   const dispatch = useDispatch();
   const startTime = useSelector(selStartTime);
   const propModifyTime = useSelector(selModifyTime);
+  const gpxStartTime = useSelector(selGPXStartTime);
 
   const points = useSelector(selPoints);
   const gpxPoints = useSelector(selGPXPoints);
@@ -55,14 +57,17 @@ export default function SequenceStartTime() {
           Set Photo Time Offset
         </Typography>
         <Typography paragraph>
-          Occasionally photo capture times (original date time) are reported incorrectly (usually when clocks change and camera time is not updated). You can set an offset in seconds to change the photo times to match correct times in GPX track by setting an offset value below.
+          Occasionally photo capture times (original date time) are reported
+          incorrectly (usually when clocks change and camera time is not
+          updated). You can set an offset in seconds to change the photo times
+          to match correct times in GPX track by setting an offset value below.
         </Typography>
         <Typography paragraph>
-          The start time of your GPX Track is: 
+          The start time of your GPX Track is:
           {gpxStartTime}
         </Typography>
         <Typography paragraph>
-          The time in the first photo in the sequence is: 
+          The time in the first photo in the sequence is:
           {startTime}
         </Typography>
         <Typography paragraph>

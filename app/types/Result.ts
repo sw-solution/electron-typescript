@@ -33,6 +33,7 @@ export interface Connections {
 }
 
 export interface Photo {
+  GPSDateTime?: string;
   MAPAltitude?: number;
   MAPLatitude?: number;
   MAPLongitude?: number;

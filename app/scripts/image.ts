@@ -19,6 +19,7 @@ import {
   OutputType,
   getSequenceOutputPath,
   discardPointsBySeconds,
+  parseExifDateTime,
 } from './utils';
 
 const { Tags, exiftool } = require('exiftool-vendored');
@@ -79,6 +80,7 @@ export const copyFiles = (
 export function getPoint(dirpath: string, filename: string) {
   return new Promise((resolve, reject) => {
     const filepath = path.join(dirpath, filename);
+
     exiftool
       .read(filepath)
       .then((tags: typeof Tags) => {
@@ -88,10 +90,12 @@ export function getPoint(dirpath: string, filename: string) {
         let pitch = tags.PosePitchDegrees;
         if (!pitch) pitch = tags.CameraElevationAngle;
 
-        let datetime = tags.GPSDateTime ? dayjs(tags.GPSDateTime) : undefined;
+        let datetime = tags.GPSDateTime
+          ? dayjs(parseExifDateTime(tags.GPSDateTime))
+          : undefined;
         if (!datetime)
           datetime = tags.DateTimeOriginal
-            ? dayjs(tags.DateTimeOriginal)
+            ? dayjs(parseExifDateTime(tags.DateTimeOriginal))
             : undefined;
 
         const itemTags = { ...tags };
@@ -115,7 +119,8 @@ export function getPoint(dirpath: string, filename: string) {
             deleteTagKeys.indexOf(k) >= 0 ||
             k.indexOf('File') >= 0 ||
             k.indexOf('Date') >= 0 ||
-            k.indexOf('Version') >= 0
+            k.indexOf('Version') >= 0 ||
+            k.indexOf('Image') >= 0
           ) {
             delete itemTags[k];
           }
@@ -192,7 +197,9 @@ export const calculatePoints = (
 ) => {
   try {
     points.sort((firstItem: IGeoPoint, secondItem: IGeoPoint) => {
-      return secondItem.getDate().isBefore(firstItem.getDate()) ? 1 : -1;
+      if (secondItem.getDate().isBefore(firstItem.getDate())) return 1;
+      if (secondItem.getDate().isAfter(firstItem.getDate())) return -1;
+      return 0;
     });
 
     const existedFarPoint =
@@ -398,7 +405,10 @@ export function writeExifTags(
       GPSImgDirection: azimuth,
       CameraElevationAngle: item.Pitch,
       PosePitchDegrees: item.Pitch,
-      ImageDescription: JSON.stringify(description),
+      ImageDescription: JSON.stringify({
+        ...description,
+        GPSDateTime: undefined,
+      }),
     };
 
     exiftool
@@ -494,7 +504,11 @@ export function writeBlurredImage(
         return reject(err);
       });
     const writeExifAsync = jimpAsync
-      .then(() => writeExifTags(outputfile, item, { ...description.photo }))
+      .then(() =>
+        writeExifTags(outputfile, item, {
+          ...description.photo,
+        })
+      )
       .catch((err) => {
         console.log(`Write Error in Jimp: ${filename} - `, err);
         return reject(err);
@@ -603,6 +617,8 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
         MAPAltitude: p.MAPAltitude,
         MAPLatitude: p.MAPLatitude,
         MAPLongitude: p.MAPLongitude,
+
+        GPSDateTime: p.getDateStr(),
 
         MAPCaptureTime: p.getDate().format('YYYY_MM_DD_HH_mm_ss_SSS'),
         MTPSequenceName: settings.name,

@@ -259,3 +259,18 @@ export const importGpx = (
   });
   return newPoints.length ? discardPointsBySeconds(newPoints, 1, true) : [];
 };
+
+export const parseExifDateTime = (exifdatetime: any) => {
+  if (exifdatetime.rawValue) {
+    return exifdatetime.rawValue;
+  }
+  return new Date(
+    exifdatetime.year,
+    exifdatetime.month,
+    exifdatetime.day,
+    exifdatetime.hour,
+    exifdatetime.minute,
+    exifdatetime.second,
+    exifdatetime.millisecond
+  );
+};
