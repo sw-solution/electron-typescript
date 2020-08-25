@@ -9,17 +9,43 @@ import ChipInput from 'material-ui-chip-input';
 
 import { setSequenceTags, selSequenceTags, setCurrentStep } from './slice';
 
+interface State {
+  tags: string[];
+  showError: boolean;
+}
+
 export default function SequenceTags() {
   const propsTags = useSelector(selSequenceTags);
-  const [tags, setTags] = React.useState<string[]>(propsTags);
+  const [state, setState] = React.useState<State>({
+    tags: propsTags,
+    showError: false,
+  });
+
+  const { tags, showError } = state;
+
   const dispatch = useDispatch();
 
   const handleAddTag = (tag: string) => {
-    setTags([...tags, tag]);
+    if (/^[A-Za-z\-0-9]*$/.test(tag)) {
+      setState({
+        ...state,
+        tags: [...tags, tag],
+        showError: false,
+      });
+    } else {
+      setState({
+        ...state,
+        showError: true,
+      });
+    }
   };
 
   const handleDeleteTag = (tag: string) => {
-    setTags(tags.filter((t) => t !== tag));
+    setState({
+      ...state,
+      tags: tags.filter((t) => t !== tag),
+      showError: false,
+    });
   };
 
   const storeSequenceTags = () => {
@@ -33,7 +59,7 @@ export default function SequenceTags() {
         <Typography variant="h6" align="center" color="textSecondary">
           Tags
         </Typography>
-        <Typography paragraph>
+        <Typography paragraph color={showError ? 'error' : 'initial'}>
           Tags help people discover your sequence on Map the Paths. Good example
           of tags include what you saw, the weather, or anything else people
           would use to search. For example “sun”, “daffodils”. Tags can only
