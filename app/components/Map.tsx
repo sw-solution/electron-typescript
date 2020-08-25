@@ -15,6 +15,7 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import ChevronLeftRoundedIcon from '@material-ui/icons/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@material-ui/icons/ChevronRightRounded';
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import { getSequenceImagePath } from '../scripts/utils';
 
 import { IGeoPoint } from '../types/IGeoPoint';
@@ -45,6 +46,7 @@ interface Props {
   points: IGeoPoint[];
   showPopup?: boolean;
   height?: number;
+  onDelete?: CallableFunction | null;
 }
 
 interface State {
@@ -53,7 +55,7 @@ interface State {
 }
 
 export default function Map(props: Props) {
-  const { points, height, showPopup } = props;
+  const { points, height, showPopup, onDelete } = props;
   const name = useSelector(selSequenceName);
   const [state, setState] = useState<State>({
     isopen: false,
@@ -105,6 +107,12 @@ export default function Map(props: Props) {
 
   const getpath = (idx: number) => {
     return getSequenceImagePath(name, filteredpoints[idx.toString()].Image);
+  };
+
+  const removePhoto = () => {
+    if (onDelete) {
+      onDelete(filteredpoints[state.selected.toString()].id);
+    }
   };
 
   const get2dpath = (idx: number) => {
@@ -190,6 +198,11 @@ export default function Map(props: Props) {
               <IconButton onClick={nextImage}>
                 <ChevronRightRoundedIcon />
               </IconButton>
+              {onDelete && (
+                <IconButton onClick={removePhoto} color="secondary">
+                  <DeleteForeverIcon />
+                </IconButton>
+              )}
             </ButtonGroup>
           </Box>
           <Box>{photos[state.selected]}</Box>
@@ -279,4 +292,5 @@ export default function Map(props: Props) {
 Map.defaultProps = {
   height: 350,
   showPopup: true,
+  onDelete: null,
 };

@@ -26,7 +26,6 @@ import {
   selSequenceOutlierMode,
   selPoints,
   setSequencePoints,
-  resetPoints,
 } from './slice';
 
 const useStyles = makeStyles((theme) => ({
@@ -169,6 +168,43 @@ export default function SequenceModifyOutlier() {
     updatePoints(event.target.value, mode);
   };
 
+  const removePhoto = (id: string) => {
+    const newpoints: IGeoPoint[] = [];
+    const temppoints = points.map(
+      (point: IGeoPoint) => new IGeoPoint({ ...point })
+    );
+    for (let idx = 0; idx < temppoints.length; idx += 1) {
+      const point: IGeoPoint = temppoints[idx];
+      if (idx === 0) {
+        if (point.id !== id) {
+          newpoints.push(point);
+        }
+      } else if (idx > 0 && idx < temppoints.length - 1) {
+        const previousIdx = idx - 1;
+        if (point.id === id) {
+          const nextpoint = temppoints[idx + 1];
+          const prevpoint = temppoints[idx - 1];
+          newpoints[previousIdx].setDistance(getDistance(prevpoint, nextpoint));
+          newpoints[previousIdx].setAzimuth(getBearing(prevpoint, nextpoint));
+          newpoints[previousIdx].setPitch(getPitch(prevpoint, nextpoint));
+        } else {
+          newpoints.push(point);
+        }
+      } else if (point.id !== id) {
+        newpoints.push(point);
+      } else {
+        newpoints[newpoints.length - 1].setDistance(0);
+        newpoints[newpoints.length - 1].setAzimuth(0);
+        newpoints[newpoints.length - 1].setPitch(0);
+      }
+    }
+
+    setState({
+      ...state,
+      points: newpoints,
+    });
+  };
+
   return (
     <>
       <Grid item xs={12}>
@@ -216,7 +252,7 @@ export default function SequenceModifyOutlier() {
         </Box>
       </Grid>
       <Grid item xs={12}>
-        <Map points={points} />
+        <Map points={points} onDelete={removePhoto} />
       </Grid>
       <Grid item xs={12}>
         <Box mr={1} display="inline-block">
