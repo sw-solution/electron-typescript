@@ -114,7 +114,6 @@ export function getGPSVideoData(tags: typeof Tags) {
 }
 
 export async function writeTags2Image(
-  outputPath: string,
   commonData: any,
   datalist: VGeoPoint[],
   callback: any
@@ -267,11 +266,8 @@ export function splitVideoToImage(
         },
 
         (cb: CallableFunction) => {
-          writeTags2Image(
-            outputPath,
-            commonData,
-            dataList,
-            (datalist: IGeoPoint[]) => cb(null, datalist)
+          writeTags2Image(commonData, dataList, (datalist: IGeoPoint[]) =>
+            cb(null, datalist)
           );
         },
       ],

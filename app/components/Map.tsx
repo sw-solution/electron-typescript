@@ -8,16 +8,13 @@ import {
   ButtonGroup,
   IconButton,
   Box,
-  Chip,
-  Avatar,
+  Typography,
 } from '@material-ui/core';
 import ReactPannellum from 'react-pannellum';
 import { makeStyles } from '@material-ui/core/styles';
 
 import ChevronLeftRoundedIcon from '@material-ui/icons/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@material-ui/icons/ChevronRightRounded';
-import Rotate90DegreesCcwIcon from '@material-ui/icons/Rotate90DegreesCcw';
-import SpeedIcon from '@material-ui/icons/Speed';
 import { getSequenceImagePath } from '../scripts/utils';
 
 import { IGeoPoint } from '../types/IGeoPoint';
@@ -136,17 +133,25 @@ export default function Map(props: Props) {
       return (
         <>
           <div style={{ marginBottom: '5px' }}>
-            <Chip
-              avatar={<Avatar>M</Avatar>}
-              color="primary"
-              label={point.Distance ? point.Distance.toFixed(2) : 0}
-            />
-            <Chip
-              icon={<Rotate90DegreesCcwIcon />}
-              color="secondary"
-              label={point.Azimuth ? point.Azimuth.toFixed(2) : 0}
-            />
-            <Chip icon={<SpeedIcon />} color="primary" label={difftime} />
+            <Typography variant="caption" display="block">
+              {`File Name: ${point.Image}`}
+            </Typography>
+            <Typography variant="caption" display="block">
+              {`GPS Time: ${point.GPSDateTime}`}
+            </Typography>
+            <Typography variant="caption" display="block">
+              {`Heading (Degrees): ${
+                point.Azimuth ? point.Azimuth.toFixed(2) : 0
+              }`}
+            </Typography>
+            <Typography variant="caption" display="block">
+              {`distance to next photo (meters): ${
+                point.Distance ? point.Distance.toFixed(2) : 0
+              }`}
+            </Typography>
+            <Typography variant="caption" display="block">
+              {`time to next photo: ${difftime}`}
+            </Typography>
           </div>
           {point.equirectangular && (
             <ReactPannellum
