@@ -220,6 +220,8 @@ ipcMain.on('load_gpx', (_event: IpcMainEvent, gpxpath: string) => {
   readGPX(gpxpath, (err: any, points: any) => {
     if (!err) {
       sendToClient(mainWindow, 'loaded_gpx', points);
+    } else {
+      errorHandler(mainWindow, err);
     }
   });
 });

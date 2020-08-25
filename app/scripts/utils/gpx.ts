@@ -5,19 +5,20 @@ import TrackPoint from '../../types/GPXTrackPoint';
 export function parseTrack(arg: any) {
   const track = arg.trkseg[0].trkpt;
   return track
-    .filter((t) => {
-      return true ? t.time : false;
+    .filter((t: any) => {
+      return !!t.time;
     })
-    .map((obj) => {
-      const elevation = obj.ele[0];
-      const { lat, lon } = obj.$;
-      const timestamp = obj.time[0];
-      return new TrackPoint(elevation, lat, lon, timestamp);
-    });
+    .reduce((obj: any, current: any) => {
+      const elevation = current.ele[0];
+      const { lat, lon } = current.$;
+      const timestamp = current.time[0].replace('Z', '');
+      obj[timestamp] = new TrackPoint(elevation, lat, lon, timestamp);
+      return obj;
+    }, {});
 }
 
 export function readGPX(dirpath: string, callback: CallableFunction) {
-  fs.readFile(dirpath, (err: Error | null, data: string) => {
+  fs.readFile(dirpath, (err: any, data: string) => {
     if (err) {
       callback(err);
     }

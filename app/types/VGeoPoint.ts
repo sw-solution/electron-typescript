@@ -1,7 +1,7 @@
 import { Dayjs } from 'dayjs';
 
 export interface VGeoPointModel {
-  GPSDateTime: Dayjs;
+  GPSDateTime: string;
 
   SampleTime: number;
 
@@ -13,7 +13,7 @@ export interface VGeoPointModel {
 }
 
 export class VGeoPoint {
-  GPSDateTime: Dayjs;
+  GPSDateTime: string;
 
   SampleTime: number;
 

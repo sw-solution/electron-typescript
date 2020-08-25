@@ -25,7 +25,6 @@ export function sendPoints(win: BrowserWindow | null, points: IGeoPoint[]) {
     win,
     'loaded_points',
     points.map((item: IGeoPoint) => {
-      item.convertDateToStr();
       return item;
     })
   );
@@ -227,31 +226,29 @@ export const resetSequence = async (sequence: any) => {
 
 export const importGpx = (
   proppoints: IGeoPointModel[],
-  oldGpxPoints: any[],
+  gpxPoints: any,
   modifyTime = 0
 ) => {
   const points = proppoints.map((p: IGeoPointModel) => new IGeoPoint({ ...p }));
-  const gpxPoints = oldGpxPoints.map((point: any) => {
-    return {
-      ...point,
-      timestamp: dayjs(point.GPSDateTime).add(modifyTime, 'second'),
-    };
-  });
+
   const newPoints: IGeoPoint[] = [];
 
   points.forEach((point: IGeoPoint) => {
-    const pointTime = dayjs(point.GPSDateTime);
-    const matchedPoint = gpxPoints.filter(
-      (p) => pointTime.diff(dayjs(p.timestamp), 'second') === 0
-    );
-    if (matchedPoint.length) {
+    const pointTime = dayjs(point.DateTimeOriginal)
+      .add(modifyTime, 'second')
+      .format('YYYY-MM-DDTHH:mm:ss');
+
+    if (pointTime in gpxPoints) {
+      const gpxPoint = gpxPoints[pointTime];
       newPoints.push(
         new IGeoPoint({
           ...point,
-          MAPLongitude: matchedPoint[0].longitude,
-          MAPLatitude: matchedPoint[0].latitude,
-          MAPAltitude: matchedPoint[0].elevation
-            ? matchedPoint[0].elevation
+          GPSDateTime: pointTime,
+          DateTimeOriginal: pointTime,
+          MAPLongitude: gpxPoint.longitude,
+          MAPLatitude: gpxPoint.latitude,
+          MAPAltitude: gpxPoint.elevation
+            ? gpxPoint.elevation
             : point.MAPAltitude,
         })
       );
@@ -260,17 +257,16 @@ export const importGpx = (
   return newPoints.length ? discardPointsBySeconds(newPoints, 1, true) : [];
 };
 
-export const parseExifDateTime = (exifdatetime: any) => {
-  if (exifdatetime.rawValue) {
-    return exifdatetime.rawValue;
-  }
-  return new Date(
-    exifdatetime.year,
-    exifdatetime.month,
-    exifdatetime.day,
-    exifdatetime.hour,
-    exifdatetime.minute,
-    exifdatetime.second,
-    exifdatetime.millisecond
-  );
+export const parseExifDateTime = (exifdatetime: any): string => {
+  return dayjs(
+    new Date(
+      exifdatetime.year,
+      exifdatetime.month - 1,
+      exifdatetime.day,
+      exifdatetime.hour,
+      exifdatetime.minute,
+      exifdatetime.second,
+      exifdatetime.millisecond
+    )
+  ).format('YYYY-MM-DDTHH:mm:ss');
 };

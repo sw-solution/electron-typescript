@@ -20,7 +20,7 @@ const initialState = {
     gpx: {
       required: true,
       path: '',
-      points: [],
+      points: {},
       import: false,
     },
     startTime: '',
@@ -129,7 +129,7 @@ const createSequenceSlice = createSlice({
     setGpxPoints: (state, { payload }) => {
       state.steps.gpx = {
         ...state.steps.gpx,
-        points: [...payload],
+        points: { ...payload },
       };
     },
     setGpxImport: (state) => {
@@ -487,12 +487,19 @@ export const selGPXImport = (state: RootState) => state.create.steps.gpx.import;
 export const selGPXPoints = (state: RootState) => state.create.steps.gpx.points;
 
 export const selStartTime = (state: RootState) =>
-  state.create.points.length ? state.create.points[0].GPSDateTime : null;
+  state.create.points.length ? state.create.points[0].DateTimeOriginal : null;
 
 export const selGPXStartTime = (state: RootState) =>
-  state.create.steps.gpx.points.length
-    ? state.create.steps.gpx.points[0].timestamp
+  Object.keys(state.create.steps.gpx.points).length
+    ? Object.keys(state.create.steps.gpx.points)[0]
     : null;
+
+export const selFirstMatchedPoints = (state: RootState) => {
+  const gpxPoints = selGPXPoints(state);
+  const startTime = selStartTime(state);
+  if (startTime in gpxPoints) return gpxPoints[startTime];
+  return null;
+};
 
 export const selModifyTime = (state: RootState) =>
   state.create.steps.modifyTime;

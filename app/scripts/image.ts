@@ -90,13 +90,9 @@ export function getPoint(dirpath: string, filename: string) {
         let pitch = tags.PosePitchDegrees;
         if (!pitch) pitch = tags.CameraElevationAngle;
 
-        let datetime = tags.GPSDateTime
-          ? dayjs(parseExifDateTime(tags.GPSDateTime))
+        const datetime = tags.GPSDateTime
+          ? parseExifDateTime(tags.GPSDateTime)
           : undefined;
-        if (!datetime)
-          datetime = tags.DateTimeOriginal
-            ? dayjs(parseExifDateTime(tags.DateTimeOriginal))
-            : undefined;
 
         const itemTags = { ...tags };
 
@@ -129,6 +125,7 @@ export function getPoint(dirpath: string, filename: string) {
         if (datetime) {
           const item = new IGeoPoint({
             GPSDateTime: datetime,
+            DateTimeOriginal: parseExifDateTime(tags.DateTimeOriginal),
             MAPLatitude: tags.GPSLatitude,
             MAPLongitude: tags.GPSLongitude,
             MAPAltitude: tags.GPSAltitude,
@@ -196,11 +193,21 @@ export const calculatePoints = (
   next: CallableFunction
 ) => {
   try {
-    points.sort((firstItem: IGeoPoint, secondItem: IGeoPoint) => {
-      if (secondItem.getDate().isBefore(firstItem.getDate())) return 1;
-      if (secondItem.getDate().isAfter(firstItem.getDate())) return -1;
-      return 0;
-    });
+    if (points.filter((p: IGeoPoint) => p.GPSDateTime).length) {
+      points.sort((firstItem: IGeoPoint, secondItem: IGeoPoint) => {
+        if (secondItem.getDate().isBefore(firstItem.getDate())) return 1;
+        if (secondItem.getDate().isAfter(firstItem.getDate())) return -1;
+        return 0;
+      });
+    } else {
+      points.sort((firstItem: IGeoPoint, secondItem: IGeoPoint) => {
+        if (secondItem.getDateOriginal().isBefore(firstItem.getDateOriginal()))
+          return 1;
+        if (secondItem.getDateOriginal().isAfter(firstItem.getDateOriginal()))
+          return -1;
+        return 0;
+      });
+    }
 
     const existedFarPoint =
       points.filter((item: IGeoPoint, idx) => {
@@ -536,7 +543,6 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
       )
       .map((p) => {
         const newP = new IGeoPoint(p);
-        newP.convertStrToDate();
         return newP;
       });
 
@@ -564,8 +570,8 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
       sequence: {
         id: sequenceId,
         distance_km: totaldistance / 1000,
-        earliest_time: updatedPoints[0].getDateStr(),
-        latest_time: updatedPoints[updatedPoints.length - 1].getDateStr(),
+        earliest_time: updatedPoints[0].GPSDateTime,
+        latest_time: updatedPoints[updatedPoints.length - 1].GPSDateTime,
         durationsec,
         average_speed_kmh: durationsec
           ? (totaldistance * 3600) / durationsec
@@ -618,7 +624,7 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
         MAPLatitude: p.MAPLatitude,
         MAPLongitude: p.MAPLongitude,
 
-        GPSDateTime: p.getDateStr(),
+        GPSDateTime: p.GPSDateTime,
 
         MAPCaptureTime: p.getDate().format('YYYY_MM_DD_HH_mm_ss_SSS'),
         MTPSequenceName: settings.name,

@@ -15,6 +15,7 @@ import {
   selPoints,
   selGPXPoints,
   setSequencePoints,
+  selFirstMatchedPoints,
 } from './slice';
 import { importGpx } from '../scripts/utils';
 
@@ -24,6 +25,7 @@ export default function SequenceStartTime() {
   const gpxStartTime = useSelector(selGPXStartTime);
   const points = useSelector(selPoints);
   const gpxPoints = useSelector(selGPXPoints);
+  const firstMatchedPoints = useSelector(selFirstMatchedPoints);
 
   const modifyTime = () => {
     dispatch(setCurrentStep('modifyTime'));
@@ -42,16 +44,27 @@ export default function SequenceStartTime() {
           Confirm GPX Track
         </Typography>
         <Typography paragraph>
-          This process will overwrite any existing geotags. Any photos that do not match exactly to GPX track will be discarded.
+          This process will overwrite any existing geotags. Any photos that do
+          not match exactly to GPX track will be discarded.
         </Typography>
         <Typography paragraph>
-          The start time of your GPS Track is: 
-          {gpxStartTime}
+          {`The start time of your GPS Track is: ${gpxStartTime}`}
         </Typography>
         <Typography paragraph>
-          The time in the first photo in the sequence is: 
-          {startTime}
+          {`The time in the first photo in the sequence is: ${startTime}`}
         </Typography>
+        {firstMatchedPoints && (
+          <Typography paragraph>
+            {`We found the first matching gps record in the track for this photo
+            at lat=${firstMatchedPoints.latitude} lon=${firstMatchedPoints.longitude} alt=${firstMatchedPoints.elevation} at FIRST MATCH TIME.`}
+          </Typography>
+        )}
+        {!firstMatchedPoints && (
+          <Typography paragraph>
+            There are no matched points between Photos and Gpx Points. Maybe you
+            have to change the start time of Gpx points.
+          </Typography>
+        )}
       </Grid>
       <Grid item xs={12}>
         <Box mr={1} display="inline-block">

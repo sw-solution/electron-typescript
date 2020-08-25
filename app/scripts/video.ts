@@ -74,8 +74,6 @@ export function getGPSVideoData(tags: typeof Tags) {
     }
   } while (m);
 
-  console.log('availableKeys: ', availableKeys);
-
   const dataList: VGeoPoint[] = [];
   availableKeys.forEach((k: string) => {
     try {
@@ -85,7 +83,7 @@ export function getGPSVideoData(tags: typeof Tags) {
           .length === 0
       ) {
         const item = new VGeoPoint({
-          GPSDateTime: dayjs(tags[`${k}:GPSDateTime`]),
+          GPSDateTime: tags[`${k}:GPSDateTime`],
           MAPLatitude: parseDms(tags[`${k}:GPSLatitude`]),
           MAPLongitude: parseDms(tags[`${k}:GPSLongitude`]),
           MAPAltitude: getAltudeMeters(tags[`${k}:GPSAltitude`]),
@@ -127,7 +125,7 @@ export async function writeTags2Image(
   if (strStartTime) {
     starttime = dayjs(strStartTime);
   } else {
-    starttime = datalist[0].GPSDateTime;
+    starttime = dayjs(datalist[0].GPSDateTime);
   }
   const result: IGeoPoint[] = [];
 
@@ -136,7 +134,9 @@ export async function writeTags2Image(
     (seconds: number, cb: any) => {
       let previtem = null;
       let nextitem = null;
-      const datetime = starttime.add(seconds, 'second');
+      const datetime = starttime
+        .add(seconds, 'second')
+        .format('YYYY-MM-DDTHH:mm:ss');
       for (let i = 0; i < datalist.length - 1; i += 1) {
         const item1 = datalist[i];
         const item2 = datalist[i + 1];
@@ -167,6 +167,7 @@ export async function writeTags2Image(
 
         item = new IGeoPoint({
           GPSDateTime: datetime,
+          DateTimeOriginal: datetime,
           MAPLatitude: latitude,
           MAPLongitude: longitude,
           MAPAltitude: altitude,
@@ -182,6 +183,7 @@ export async function writeTags2Image(
         nextitem = datalist[datalist.length - 1];
         item = new IGeoPoint({
           GPSDateTime: nextitem.GPSDateTime,
+          DateTimeOriginal: nextitem.GPSDateTime,
           MAPLatitude: nextitem.MAPLatitude,
           MAPLongitude: nextitem.MAPLongitude,
           MAPAltitude: nextitem.MAPAltitude,
@@ -194,29 +196,8 @@ export async function writeTags2Image(
             commonData['Main:ProjectionType'] === 'equirectangular',
         });
       }
-
-      exiftool
-        .write(
-          path.join(outputPath, filename),
-          {
-            AllDates: datetime.format('YYYY-MM-DDTHH:mm:ss'),
-            GPSTimeStamp: datetime.format('HH:mm:ss'),
-            GPSDateStamp: datetime.format('YYYY-MM-DD'),
-            GPSLatitude: item.MAPLatitude,
-            GPSLongitude: item.MAPLongitude,
-            GPSAltitude: item.MAPAltitude,
-            ProjectionType: commonData['Main:ProjectionType'],
-            Make: commonData['Main:Make'],
-          },
-          ['-overwrite_original']
-        )
-        .then(() => {
-          result.push(item);
-          return cb();
-        })
-        .catch((error: Error) =>
-          console.error('Error in writing tags: ', error)
-        );
+      result.push(item);
+      cb();
     },
     (err) => {
       if (!err) {

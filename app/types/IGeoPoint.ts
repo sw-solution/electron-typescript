@@ -1,10 +1,12 @@
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface IGeoPointModel {
   id?: string;
 
-  GPSDateTime: Dayjs | string;
+  GPSDateTime?: string;
+
+  DateTimeOriginal: string;
 
   MAPLatitude?: number;
 
@@ -35,7 +37,9 @@ export interface IGeoPointModel {
 export class IGeoPoint {
   id: string;
 
-  public GPSDateTime: Dayjs | string;
+  public GPSDateTime?: string;
+
+  public DateTimeOriginal: string;
 
   public MAPLatitude?: number;
 
@@ -66,6 +70,7 @@ export class IGeoPoint {
   constructor({
     id,
     GPSDateTime,
+    DateTimeOriginal,
     MAPLatitude,
     MAPLongitude,
     MAPAltitude,
@@ -83,6 +88,7 @@ export class IGeoPoint {
   }: IGeoPointModel) {
     this.id = id || uuidv4();
     this.GPSDateTime = GPSDateTime;
+    this.DateTimeOriginal = DateTimeOriginal;
     this.MAPLatitude = MAPLatitude;
     this.MAPLongitude = MAPLongitude;
     this.MAPAltitude = MAPAltitude;
@@ -117,29 +123,11 @@ export class IGeoPoint {
     this.Distance = distance;
   }
 
-  convertDateToStr() {
-    this.GPSDateTime =
-      typeof this.GPSDateTime !== 'string'
-        ? this.GPSDateTime.format('YYYY-MM-DDTHH:mm:ss')
-        : this.GPSDateTime;
-  }
-
-  convertStrToDate() {
-    this.GPSDateTime =
-      typeof this.GPSDateTime === 'string'
-        ? dayjs(this.GPSDateTime)
-        : this.GPSDateTime;
-  }
-
-  getDateStr() {
-    return typeof this.GPSDateTime !== 'string'
-      ? this.GPSDateTime.format('YYYY-MM-DDTHH:mm:ss')
-      : this.GPSDateTime;
-  }
-
   getDate() {
-    return typeof this.GPSDateTime === 'string'
-      ? dayjs(this.GPSDateTime)
-      : this.GPSDateTime;
+    return dayjs(this.GPSDateTime);
+  }
+
+  getDateOriginal() {
+    return dayjs(this.DateTimeOriginal);
   }
 }
