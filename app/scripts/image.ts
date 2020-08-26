@@ -98,12 +98,6 @@ export function getPoint(
               const averageColor = (red + green + blue) / 3;
               console.log('Average Color: ', averageColor);
               cb(null, averageColor > 200 || averageColor < 55);
-              // if (averageColor > 200 || averageColor < 55) {
-              //   console.log(`Ignore ${filename} as Average Color: ${averageColor}`);
-              //   return resolve({
-              //     Image: filename,
-              //   });
-              // }
             });
           } else {
             cb(null, true);
@@ -207,7 +201,7 @@ export const getPoints = (
       getPoint(outputpath, filename, corrupedCheck)
         // eslint-disable-next-line promise/always-return
         .then((item: any) => {
-          if (item.GPSDateTime) {
+          if (item.DateTimeOriginal) {
             result.push(item);
           } else {
             removedfiles.push(item.Image);
@@ -241,6 +235,17 @@ export const calculatePoints = (
         if (secondItem.getDate().isAfter(firstItem.getDate())) return -1;
         return 0;
       });
+
+      const existedFarPoint =
+        points.filter((item: IGeoPoint, idx) => {
+          return (
+            idx < points.length - 1 &&
+            item.getDate().diff(points[idx + 1].getDate(), 'second') > 120
+          );
+        }).length > 0;
+      if (existedFarPoint) {
+        throw new Error('some photos are too far apart by time');
+      }
     } else {
       points.sort((firstItem: IGeoPoint, secondItem: IGeoPoint) => {
         if (secondItem.getDateOriginal().isBefore(firstItem.getDateOriginal()))
@@ -249,17 +254,6 @@ export const calculatePoints = (
           return -1;
         return 0;
       });
-    }
-
-    const existedFarPoint =
-      points.filter((item: IGeoPoint, idx) => {
-        return (
-          idx < points.length - 1 &&
-          item.getDate().diff(points[idx + 1].getDate(), 'second') > 120
-        );
-      }).length > 0;
-    if (existedFarPoint) {
-      throw new Error('some photos are too far apart by time');
     }
 
     if (
@@ -318,7 +312,6 @@ export function loadImages(
           cb1(null, files, dirPath, originalpath, corrupedCheck);
         });
       },
-      // filterCorruptImages,
       copyFiles,
       getPoints,
       calculatePoints,
