@@ -58,6 +58,7 @@ export const copyFiles = (
   files: string[],
   dirPath: string,
   outputpath: string,
+  corrupedCheck: boolean,
   next: CallableFunction
 ) => {
   Async.each(
@@ -73,107 +74,128 @@ export const copyFiles = (
       );
     },
     (error: Error | any) => {
-      if (!error) next(null, files, outputpath);
+      if (!error) next(null, files, outputpath, corrupedCheck);
       else next(error);
     }
   );
 };
 
-export function getPoint(dirpath: string, filename: string) {
+export function getPoint(
+  dirpath: string,
+  filename: string,
+  corrupedCheck: boolean
+) {
   return new Promise((resolve, reject) => {
     const filepath = path.join(dirpath, filename);
 
-    average(filepath, (err: any, color: any) => {
-      if (err) return reject(err);
-      const [red, green, blue] = color;
-      const averageColor = (red + green + blue) / 3;
-      console.log('Average Color: ', averageColor);
-
-      if (averageColor > 200 || averageColor < 55) {
-        console.log(`Ignore ${filename} as Average Color: ${averageColor}`);
-        return resolve({
-          Image: filename,
-        });
-      }
-      // eslint-disable-next-line promise/no-promise-in-callback
-      exiftool
-        .read(filepath)
-        .then((tags: typeof Tags) => {
-          let azimuth = tags.PoseHeadingDegrees;
-          if (!azimuth) azimuth = tags.GPSImgDirection;
-
-          let pitch = tags.PosePitchDegrees;
-          if (!pitch) pitch = tags.CameraElevationAngle;
-
-          const datetime = tags.GPSDateTime
-            ? parseExifDateTime(tags.GPSDateTime)
-            : undefined;
-
-          const itemTags = { ...tags };
-
-          const deleteTagKeys = [
-            'Orientation',
-            'SourceFile',
-            'tz',
-            'tzSource',
-            'errors',
-            'Directory',
-            'ExifToolVersion',
-            'Megapixels',
-            'EncodingProcess',
-            'GPSPosition',
-            'ColorComponents',
-            'MIMEType',
-            'AutoRotation',
-          ];
-
-          Object.keys(tags).forEach((k) => {
-            if (
-              deleteTagKeys.indexOf(k) >= 0 ||
-              k.indexOf('File') >= 0 ||
-              k.indexOf('Date') >= 0 ||
-              k.indexOf('Version') >= 0 ||
-              k.indexOf('Thumbnail') >= 0 ||
-              k.indexOf('Image') >= 0
-            ) {
-              delete itemTags[k];
-            }
-          });
-
-          if (datetime) {
-            const item = new IGeoPoint({
-              GPSDateTime: datetime,
-              DateTimeOriginal: parseExifDateTime(tags.DateTimeOriginal),
-              MAPLatitude: tags.GPSLatitude,
-              MAPLongitude: tags.GPSLongitude,
-              MAPAltitude: tags.GPSAltitude,
-              Image: filename,
-              Azimuth: azimuth,
-              Pitch: pitch,
-              camera_make: tags.Make,
-              camera_model: tags.Model,
-              equirectangular:
-                (tags.ProjectionType || '') === 'equirectangular',
-              width: tags.ImageWidth,
-              height: tags.ImageHeight,
-              tags: itemTags,
+    Async.waterfall(
+      [
+        (cb: CallableFunction) => {
+          if (corrupedCheck) {
+            average(filepath, (err: any, color: any) => {
+              if (err) return cb(err);
+              const [red, green, blue] = color;
+              const averageColor = (red + green + blue) / 3;
+              console.log('Average Color: ', averageColor);
+              cb(null, averageColor > 200 || averageColor < 55);
+              // if (averageColor > 200 || averageColor < 55) {
+              //   console.log(`Ignore ${filename} as Average Color: ${averageColor}`);
+              //   return resolve({
+              //     Image: filename,
+              //   });
+              // }
             });
-            return resolve(item);
+          } else {
+            cb(null, true);
           }
-          return resolve({
-            Image: filename,
-          });
-        })
-        .catch((err: Error) => {
-          return reject(err);
-        });
-    });
+        },
+        (valid: boolean, cb: CallableFunction) => {
+          if (valid) {
+            exiftool
+              .read(filepath)
+              .then((tags: typeof Tags) => {
+                let azimuth = tags.PoseHeadingDegrees;
+                if (!azimuth) azimuth = tags.GPSImgDirection;
+
+                let pitch = tags.PosePitchDegrees;
+                if (!pitch) pitch = tags.CameraElevationAngle;
+
+                const datetime = tags.GPSDateTime
+                  ? parseExifDateTime(tags.GPSDateTime)
+                  : undefined;
+
+                const itemTags = { ...tags };
+
+                const deleteTagKeys = [
+                  'Orientation',
+                  'SourceFile',
+                  'tz',
+                  'tzSource',
+                  'errors',
+                  'Directory',
+                  'ExifToolVersion',
+                  'Megapixels',
+                  'EncodingProcess',
+                  'GPSPosition',
+                  'ColorComponents',
+                  'MIMEType',
+                  'AutoRotation',
+                ];
+
+                Object.keys(tags).forEach((k) => {
+                  if (
+                    deleteTagKeys.indexOf(k) >= 0 ||
+                    k.indexOf('File') >= 0 ||
+                    k.indexOf('Date') >= 0 ||
+                    k.indexOf('Version') >= 0 ||
+                    k.indexOf('Thumbnail') >= 0 ||
+                    k.indexOf('Image') >= 0
+                  ) {
+                    delete itemTags[k];
+                  }
+                });
+
+                const item = new IGeoPoint({
+                  GPSDateTime: datetime,
+                  DateTimeOriginal: parseExifDateTime(tags.DateTimeOriginal),
+                  MAPLatitude: tags.GPSLatitude,
+                  MAPLongitude: tags.GPSLongitude,
+                  MAPAltitude: tags.GPSAltitude,
+                  Image: filename,
+                  Azimuth: azimuth,
+                  Pitch: pitch,
+                  camera_make: tags.Make,
+                  camera_model: tags.Model,
+                  equirectangular:
+                    (tags.ProjectionType || '') === 'equirectangular',
+                  width: tags.ImageWidth,
+                  height: tags.ImageHeight,
+                  tags: itemTags,
+                });
+                return cb(null, item);
+              })
+              .catch((err: Error) => {
+                return cb(err);
+              });
+          } else {
+            return cb(null, {
+              Image: filename,
+            });
+          }
+        },
+      ],
+      (err, result: any) => {
+        if (err) return reject(err);
+        return resolve(result);
+      }
+    );
   });
 }
 
 export const getPoints = (
   files: string[],
   outputpath: string,
+  corrupedCheck: boolean,
   next: CallableFunction
 ) => {
   const result: IGeoPoint[] = [];
@@ -182,7 +204,7 @@ export const getPoints = (
   Async.each(
     files,
     (filename: string, cb: CallableFunction) => {
-      getPoint(outputpath, filename)
+      getPoint(outputpath, filename, corrupedCheck)
         // eslint-disable-next-line promise/always-return
         .then((item: any) => {
           if (item.GPSDateTime) {
@@ -260,6 +282,7 @@ export const calculatePoints = (
 export function loadImages(
   dirPath: string,
   outputpath: string,
+  corrupedCheck: boolean,
   callback: CallableFunction
 ) {
   const files = fs.readdirSync(dirPath);
@@ -292,7 +315,7 @@ export function loadImages(
       (cb1: CallableFunction) => {
         const originalpath = path.join(outputpath, 'originals');
         fs.mkdir(originalpath, () => {
-          cb1(null, files, dirPath, originalpath);
+          cb1(null, files, dirPath, originalpath, corrupedCheck);
         });
       },
       // filterCorruptImages,

@@ -39,6 +39,15 @@ export default function SequenceBur() {
     dispatch(setBlur(event.target.checked));
   };
 
+  const bluredCheck = (
+    <Checkbox
+      checked={blurred}
+      onChange={handleChange}
+      name="checkedB"
+      color="primary"
+    />
+  );
+
   return (
     <>
       <Grid item xs={12}>
@@ -56,14 +65,7 @@ export default function SequenceBur() {
       <Grid item xs={12}>
         <FormControlLabel
           color="primary"
-          control={
-            <Checkbox
-              checked={blurred}
-              onChange={handleChange}
-              name="checkedB"
-              color="primary"
-            />
-          }
+          control={bluredCheck}
           label="Blur images?"
         />
       </Grid>

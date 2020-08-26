@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import Typography from '@material-ui/core/Typography';
-import Grid from '@material-ui/core/Grid';
+import { Grid, FormControlLabel, Checkbox } from '@material-ui/core';
 import IconButton from '@material-ui/core/IconButton';
 
 import { OpenDialogSyncOptions } from 'electron';
@@ -21,6 +21,8 @@ export default function SequenceUploadImage() {
   const dispatch = useDispatch();
   const attachType = useSelector(selSequenceAttachType);
   const seqName = useSelector(selSequenceName);
+
+  const [corrupted, setCorrupted] = useState<boolean>(false);
 
   const openFileDialog = async () => {
     const parentWindow = remote.getCurrentWindow();
@@ -49,11 +51,23 @@ export default function SequenceUploadImage() {
     );
 
     if (result) {
-      ipcRenderer.send(channelName, result[0], seqName);
+      ipcRenderer.send(channelName, result[0], seqName, corrupted);
       dispatch(setSequenceImagePath(result[0]));
     }
   };
 
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCorrupted(event.target.checked);
+  };
+
+  const corrupedCheck = (
+    <Checkbox
+      checked={corrupted}
+      onChange={handleChange}
+      name="checkedB"
+      color="primary"
+    />
+  );
   return (
     <>
       <Grid item xs={12}>
@@ -62,6 +76,13 @@ export default function SequenceUploadImage() {
             attachType === 'video' ? attachType : 'timelapse photos'
           }`}
         </Typography>
+        {attachType === 'image' && (
+          <FormControlLabel
+            color="primary"
+            control={corrupedCheck}
+            label="check for corrupted images (recommended if you suspect very dark frames)"
+          />
+        )}
       </Grid>
       <Grid item xs={12}>
         <IconButton onClick={openFileDialog} color="primary">

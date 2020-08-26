@@ -179,7 +179,12 @@ ipcMain.on(
 
 ipcMain.on(
   'load_images',
-  async (_event: IpcMainEvent, dirPath: string, seqname: string) => {
+  async (
+    _event: IpcMainEvent,
+    dirPath: string,
+    seqname: string,
+    corrupedCheck: boolean
+  ) => {
     if (!fs.existsSync(resultdirectory)) {
       fs.mkdirSync(resultdirectory);
     }
@@ -199,6 +204,7 @@ ipcMain.on(
     loadImages(
       dirPath,
       getSequenceBasePath(seqname),
+      corrupedCheck,
       (error: any, result: any) => {
         if (error) {
           errorHandler(mainWindow, error);
