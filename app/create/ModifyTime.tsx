@@ -7,16 +7,18 @@ import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
+import dayjs from 'dayjs';
 import {
   selStartTime,
   setSequenceModifyTime,
   selPoints,
-  selGPXPoints,
   setSequencePoints,
   selModifyTime,
   selGPXStartTime,
+  setCurrentStep,
 } from './slice';
-import { importGpx } from '../scripts/utils';
+
+import { IGeoPoint } from '../types/IGeoPoint';
 
 interface State {
   modifyTime: string;
@@ -29,7 +31,6 @@ export default function SequenceStartTime() {
   const gpxStartTime = useSelector(selGPXStartTime);
 
   const points = useSelector(selPoints);
-  const gpxPoints = useSelector(selGPXPoints);
   const [state, setState] = React.useState<State>({
     modifyTime: propModifyTime.toString(),
   });
@@ -45,9 +46,17 @@ export default function SequenceStartTime() {
 
   const correctTime = () => {
     const time = parseFloat(modifyTime);
-    const newpoints = importGpx(points, gpxPoints, time);
+    const newpoints = points.map((p: IGeoPoint) => {
+      return new IGeoPoint({
+        ...p,
+        DateTimeOriginal: dayjs(p.DateTimeOriginal)
+          .add(time, 'second')
+          .format('YYYY-MM-DDTHH:mm:ss'),
+      });
+    });
     dispatch(setSequencePoints(newpoints));
     dispatch(setSequenceModifyTime(time));
+    dispatch(setCurrentStep('startTime'));
   };
 
   return (

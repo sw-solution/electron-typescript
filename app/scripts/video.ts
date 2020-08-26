@@ -3,7 +3,6 @@
 import dayjs, { Dayjs } from 'dayjs';
 import path from 'path';
 import Async from 'async';
-import fs from 'fs';
 import { BrowserWindow } from 'electron';
 
 import { VGeoPoint, VGeoPointModel } from '../types/VGeoPoint';
@@ -13,7 +12,8 @@ import { calculatePoints } from './image';
 
 const ffmpeg = require('ffmpeg');
 
-const { Tags, ExifTool, exiftool } = require('exiftool-vendored');
+const { Tags, ExifTool } = require('exiftool-vendored');
+const average = require('image-average-color');
 
 export function getSeconds(timeStr: string) {
   const re = /(\d+\.?\d*) s/g;
@@ -116,7 +116,9 @@ export function getGPSVideoData(tags: typeof Tags) {
 export async function writeTags2Image(
   commonData: any,
   datalist: VGeoPoint[],
-  callback: any
+  inputPath: string,
+  corrupted: boolean,
+  callback: CallableFunction
 ) {
   const strStartTime = commonData['Main:GPSDateTime'];
   const duration = Math.ceil(commonData['Main:Duration']);
@@ -195,8 +197,17 @@ export async function writeTags2Image(
             commonData['Main:ProjectionType'] === 'equirectangular',
         });
       }
-      result.push(item);
-      cb();
+      if (corrupted) {
+        average(path.join(inputPath, filename), (err: any, color: any) => {
+          if (err) return cb(err);
+          const [red, green, blue] = color;
+          const averageColor = (red + green + blue) / 3;
+          if (averageColor > 200 || averageColor < 55) {
+            result.push(item);
+            cb(null);
+          }
+        });
+      }
     },
     (err) => {
       if (!err) {
@@ -241,7 +252,8 @@ export function splitVideoToImage(
   win: BrowserWindow | null,
   tags: any,
   videoPath: string,
-  outputPath: string
+  outputPath: string,
+  corrupted: boolean
 ) {
   const { dataList, commonData } = getGPSVideoData(tags);
   const duration = Math.floor(commonData['Main:Duration']);
@@ -265,8 +277,12 @@ export function splitVideoToImage(
         },
 
         (cb: CallableFunction) => {
-          writeTags2Image(commonData, dataList, (datalist: IGeoPoint[]) =>
-            cb(null, datalist)
+          writeTags2Image(
+            commonData,
+            dataList,
+            outputPath,
+            corrupted,
+            (datalist: IGeoPoint[]) => cb(null, datalist)
           );
         },
       ],
@@ -309,13 +325,14 @@ export function loadVideo(videoPath: string, callback: CallableFunction) {
 export function processVideo(
   win: BrowserWindow | null,
   videoPath: string,
-  outputPath: string
+  outputPath: string,
+  corrupted: boolean
 ) {
   loadVideo(videoPath, (error: any, tags: typeof Tags) => {
     if (error) {
       errorHandler(win, error);
     } else {
-      splitVideoToImage(win, tags, videoPath, outputPath);
+      splitVideoToImage(win, tags, videoPath, outputPath, corrupted);
     }
   });
 }

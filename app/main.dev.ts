@@ -163,7 +163,12 @@ ipcMain.on('load_config', async (_event: IpcMainEvent) => {
 
 ipcMain.on(
   'load_video',
-  async (_event: IpcMainEvent, videoPath: string, seqname: string) => {
+  async (
+    _event: IpcMainEvent,
+    videoPath: string,
+    seqname: string,
+    corrupted: boolean
+  ) => {
     if (!fs.existsSync(resultdirectory)) {
       fs.mkdirSync(resultdirectory);
     }
@@ -173,7 +178,12 @@ ipcMain.on(
     }
     fs.mkdirSync(sequencebasepath);
 
-    processVideo(mainWindow, videoPath, getOriginalBasePath(seqname));
+    processVideo(
+      mainWindow,
+      videoPath,
+      getOriginalBasePath(seqname),
+      corrupted
+    );
   }
 );
 
@@ -390,6 +400,13 @@ ipcMain.on('closed_app', async (_event, sequence) => {
   if (sequence) {
     await resetSequence(sequence);
   }
+  const tempDirectory = path.join(app.getAppPath(), '../');
+  fs.readdirSync(tempDirectory)
+    .filter((n) => n.endsWith('.png'))
+    .forEach((n) => {
+      fs.unlinkSync(path.join(tempDirectory, n));
+    });
+
   mainWindow?.destroy();
   if (process.platform !== 'darwin') {
     app.quit();

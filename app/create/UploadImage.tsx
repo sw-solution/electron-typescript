@@ -76,13 +76,12 @@ export default function SequenceUploadImage() {
             attachType === 'video' ? attachType : 'timelapse photos'
           }`}
         </Typography>
-        {attachType === 'image' && (
-          <FormControlLabel
-            color="primary"
-            control={corrupedCheck}
-            label="check for corrupted images (recommended if you suspect very dark frames)"
-          />
-        )}
+
+        <FormControlLabel
+          color="primary"
+          control={corrupedCheck}
+          label="check for corrupted images (recommended if you suspect very dark frames)"
+        />
       </Grid>
       <Grid item xs={12}>
         <IconButton onClick={openFileDialog} color="primary">

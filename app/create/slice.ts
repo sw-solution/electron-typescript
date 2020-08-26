@@ -447,7 +447,6 @@ export const setSequenceError = (error: any): AppThunk => {
 export const setSequenceModifyTime = (modifyTime: number): AppThunk => {
   return (dispatch) => {
     dispatch(setModifyTime(modifyTime));
-    dispatch(setCurrentStep('modifySpace'));
   };
 };
 
