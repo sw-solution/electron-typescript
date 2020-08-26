@@ -500,7 +500,7 @@ export function writeNadirImages(
         .then(() =>
           writeExifTags(outputfile, item, {
             ...description.photo,
-            MTPImageCopy: 'nadir',
+            MTPImageCopy: 'final_nadir',
           })
         )
         .catch((err) => {
@@ -550,6 +550,7 @@ export function writeBlurredImage(
       .then(() =>
         writeExifTags(outputfile, item, {
           ...description.photo,
+          MTPImageCopy: 'final_blurred',
         })
       )
       .catch((err) => {
@@ -672,7 +673,39 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
         connections,
       };
 
-      resultjson.photo[(idx + 1).toString()] = photodict;
+      resultjson.photo[p.id] = {
+        original: {
+          filename: p.Image,
+          GPSDateTime: p.tags.GPSDateTime,
+          originalDateTime: p.tags.DateTimeOriginal,
+          altitude: p.tags.GPSAltitude,
+          latitude: p.tags.GPSLatitude,
+          longitude: p.tags.GPSLongitude,
+          gps_direction_ref: p.tags.GPSImgDirectionRef || '',
+          heading: p.tags.PoseHeadingDegrees || p.tags.GPSImgDirection,
+          pitch: p.tags.PosePitchDegrees || p.tags.GPSPitch,
+          roll: p.tags.PosePoseRollDegrees || p.tags.GPSRoll,
+          camera_make: p.camera_make,
+          camera_model: p.camera_model,
+          projection: p.equirectangular ? 'equirectangular' : '',
+        },
+        modified: {
+          filename: p.Image,
+          GPSDateTime: p.GPSDateTime,
+          originalDateTime: p.DateTimeOriginal,
+          altitude: p.MAPAltitude,
+          latitude: p.MAPLatitude,
+          longitude: p.MAPLongitude,
+          gps_direction_ref: p.tags.GPSImgDirectionRef || '',
+          heading: p.Azimuth,
+          pitch: p.Pitch,
+          roll: p.Azimuth,
+          camera_make: p.camera_make,
+          camera_model: p.camera_model,
+          projection: p.equirectangular ? 'equirectangular' : '',
+        },
+        connections,
+      };
 
       descriptions[p.id] = {
         photo: {

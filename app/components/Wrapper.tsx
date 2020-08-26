@@ -1,7 +1,5 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 
-import { useHistory } from 'react-router-dom';
-
 import {
   Box,
   AppBar,
@@ -112,8 +110,8 @@ export default function Wrapper({ title, children }: Props) {
         <Alert severity="warning">
           <AlertTitle>WARNING!</AlertTitle>
           <span>
-            All sequence data will be lost if you exit before completing the creation process. Are you sure you want to exit?
-            creation
+            All sequence data will be lost if you exit before completing the
+            creation process. Are you sure you want to exit? creation
           </span>
         </Alert>
       </div>

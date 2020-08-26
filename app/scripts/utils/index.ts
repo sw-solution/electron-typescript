@@ -149,16 +149,21 @@ export function discardPointsBySeconds(
     if (nextIdx >= points.length) {
       point.setDistance(0);
 
-      const prevPoint = newpoints[newpoints.length - 1];
+      if (newpoints.length) {
+        const prevPoint = newpoints[newpoints.length - 1];
 
-      if (!point.Azimuth && prevPoint.Azimuth) {
-        point.setAzimuth(prevPoint.Azimuth);
-      }
+        if (!point.Azimuth && prevPoint.Azimuth) {
+          point.setAzimuth(prevPoint.Azimuth);
+        }
 
-      if (!point.Pitch && prevPoint.Pitch) {
-        point.setPitch(prevPoint.Pitch);
+        if (!point.Pitch && prevPoint.Pitch) {
+          point.setPitch(prevPoint.Pitch);
+        }
+        newpoints.push(point);
+      } else {
+        point.setAzimuth(0);
+        point.setPitch(0);
       }
-      newpoints.push(point);
 
       break;
     }

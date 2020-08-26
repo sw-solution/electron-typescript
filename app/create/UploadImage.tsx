@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import Typography from '@material-ui/core/Typography';
 import { Grid, FormControlLabel, Checkbox } from '@material-ui/core';
-import IconButton from '@material-ui/core/IconButton';
+import Button from '@material-ui/core/Button';
 
 import { OpenDialogSyncOptions } from 'electron';
 
@@ -84,10 +84,14 @@ export default function SequenceUploadImage() {
         />
       </Grid>
       <Grid item xs={12}>
-        <IconButton onClick={openFileDialog} color="primary">
-          <CloudUploadIcon fontSize="large" />
-        </IconButton>
-        <Typography color="primary">Upload</Typography>
+        <Button
+          onClick={openFileDialog}
+          color="primary"
+          endIcon={<CloudUploadIcon />}
+          variant="contained"
+        >
+          Upload
+        </Button>
       </Grid>
       <Grid item xs={12} />
     </>

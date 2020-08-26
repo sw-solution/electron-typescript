@@ -272,7 +272,9 @@ export default function SequenceModifyOutlier() {
           variant="contained"
         >
           {`${
-            metersStr === '0' && mode === ''
+            metersStr === '0' &&
+            mode === '' &&
+            proppoints.length === points.length
               ? 'Skip This Step'
               : 'Confirm Changes'
           }`}

@@ -38,7 +38,6 @@ import {
   getSequenceBasePath,
   getOriginalBasePath,
   errorHandler,
-  removeTempFiles,
   resetSequence,
 } from './scripts/utils';
 
@@ -150,6 +149,15 @@ const createWindow = async () => {
   // menuBuilder.buildMenu();
 };
 
+const removeTempFiles = async () => {
+  const tempDirectory = path.join(app.getAppPath(), '../');
+  fs.readdirSync(tempDirectory)
+    .filter((n) => n.endsWith('.png'))
+    .forEach((n) => {
+      fs.unlinkSync(path.join(tempDirectory, n));
+    });
+};
+
 /**
  * Add event listeners for ipcMain
  */
@@ -157,6 +165,7 @@ ipcMain.on('load_config', async (_event: IpcMainEvent) => {
   const [cameras, nadirs] = await Promise.all([
     loadCameras(app),
     loadDefaultNadir(app),
+    removeTempFiles(),
   ]);
   sendToClient(mainWindow, 'loaded_config', { cameras, nadirs });
 });
@@ -198,17 +207,25 @@ ipcMain.on(
     if (!fs.existsSync(resultdirectory)) {
       fs.mkdirSync(resultdirectory);
     }
-    if (
-      fs
-        .readdirSync(dirPath)
-        .filter(
-          (name: string) =>
-            !name.toLowerCase().endsWith('.png') &&
-            !name.toLowerCase().endsWith('.jpeg') &&
-            !name.toLowerCase().endsWith('.jpg')
-        ).length
-    ) {
+
+    const imageLength = fs
+      .readdirSync(dirPath)
+      .filter(
+        (name: string) =>
+          !name.toLowerCase().endsWith('.png') &&
+          !name.toLowerCase().endsWith('.jpeg') &&
+          !name.toLowerCase().endsWith('.jpg')
+      ).length;
+
+    if (imageLength) {
       return errorHandler(mainWindow, 'The images should be jpeg or jpg');
+    }
+
+    if (imageLength === 1) {
+      return errorHandler(
+        mainWindow,
+        'There is only one image, it should have 2 images at least.'
+      );
     }
 
     loadImages(
@@ -329,7 +346,7 @@ ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
         JSON.stringify(resultjson)
       );
 
-      removeTempFiles(sequence);
+      await removeTempFiles();
 
       const gpxData = new GarminBuilder();
 
@@ -376,12 +393,16 @@ ipcMain.on('sequences', async (_event: IpcMainEvent) => {
       rimraf.sync(getSequenceBasePath(d));
     });
 
-  const result: Summary[] = sequences.map((name: string) => {
-    const logdata = JSON.parse(
-      fs.readFileSync(getSequenceLogPath(name)).toString()
+  const result: Summary[] = sequences
+    .map((name: string) => {
+      const logdata = JSON.parse(
+        fs.readFileSync(getSequenceLogPath(name)).toString()
+      );
+      return createdData2List(logdata);
+    })
+    .sort((a: any, b: any) =>
+      dayjs(a.created).isAfter(dayjs(b.created)) ? 1 : -1
     );
-    return createdData2List(logdata);
-  });
 
   sendToClient(mainWindow, 'loaded_sequences', result);
 });
@@ -400,13 +421,7 @@ ipcMain.on('closed_app', async (_event, sequence) => {
   if (sequence) {
     await resetSequence(sequence);
   }
-  const tempDirectory = path.join(app.getAppPath(), '../');
-  fs.readdirSync(tempDirectory)
-    .filter((n) => n.endsWith('.png'))
-    .forEach((n) => {
-      fs.unlinkSync(path.join(tempDirectory, n));
-    });
-
+  await removeTempFiles();
   mainWindow?.destroy();
   if (process.platform !== 'darwin') {
     app.quit();

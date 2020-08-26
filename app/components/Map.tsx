@@ -10,6 +10,8 @@ import {
   Box,
   Typography,
 } from '@material-ui/core';
+import { Alert } from '@material-ui/lab';
+
 import ReactPannellum from 'react-pannellum';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -52,6 +54,7 @@ interface Props {
 interface State {
   isopen: boolean;
   selected: number;
+  showMessage: boolean;
 }
 
 const MapBox = ReactMapboxGl({
@@ -64,6 +67,7 @@ export default function Map(props: Props) {
   const [state, setState] = useState<State>({
     isopen: false,
     selected: -1,
+    showMessage: false,
   });
 
   const classes = useStyles();
@@ -84,12 +88,14 @@ export default function Map(props: Props) {
     setState({
       isopen: true,
       selected: idx,
+      showMessage: false,
     });
   };
 
   const nextImage = () => {
     setState({
       ...state,
+      showMessage: false,
       selected: (state.selected + 1) % filteredpoints.length,
     });
   };
@@ -97,6 +103,7 @@ export default function Map(props: Props) {
   const prevImage = () => {
     setState({
       ...state,
+      showMessage: false,
       selected:
         (filteredpoints.length + state.selected - 1) % filteredpoints.length,
     });
@@ -106,6 +113,7 @@ export default function Map(props: Props) {
     setState({
       isopen: false,
       selected: -1,
+      showMessage: false,
     });
   };
 
@@ -115,6 +123,10 @@ export default function Map(props: Props) {
 
   const removePhoto = () => {
     if (onDelete) {
+      setState({
+        ...state,
+        showMessage: true,
+      });
       onDelete(filteredpoints[state.selected.toString()].id);
     }
   };
@@ -204,6 +216,11 @@ export default function Map(props: Props) {
                 </IconButton>
               )}
             </ButtonGroup>
+            {onDelete && state.showMessage && (
+              <Alert severity="success">
+                This photo have been removed successfully.
+              </Alert>
+            )}
           </Box>
           <Box>{photos[state.selected]}</Box>
         </>

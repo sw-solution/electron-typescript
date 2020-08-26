@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { Typography, Box, Grid, IconButton, Button } from '@material-ui/core';
+import { Typography, Box, Grid, Button } from '@material-ui/core';
 
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 
@@ -64,10 +64,14 @@ export default function SequenceUploadNadir() {
         </Typography>
       </Grid>
       <Grid item xs={12}>
-        <IconButton onClick={openFileDialog} color="primary">
-          <CloudUploadIcon fontSize="large" />
-        </IconButton>
-        <Typography color="primary">Upload</Typography>
+        <Button
+          onClick={openFileDialog}
+          color="primary"
+          endIcon={<CloudUploadIcon />}
+          variant="contained"
+        >
+          Upload
+        </Button>
       </Grid>
       <Grid item xs={12}>
         <Box mb={1}>

@@ -7,8 +7,8 @@ export enum TransportType {
 export interface Sequence {
   id: string;
   distance_km: number;
-  earliest_time: string;
-  latest_time: string;
+  earliest_time?: string;
+  latest_time?: string;
   durationsec: number;
   average_speed_kmh: number;
   uploader_sequence_name: string;
@@ -51,8 +51,31 @@ export interface Photo {
   connections?: Connections;
 }
 
+export interface Export {
+  filename?: string;
+  GPSDateTime?: string;
+  originalDateTime: string;
+  altitude?: number;
+  latitude?: number;
+  longitude?: number;
+  gps_direction_ref?: string;
+  gps_speed?: number;
+  heading?: number;
+  pitch?: number;
+  roll?: number;
+  camera_make?: string;
+  camera_model?: string;
+  projection: string;
+}
+
+export interface ExportPhoto {
+  original: Export;
+  modified: Export;
+  connections?: Connections;
+}
+
 export interface Photos {
-  [key: string]: Photo;
+  [key: string]: ExportPhoto;
 }
 
 export interface Result {

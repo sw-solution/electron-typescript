@@ -3,10 +3,10 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
+import Button from '@material-ui/core/Button';
 
 import AddIcon from '@material-ui/icons/Add';
-import SkipNextIcon from '@material-ui/icons/SkipNext';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
 import { setCurrentStep } from './slice';
 
@@ -35,20 +35,26 @@ export default function SequenceNadir() {
       <Grid item xs={12}>
         <Grid container spacing={5} justify="center">
           <Grid item>
-            <IconButton
+            <Button
               size="medium"
               color="secondary"
               onClick={storeSequenceNadir}
+              variant="contained"
+              endIcon={<AddIcon />}
             >
-              <AddIcon fontSize="large" />
-              <Typography color="secondary">Add Nadir</Typography>
-            </IconButton>
+              Add Nadir
+            </Button>
           </Grid>
           <Grid item>
-            <IconButton size="medium" color="primary" onClick={processPage}>
-              <SkipNextIcon fontSize="large" />
-              <Typography color="primary">Skip This Step</Typography>
-            </IconButton>
+            <Button
+              size="medium"
+              color="primary"
+              onClick={processPage}
+              endIcon={<ChevronRightIcon />}
+              variant="contained"
+            >
+              Skip This Step
+            </Button>
           </Grid>
         </Grid>
       </Grid>

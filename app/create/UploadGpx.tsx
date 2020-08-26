@@ -3,10 +3,10 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 
+import { Button } from '@material-ui/core';
 import {
   setSequenceGpxPath,
   setCurrentStep,
@@ -53,15 +53,16 @@ export default function SequenceUploadGpx() {
     }
   };
 
+  const geotagged = proppoints.filter(
+    (p: IGeoPoint) =>
+      typeof p.MAPAltitude !== 'undefined' &&
+      typeof p.MAPLatitude !== 'undefined' &&
+      typeof p.MAPLongitude !== 'undefined'
+  );
+
   const discardPoints = () => {
-    const points = proppoints.filter(
-      (p: IGeoPoint) =>
-        typeof p.MAPAltitude !== 'undefined' &&
-        typeof p.MAPLatitude !== 'undefined' &&
-        typeof p.MAPLongitude !== 'undefined'
-    );
-    dispatch(setSequencePoints(points));
-    if (points.length) {
+    dispatch(setSequencePoints(geotagged));
+    if (geotagged.length) {
       dispatch(setCurrentStep('modifySpace'));
     } else {
       dispatch(setError('There will be no images.'));
@@ -87,17 +88,25 @@ export default function SequenceUploadGpx() {
         }}
       >
         <div>
-          <IconButton onClick={openFileDialog} color="primary">
-            <CloudUploadIcon fontSize="large" />
-            <Typography color="primary">Upload</Typography>
-          </IconButton>
+          <Button
+            onClick={openFileDialog}
+            color="primary"
+            variant="contained"
+            endIcon={<CloudUploadIcon />}
+          >
+            Upload
+          </Button>
         </div>
-        {!importgpx && (
+        {!importgpx && geotagged.length > 0 && (
           <div>
-            <IconButton onClick={discardPoints} color="secondary">
-              <DeleteForeverIcon fontSize="large" />
-              <Typography color="secondary">Discard</Typography>
-            </IconButton>
+            <Button
+              onClick={discardPoints}
+              color="secondary"
+              endIcon={<DeleteForeverIcon />}
+              variant="contained"
+            >
+              Discard
+            </Button>
           </div>
         )}
       </Grid>
