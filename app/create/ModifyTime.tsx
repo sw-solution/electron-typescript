@@ -45,7 +45,7 @@ export default function SequenceStartTime() {
   };
 
   const correctTime = () => {
-    const time = parseFloat(modifyTime);
+    const time = parseFloat(modifyTime) - propModifyTime;
     const newpoints = points.map((p: IGeoPoint) => {
       return new IGeoPoint({
         ...p,

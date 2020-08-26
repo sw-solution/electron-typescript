@@ -11,7 +11,6 @@ import {
   selStartTime,
   selGPXStartTime,
   setCurrentStep,
-  setSequenceModifyTime,
   selPoints,
   selGPXPoints,
   setSequencePoints,
@@ -34,7 +33,7 @@ export default function SequenceStartTime() {
   const correctTime = () => {
     const newpoints = importGpx(points, gpxPoints);
     dispatch(setSequencePoints(newpoints));
-    dispatch(setSequenceModifyTime(0));
+    dispatch(setCurrentStep('modifySpace'));
   };
 
   return (
