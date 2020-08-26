@@ -159,8 +159,7 @@ export default function SequenceModifySpace() {
           You can space images by either time OR distance (not both). This is
           useful if you have photos very close together, and want to space them
           out. For example, you could set a minimum distance of 1 meters to
-          discard photos taken in the same spot (when you we're standing still,
-          I mean resting).
+          discard photos taken in the same spot (e.g. when you we're standing still).
         </Typography>
         <Box mb={1}>
           <Grid container spacing={3}>
