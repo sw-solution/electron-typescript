@@ -204,9 +204,12 @@ export async function writeTags2Image(
           const averageColor = (red + green + blue) / 3;
           if (averageColor > 200 || averageColor < 55) {
             result.push(item);
-            cb(null);
           }
+          cb(null);
         });
+      } else {
+        result.push(item);
+        cb(null);
       }
     },
     (err) => {
