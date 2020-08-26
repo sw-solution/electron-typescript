@@ -48,7 +48,7 @@ export default function SequenceName() {
           What do you want to name this sequence?
         </Typography>
         <Typography paragraph>
-          Names help people discover your sequence using search queries on Map the Paths Web.
+          Names help people discover your sequence using search queries on Map the Paths Web. Names must be between 6 - 30 charts. No special characters allowed.
         </Typography>
       </Grid>
       <Grid item xs={12}>
