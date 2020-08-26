@@ -57,6 +57,9 @@ export default function SequenceCamera() {
         <Typography variant="h6" align="center" color="textSecondary">
           What camera did you use?
         </Typography>
+        <Typography paragraph>
+          Most cameras are supported. If you don't see your camera listed select other. The process should still work, but with the caveat we have not tested it.
+        </Typography>
       </Grid>
       <Grid item xs={12}>
         <Grid container spacing={5} justify="center">

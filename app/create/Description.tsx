@@ -29,6 +29,9 @@ export default function SequenceDescription() {
         <Typography variant="h6" align="center" color="textSecondary">
           How would you describe this sequence?
         </Typography>
+        <Typography paragraph>
+          Share more information and context to help fellow Map the Paths users learn more about your sequence. 
+        </Typography>
       </Grid>
       <Grid item xs={12}>
         <TextField
@@ -40,11 +43,6 @@ export default function SequenceDescription() {
           value={description}
           onChange={handleChange}
         />
-        <Typography paragraph style={{ marginTop: '30px' }}>
-          E.g. “A Sunday morning stroll. Ended up being very muddy in places due
-          to the rain. The trees we’re just starting to bud with Spring in full
-          flow.”
-        </Typography>
       </Grid>
       <Grid item xs={12}>
         <Button
