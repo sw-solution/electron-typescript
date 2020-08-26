@@ -47,6 +47,9 @@ export default function SequenceName() {
         <Typography variant="h6" align="center" color="textSecondary">
           What do you want to name this sequence?
         </Typography>
+        <Typography paragraph>
+          Names help people discover your sequence using search queries on Map the Paths Web. Names must be between 6 - 30 charts. No special characters allowed.
+        </Typography>
       </Grid>
       <Grid item xs={12}>
         <TextField
@@ -57,9 +60,6 @@ export default function SequenceName() {
           onChange={handleChange}
           helperText={state.errorText}
         />
-        <Typography paragraph style={{ marginTop: '30px' }}>
-          E.g. “North Downs Way: Farnham and Guildford”
-        </Typography>
       </Grid>
       <Grid item xs={12}>
         <Button

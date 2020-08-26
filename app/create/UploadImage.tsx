@@ -80,7 +80,7 @@ export default function SequenceUploadImage() {
         <FormControlLabel
           color="primary"
           control={corrupedCheck}
-          label="check for corrupted images (recommended if you suspect very dark frames)"
+          label="Check for corrupted (black) images (only recommended you tick this box if you suspect the file(s) contain black and/or visually corrupted frames)"
         />
       </Grid>
       <Grid item xs={12}>

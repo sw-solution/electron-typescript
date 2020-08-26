@@ -163,6 +163,9 @@ export default function SequenceMethod() {
         <Typography variant="h6" align="center" color="textSecondary">
           What method of transport was used?
         </Typography>
+        <Typography paragraph>
+          Transport types help people discover your sequence using search queries on Map the Paths Web.
+        </Typography>
       </Grid>
       <Grid item xs={12}>
         <Grid container spacing={5} justify="center">

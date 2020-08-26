@@ -1,0 +1,10 @@
+{
+	"module_developer": "Trek View",
+	"module_support_url": "https://campfire.trekview.org/c/support/8",
+	"module_name": "Other",
+	"module_description": "Catch all category for non-tested cameras",
+	"module_camera_exif_make": "Other",
+	"module_camera_model": "Model",
+	"module_camara_supports": [""],
+	"module_camara_video_telemetry": ""
+}
