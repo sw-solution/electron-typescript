@@ -58,6 +58,9 @@ export default function SequenceAttachType() {
         <Typography variant="h6" align="center" color="textSecondary">
           How did you capture the content?
         </Typography>
+         <Typography paragraph>
+          .jpg images and .mp4 video files are supported. If no GPS data exists in these files, you will be required to upload a .gpx track to geo-tag the photos.
+        </Typography>
       </Grid>
       <Grid item xs={12}>
         <Grid container spacing={5} justify="center">
