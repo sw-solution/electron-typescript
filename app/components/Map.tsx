@@ -54,6 +54,10 @@ interface State {
   selected: number;
 }
 
+const MapBox = ReactMapboxGl({
+  accessToken: process.env.MAPBOX_TOKEN || '',
+});
+
 export default function Map(props: Props) {
   const { points, height, showPopup, onDelete } = props;
   const name = useSelector(selSequenceName);
@@ -122,10 +126,6 @@ export default function Map(props: Props) {
     );
     return path.replace(/\\/g, '/');
   };
-
-  const MapBox = ReactMapboxGl({
-    accessToken: process.env.MAPBOX_TOKEN || '',
-  });
 
   let photos: ReactNode[] = [];
 

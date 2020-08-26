@@ -47,6 +47,7 @@ export default {
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'production',
       MAPBOX_TOKEN: process.env.MAPBOX_TOKEN,
+      NODE_OPTIONS: '--max-old-space-size=8192',
     }),
 
     new webpack.NamedModulesPlugin(),

@@ -146,10 +146,6 @@ export default function CreatePageWrapper() {
       dispatch(setSequenceError(err));
     });
 
-    ipcRenderer.on('loaded_config', (_event: IpcRendererEvent, config: any) => {
-      dispatch(setConfigLoadEnd(config));
-    });
-
     return () => {
       ipcRenderer.removeAllListeners('start_time');
       ipcRenderer.removeAllListeners('loaded_points');

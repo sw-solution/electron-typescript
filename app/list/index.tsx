@@ -83,24 +83,19 @@ export default function ListPageWrapper() {
   if (!loaded) {
     ipcRenderer.send('sequences');
   }
+
+  if (!configLoaded) {
+    ipcRenderer.send('load_config');
+  }
   ipcRenderer.on(
-    'loaded-sequences',
+    'loaded_sequences',
     (_event: IpcRendererEvent, sequences: Summary[]) => {
       dispatch(setEndLoad(sequences));
     }
   );
 
-  if (!configLoaded) {
-    ipcRenderer.send('load_config');
-  }
   ipcRenderer.on('loaded_config', (_event: IpcRendererEvent, config) => {
     dispatch(setConfigLoadEnd(config));
-  });
-
-  useEffect(() => {
-    return () => {
-      ipcRenderer.removeAllListeners('loaded-sequences');
-    };
   });
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {

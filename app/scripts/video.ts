@@ -222,8 +222,7 @@ export async function splitVideos(
           number: Math.ceil(duration) + 1,
           file_name: '',
         },
-        async (err: any, files: string[]) => {
-          console.log('Extracting Images:', files);
+        (err: any, files: string[]) => {
           if (!err) {
             callback(null, files);
           } else {

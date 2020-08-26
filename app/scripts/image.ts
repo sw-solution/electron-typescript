@@ -87,6 +87,7 @@ export function getPoint(dirpath: string, filename: string) {
       if (err) return reject(err);
       const [red, green, blue] = color;
       const averageColor = (red + green + blue) / 3;
+      console.log('Average Color: ', averageColor);
 
       if (averageColor > 200 || averageColor < 55) {
         console.log(`Ignore ${filename} as Average Color: ${averageColor}`);

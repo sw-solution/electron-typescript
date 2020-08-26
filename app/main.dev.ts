@@ -367,7 +367,7 @@ ipcMain.on('sequences', async (_event: IpcMainEvent) => {
     return createdData2List(logdata);
   });
 
-  sendToClient(mainWindow, 'loaded-sequences', result);
+  sendToClient(mainWindow, 'loaded_sequences', result);
 });
 
 ipcMain.on('remove_sequence', async (_event: IpcMainEvent, name: string) => {
