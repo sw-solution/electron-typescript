@@ -148,17 +148,17 @@ export default function Map(props: Props) {
               {`GPS Time: ${point.GPSDateTime}`}
             </Typography>
             <Typography variant="caption" display="block">
-              {`Heading (Degrees): ${
+              {`Heading / Azimuth (degrees): ${
                 point.Azimuth ? point.Azimuth.toFixed(2) : 0
               }`}
             </Typography>
             <Typography variant="caption" display="block">
-              {`distance to next photo (meters): ${
+              {`Distance to next photo (meters): ${
                 point.Distance ? point.Distance.toFixed(2) : 0
               }`}
             </Typography>
             <Typography variant="caption" display="block">
-              {`time to next photo: ${difftime}`}
+              {`Time to next photo (seconds): ${difftime}`}
             </Typography>
           </div>
           {point.equirectangular && (
