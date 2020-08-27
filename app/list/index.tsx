@@ -249,11 +249,18 @@ export default function ListPageWrapper() {
                 </Button>
               </Box>
             </Grid>
-            {items}
+            {items.length ? (
+              items
+            ) : (
+              <Typography>
+                No sequences exist that match the search criteria. Why not
+                create one? As if you needed an excuse for an adventure!
+              </Typography>
+            )}
           </Grid>
         )}
         {!loaded && (
-          <div>
+          <div style={{ width: '100%' }}>
             <Box mb={5}>
               <Typography variant="h5" color="primary">
                 Loading

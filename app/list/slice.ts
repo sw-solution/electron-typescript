@@ -24,7 +24,7 @@ const listSlice = createSlice({
       state.loaded = true;
     },
     addSeq(state, { payload }) {
-      state.seqs = [...state.seqs, payload];
+      state.seqs = [payload, ...state.seqs];
     },
     removeSeq(state, { payload }) {
       state.seqs = state.seqs.filter((s) => s.name !== payload);

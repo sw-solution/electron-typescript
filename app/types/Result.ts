@@ -62,7 +62,7 @@ export interface Export {
   gps_speed?: number;
   heading?: number;
   pitch?: number;
-  roll?: number;
+  roll?: string;
   camera_make?: string;
   camera_model?: string;
   projection: string;

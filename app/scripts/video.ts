@@ -4,10 +4,16 @@ import dayjs, { Dayjs } from 'dayjs';
 import path from 'path';
 import Async from 'async';
 import { BrowserWindow } from 'electron';
+import fs from 'fs';
 
 import { VGeoPoint, VGeoPointModel } from '../types/VGeoPoint';
 import { IGeoPoint } from '../types/IGeoPoint';
-import { sendPoints, sendToClient, errorHandler } from './utils';
+import {
+  sendPoints,
+  sendToClient,
+  errorHandler,
+  parseExifDateTime,
+} from './utils';
 import { calculatePoints } from './image';
 
 const ffmpeg = require('ffmpeg');
@@ -83,7 +89,7 @@ export function getGPSVideoData(tags: typeof Tags) {
           .length === 0
       ) {
         const item = new VGeoPoint({
-          GPSDateTime: tags[`${k}:GPSDateTime`],
+          GPSDateTime: parseExifDateTime(tags[`${k}:GPSDateTime`]),
           MAPLatitude: parseDms(tags[`${k}:GPSLatitude`]),
           MAPLongitude: parseDms(tags[`${k}:GPSLongitude`]),
           MAPAltitude: getAltudeMeters(tags[`${k}:GPSAltitude`]),
@@ -278,7 +284,16 @@ export function splitVideoToImage(
             }
           );
         },
-
+        (cb: CallableFunction) => {
+          fs.copyFile(
+            videoPath,
+            path.join(outputPath, path.basename(videoPath)),
+            (err) => {
+              if (err) cb(err);
+              else cb(null);
+            }
+          );
+        },
         (cb: CallableFunction) => {
           writeTags2Image(
             commonData,

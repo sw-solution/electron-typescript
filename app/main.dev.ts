@@ -221,10 +221,19 @@ ipcMain.on(
       return errorHandler(mainWindow, 'The images should be jpeg or jpg');
     }
 
-    if (imageLength === 1) {
+    if (
+      fs
+        .readdirSync(dirPath)
+        .filter(
+          (name: string) =>
+            name.toLowerCase().endsWith('.png') ||
+            name.toLowerCase().endsWith('.jpeg') ||
+            name.toLowerCase().endsWith('.jpg')
+        ).length === 1
+    ) {
       return errorHandler(
         mainWindow,
-        'There is only one image, it should have 2 images at least.'
+        'More than one image is required to create a sequence.'
       );
     }
 

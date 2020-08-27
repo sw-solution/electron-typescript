@@ -74,8 +74,13 @@ export default function SequenceUploadGpx() {
       <Grid item xs={12}>
         <Typography variant="h6" align="center" color="textSecondary">
           {`${
-            required ? 'There are some images that have no geodata.' : ' .'
-          }Please upload the GPS tracks Following formats supported: GPX.`}
+            // eslint-disable-next-line no-nested-ternary
+            required
+              ? geotagged.length
+                ? 'There are some images that have no geodata.'
+                : '0 photos have no geodata.'
+              : ''
+          } Please upload the GPS tracks Following formats supported: GPX.`}
         </Typography>
       </Grid>
       <Grid

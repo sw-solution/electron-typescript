@@ -41,6 +41,7 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     background: '#fff',
     boxSizing: 'border-box',
+    flexWrap: 'wrap',
   },
 
   paper: {
