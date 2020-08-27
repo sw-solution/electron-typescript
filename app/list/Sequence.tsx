@@ -16,7 +16,6 @@ import BatteryFullIcon from '@material-ui/icons/BatteryFull';
 import LocalGasStationIcon from '@material-ui/icons/LocalGasStation';
 import EvStationIcon from '@material-ui/icons/EvStation';
 import LocalAirportActiveIcon from '@material-ui/icons/LocalAirportActive';
-import CloudIcon from '@material-ui/icons/Cloud';
 
 import PhotoLibraryIcon from '@material-ui/icons/PhotoLibrary';
 
