@@ -45,6 +45,10 @@ export default function SequenceMethod() {
         label: 'Electric Car',
       },
       {
+        component: <DirectionsBikeIcon fontSize="large" />,
+        label: 'Electric Bicycle',
+      },
+      {
         component: <LocalAirportActiveIcon fontSize="large" />,
         label: 'Plane',
       },
@@ -56,6 +60,10 @@ export default function SequenceMethod() {
         component: <BatteryFullIcon fontSize="large" />,
         label: 'Drone',
       },
+      {
+        component: <BatteryFullIcon fontSize="large" />,
+        label: 'Electric Scooter',
+      },
     ],
     Land: [
 
@@ -64,20 +72,12 @@ export default function SequenceMethod() {
         label: 'Bicycle',
       },
       {
-        component: <DirectionsBikeIcon fontSize="large" />,
-        label: 'Electric Bicycle',
-      },
-      {
         component: <DirectionsWalkIcon fontSize="large" />,
         label: 'Walk',
       },
       {
-        component: <LandscapeIconIcon fontSize="large" />,
+        component: <LandscapeIcon fontSize="large" />,
         label: 'Scooter',
-      },
-      {
-        component: <LandscapeIconIcon fontSize="large" />,
-        label: 'Electric Scooter',
       },
       {
         component: <DirectionsBikeIcon fontSize="large" />,
