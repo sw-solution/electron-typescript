@@ -82,12 +82,12 @@ export default function Sequence({ data }: Props) {
 
   const method = {
     Car: <LocalGasStationIcon color="primary" />,
-    Electric Car: <EvStationIcon color="primary" />,
-    Electric Bicycle: <DirectionsBikeIcon color="primary" />,
+    'Electric Car': <EvStationIcon color="primary" />,
+    'Electric Bicycle': <DirectionsBikeIcon color="primary" />,
     Plane: <LocalAirportActiveIcon color="primary" />,
     Helicopter: <BatteryFullIcon color="primary" />,
     Drone: <BatteryFullIcon color="primary" />,
-    Electric Scooter: <BatteryFullIcon color="primary" />,
+    'Electric Scooter': <BatteryFullIcon color="primary" />,
     Boat: <BatteryFullIcon color="primary" />,
     Bicycle: <DirectionsBikeIcon color="primary" />,
     Walk: <DirectionsWalkIcon color="primary" />,
@@ -100,7 +100,7 @@ export default function Sequence({ data }: Props) {
     Snowshoe: <AcUnitIcon color="primary" />,
     Swim: <PoolIcon color="primary" />,
     Paddleboard: <RowingIcon color="primary" />,
-    Scuba Dive: <WavesIcon color="primary" />,
+    'Scuba Dive': <WavesIcon color="primary" />,
     Surf: <WavesIcon color="primary" />,
     Windsurf: <WavesIcon color="primary" />,
     Kiteboard: <WavesIcon color="primary" />,
@@ -110,7 +110,7 @@ export default function Sequence({ data }: Props) {
     Paraglide: <CloudIcon color="primary" />,
     Hanglide: <CloudIcon color="primary" />,
     Wingsuit: <CloudIcon color="primary" />,
-    BASE Jump: <CloudIcon color="primary" />,
+    'BASE Jump': <CloudIcon color="primary" />,
     Glider: <CloudIcon color="primary" />,
   };
 
