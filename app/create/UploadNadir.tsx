@@ -60,7 +60,7 @@ export default function SequenceUploadNadir() {
           Select the nadir
         </Typography>
         <Typography align="center" color="textSecondary">
-          Allowed jpg, png, tif file only. Must be at least 500px x 500px
+          Allowed filetypes for nadir cap are: jpg, png, tif file only. Must be at least 500px x 500px and square.
         </Typography>
       </Grid>
       <Grid item xs={12}>

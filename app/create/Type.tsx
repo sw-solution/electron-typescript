@@ -32,6 +32,14 @@ export default function SequenceType() {
       component: <FlightTakeoffIcon fontSize="large" />,
       label: 'Air',
     },
+    {
+      component: <FlightTakeoffIcon fontSize="large" />,
+      label: 'Snow',
+    },
+    {
+      component: <FlightTakeoffIcon fontSize="large" />,
+      label: 'Powered',
+    },
   ];
 
   const items: ReactNode[] = [];

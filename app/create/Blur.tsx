@@ -56,10 +56,11 @@ export default function SequenceBur() {
         </Typography>
         <Typography variant="h6" align="center" color="textSecondary">
           You can create a copy of the sequence images with publicly
-          identifiable information blurred. Only recommended if you plan to use
-          services that do not blur content automatically (e.g. Facebook) and
-          images contain lots of sensitive data because it requires a high
-          amount of computing power.
+          identifiable information blurred. Do not use this option if 
+          uploading to Mapillary or Google Street View. It is only recommended
+          if you plan to use services that do not blur content but you need too
+          because images contain lots of sensitive data. BEWARE: It requires a
+          lot of computing power.
         </Typography>
       </Grid>
       <Grid item xs={12}>

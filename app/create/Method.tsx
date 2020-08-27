@@ -35,7 +35,7 @@ export default function SequenceMethod() {
   };
 
   const methods: MethodsModel = {
-    Land: [
+    Powered: [
       {
         component: <DirectionsCarIcon fontSize="large" />,
         label: 'Car',
@@ -45,16 +45,31 @@ export default function SequenceMethod() {
         label: 'Electric Car',
       },
       {
+        component: <AirplanemodeActiveIcon fontSize="large" />,
+        label: 'Plane',
+      },
+      {
+        component: <AirplanemodeActiveIcon fontSize="large" />,
+        label: 'Helicopter',
+      },
+      {
+        component: <AirplanemodeActiveIcon fontSize="large" />,
+        label: 'Drone',
+      },
+    ],
+    Land: [
+
+      {
         component: <DirectionsBikeIcon fontSize="large" />,
-        label: 'Bike',
+        label: 'Bicycle',
       },
       {
         component: <DirectionsBikeIcon fontSize="large" />,
-        label: 'eBike',
+        label: 'Electric Bicycle',
       },
       {
         component: <DirectionsBikeIcon fontSize="large" />,
-        label: 'Hike',
+        label: 'Walk',
       },
       {
         component: <DirectionsBikeIcon fontSize="large" />,
@@ -62,11 +77,7 @@ export default function SequenceMethod() {
       },
       {
         component: <DirectionsBikeIcon fontSize="large" />,
-        label: 'eScooter',
-      },
-      {
-        component: <DirectionsBikeIcon fontSize="large" />,
-        label: 'Electric Car',
+        label: 'Electric Scooter',
       },
       {
         component: <DirectionsBikeIcon fontSize="large" />,
@@ -75,6 +86,24 @@ export default function SequenceMethod() {
       {
         component: <DirectionsBikeIcon fontSize="large" />,
         label: 'Rollerskate',
+      },
+    ],
+    Snow: [
+      {
+        component: <PoolIcon fontSize="large" />,
+        label: 'Ski',
+      },
+      {
+        component: <PoolIcon fontSize="large" />,
+        label: 'Snowboard',
+      },
+      {
+        component: <PoolIcon fontSize="large" />,
+        label: 'Snowmobile',
+      },
+      {
+        component: <PoolIcon fontSize="large" />,
+        label: 'Snowshoe',
       },
     ],
     Water: [
@@ -118,14 +147,6 @@ export default function SequenceMethod() {
     Air: [
       {
         component: <AirplanemodeActiveIcon fontSize="large" />,
-        label: 'Plane',
-      },
-      {
-        component: <AirplanemodeActiveIcon fontSize="large" />,
-        label: 'Drone',
-      },
-      {
-        component: <AirplanemodeActiveIcon fontSize="large" />,
         label: 'Parachute',
       },
       {
@@ -135,6 +156,18 @@ export default function SequenceMethod() {
       {
         component: <AirplanemodeActiveIcon fontSize="large" />,
         label: 'Hanglide',
+      },
+      {
+        component: <AirplanemodeActiveIcon fontSize="large" />,
+        label: 'Wingsuit',
+      },
+      {
+        component: <AirplanemodeActiveIcon fontSize="large" />,
+        label: 'BASE Jump',
+      },
+      {
+        component: <AirplanemodeActiveIcon fontSize="large" />,
+        label: 'Glider',
       },
     ],
   };

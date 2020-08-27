@@ -1,7 +1,9 @@
 export enum TransportType {
+  Powered = 'Powered',
   Land = 'Land',
   Water = 'Water',
   Air = 'Air',
+  Snow = 'Snow',
 }
 
 export interface Sequence {
