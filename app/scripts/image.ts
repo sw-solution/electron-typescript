@@ -332,7 +332,7 @@ export function modifyLogo(logourl: string, outputfile: string) {
           logo.bitmap.height !== logo.bitmap.width
         ) {
           throw new Error(
-            'Logo size must be at least 500px x 500px and square'
+            'Allowed filetypes for nadir cap are: jpg, png, tif file only. Must be at least 500px x 500px and square.'
           );
         }
         return logo.rotate(270).flip(false, true);
