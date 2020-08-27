@@ -66,7 +66,21 @@ export function createdData2List(data: Result): Summary {
     description: sequence.uploader_sequence_description,
     type: sequence.uploader_transport_type,
     method: sequence.uploader_transport_method,
-    points: Object.values(photo),
+    points: Object.keys(photo).map((id) => {
+      const p = photo[id];
+      return new IGeoPoint({
+        id,
+        GPSDateTime: p.modified.GPSDateTime,
+        DateTimeOriginal: p.modified.originalDateTime,
+        Azimuth: p.modified.heading,
+        Pitch: p.modified.pitch,
+        MAPAltitude: p.modified.altitude,
+        MAPLatitude: p.modified.latitude,
+        MAPLongitude: p.modified.longitude,
+        Image: p.modified.filename,
+        equirectangular: p.modified.projection === 'equirectangular',
+      });
+    }),
     total_km: sequence.distance_km,
     created: sequence.created,
     captured: sequence.earliest_time,

@@ -59,9 +59,8 @@ import {
   selError,
   setError,
   setInit,
+  selSequence,
 } from './slice';
-
-import { setConfigLoadEnd } from '../base/slice';
 
 import { setAddSeq } from '../list/slice';
 import Logo from '../components/Logo';
@@ -108,6 +107,7 @@ export default function CreatePageWrapper() {
   const prevStep = useSelector(selPrevStep);
   const currentStep = useSelector(selCurrentStep);
   const name = useSelector(selSequenceName);
+  const sequence = useSelector(selSequence);
   const error = useSelector(selError);
   const dispatch = useDispatch();
   const [state, setState] = useState<State>({
@@ -172,6 +172,12 @@ export default function CreatePageWrapper() {
     });
   };
 
+  const handleRemove = () => {
+    dispatch(setInit());
+    dispatch(push(routes.LIST));
+    ipcRenderer.send('reset_sequence', sequence);
+  };
+
   const modalBody = (
     <div className={classes.paper}>
       <div>
@@ -184,13 +190,7 @@ export default function CreatePageWrapper() {
         </Alert>
       </div>
       <div style={{ textAlign: 'right' }}>
-        <Button
-          onClick={() => {
-            dispatch(setInit());
-            dispatch(push(routes.LIST));
-          }}
-          color="secondary"
-        >
+        <Button onClick={handleRemove} color="secondary">
           OK
         </Button>
         <Button onClick={handleClose} color="primary">

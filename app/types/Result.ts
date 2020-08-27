@@ -1,3 +1,5 @@
+import { IGeoPoint } from './IGeoPoint';
+
 export enum TransportType {
   Powered = 'Powered',
   Land = 'Land',
@@ -105,7 +107,7 @@ export interface Summary {
   description: string;
   type: TransportType;
   method: string;
-  points: Photo[];
+  points: IGeoPoint[];
   created: string;
   captured: string;
   total_km: number;

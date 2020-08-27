@@ -571,6 +571,7 @@ export function writeBlurredImage(
 
 export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
   return new Promise((resolve, reject) => {
+    console.log('updateImages: ', points);
     const updatedPoints = points
       .filter(
         (p) =>

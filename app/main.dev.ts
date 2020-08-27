@@ -409,9 +409,16 @@ ipcMain.on('sequences', async (_event: IpcMainEvent) => {
       );
       return createdData2List(logdata);
     })
-    .sort((a: any, b: any) =>
-      dayjs(a.created).isAfter(dayjs(b.created)) ? 1 : -1
-    );
+    .sort((a: any, b: any) => {
+      console.log(
+        a.created,
+        dayjs(a.created),
+        b.created,
+        dayjs(b.created),
+        dayjs(a.created).isAfter(dayjs(b.created))
+      );
+      return dayjs(a.created).isBefore(dayjs(b.created)) ? 1 : -1;
+    });
 
   sendToClient(mainWindow, 'loaded_sequences', result);
 });
@@ -423,7 +430,8 @@ ipcMain.on('remove_sequence', async (_event: IpcMainEvent, name: string) => {
 });
 
 ipcMain.on('reset_sequence', async (_event, sequence) => {
-  resetSequence(sequence);
+  await resetSequence(sequence);
+  await removeTempFiles();
 });
 
 ipcMain.on('closed_app', async (_event, sequence) => {

@@ -128,11 +128,16 @@ export async function writeTags2Image(
 ) {
   const strStartTime = commonData['Main:GPSDateTime'];
   const duration = Math.ceil(commonData['Main:Duration']);
+
+  console.log('commonData: ', commonData);
+
   let starttime: Dayjs;
   if (strStartTime) {
     starttime = dayjs(strStartTime);
-  } else {
+  } else if (datalist.length) {
     starttime = dayjs(datalist[0].GPSDateTime);
+  } else {
+    starttime = dayjs(parseExifDateTime(commonData['Main:CreateDate']));
   }
   const result: IGeoPoint[] = [];
 
@@ -185,8 +190,9 @@ export async function writeTags2Image(
           height: commonData['Main:ImageHeight'],
           equirectangular:
             commonData['Main:ProjectionType'] === 'equirectangular',
+          tags: {},
         });
-      } else {
+      } else if (datalist.length) {
         nextitem = datalist[datalist.length - 1];
         item = new IGeoPoint({
           GPSDateTime: nextitem.GPSDateTime,
@@ -199,6 +205,14 @@ export async function writeTags2Image(
           camera_make: commonData['Main:Make'],
           width: commonData['Main:ImageWidth'],
           height: commonData['Main:ImageHeight'],
+          equirectangular:
+            commonData['Main:ProjectionType'] === 'equirectangular',
+          tags: {},
+        });
+      } else {
+        item = new IGeoPoint({
+          Image: filename,
+          DateTimeOriginal: datetime,
           equirectangular:
             commonData['Main:ProjectionType'] === 'equirectangular',
         });

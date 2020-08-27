@@ -28,8 +28,8 @@ export interface IGeoPointModel {
 
   equirectangular: boolean;
 
-  width: number;
-  height: number;
+  width?: number;
+  height?: number;
 
   tags?: any;
 }
@@ -57,9 +57,9 @@ export class IGeoPoint {
 
   public equirectangular: boolean;
 
-  width: number;
+  width?: number;
 
-  height: number;
+  height?: number;
 
   readonly camera_make?: string;
 
