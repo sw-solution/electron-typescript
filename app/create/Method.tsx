@@ -64,6 +64,14 @@ export default function SequenceMethod() {
         component: <BatteryFullIcon fontSize="large" />,
         label: 'Electric Scooter',
       },
+      {
+        component: <RowingIcon fontSize="large" />,
+        label: 'Boat',
+      },
+      {
+        component: <AcUnitIcon fontSize="large" />,
+        label: 'Snowmobile',
+      },
     ],
     Land: [
 
@@ -99,10 +107,6 @@ export default function SequenceMethod() {
       },
       {
         component: <AcUnitIcon fontSize="large" />,
-        label: 'Snowmobile',
-      },
-      {
-        component: <AcUnitIcon fontSize="large" />,
         label: 'Snowshoe',
       },
     ],
@@ -110,10 +114,6 @@ export default function SequenceMethod() {
       {
         component: <PoolIcon fontSize="large" />,
         label: 'Swim',
-      },
-      {
-        component: <RowingIcon fontSize="large" />,
-        label: 'Boat',
       },
       {
         component: <RowingIcon fontSize="large" />,
