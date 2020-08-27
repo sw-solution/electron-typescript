@@ -25,19 +25,19 @@ export default function SequenceType() {
       label: 'Land',
     },
     {
-      component: <PoolIcon fontSize="large" />,
+      component: <WavesIcon fontSize="large" />,
       label: 'Water',
     },
     {
-      component: <FlightTakeoffIcon fontSize="large" />,
+      component: <CloudIcon fontSize="large" />,
       label: 'Air',
     },
     {
-      component: <FlightTakeoffIcon fontSize="large" />,
+      component: <AcUnitIcon fontSize="large" />,
       label: 'Snow',
     },
     {
-      component: <FlightTakeoffIcon fontSize="large" />,
+      component: <BatteryFullIcon fontSize="large" />,
       label: 'Powered',
     },
   ];
