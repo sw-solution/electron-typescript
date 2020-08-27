@@ -37,23 +37,23 @@ export default function SequenceMethod() {
   const methods: MethodsModel = {
     Powered: [
       {
-        component: <DirectionsCarIcon fontSize="large" />,
+        component: <LocalGasStationIcon fontSize="large" />,
         label: 'Car',
       },
       {
-        component: <DirectionsCarIcon fontSize="large" />,
+        component: <EvStationIcon fontSize="large" />,
         label: 'Electric Car',
       },
       {
-        component: <AirplanemodeActiveIcon fontSize="large" />,
+        component: <LocalAirportActiveIcon fontSize="large" />,
         label: 'Plane',
       },
       {
-        component: <AirplanemodeActiveIcon fontSize="large" />,
+        component: <BatteryFullIcon fontSize="large" />,
         label: 'Helicopter',
       },
       {
-        component: <AirplanemodeActiveIcon fontSize="large" />,
+        component: <BatteryFullIcon fontSize="large" />,
         label: 'Drone',
       },
     ],
@@ -68,15 +68,15 @@ export default function SequenceMethod() {
         label: 'Electric Bicycle',
       },
       {
-        component: <DirectionsBikeIcon fontSize="large" />,
+        component: <DirectionsWalkIcon fontSize="large" />,
         label: 'Walk',
       },
       {
-        component: <DirectionsBikeIcon fontSize="large" />,
+        component: <LandscapeIconIcon fontSize="large" />,
         label: 'Scooter',
       },
       {
-        component: <DirectionsBikeIcon fontSize="large" />,
+        component: <LandscapeIconIcon fontSize="large" />,
         label: 'Electric Scooter',
       },
       {
@@ -90,19 +90,19 @@ export default function SequenceMethod() {
     ],
     Snow: [
       {
-        component: <PoolIcon fontSize="large" />,
+        component: <AcUnitIcon fontSize="large" />,
         label: 'Ski',
       },
       {
-        component: <PoolIcon fontSize="large" />,
+        component: <AcUnitIcon fontSize="large" />,
         label: 'Snowboard',
       },
       {
-        component: <PoolIcon fontSize="large" />,
+        component: <AcUnitIcon fontSize="large" />,
         label: 'Snowmobile',
       },
       {
-        component: <PoolIcon fontSize="large" />,
+        component: <AcUnitIcon fontSize="large" />,
         label: 'Snowshoe',
       },
     ],
@@ -120,19 +120,19 @@ export default function SequenceMethod() {
         label: 'Paddleboard',
       },
       {
-        component: <RowingIcon fontSize="large" />,
+        component: <WavesIcon fontSize="large" />,
         label: 'Scuba Dive',
       },
       {
-        component: <RowingIcon fontSize="large" />,
+        component: <WavesIcon fontSize="large" />,
         label: 'Surf',
       },
       {
-        component: <RowingIcon fontSize="large" />,
+        component: <WavesIcon fontSize="large" />,
         label: 'Windsurf',
       },
       {
-        component: <RowingIcon fontSize="large" />,
+        component: <WavesIcon fontSize="large" />,
         label: 'Kiteboard',
       },
       {
@@ -140,33 +140,33 @@ export default function SequenceMethod() {
         label: 'Canoe',
       },
       {
-        component: <RowingIcon fontSize="large" />,
+        component: <WavesIcon fontSize="large" />,
         label: 'Freedive',
       },
     ],
     Air: [
       {
-        component: <AirplanemodeActiveIcon fontSize="large" />,
+        component: <CloudIcon fontSize="large" />,
         label: 'Parachute',
       },
       {
-        component: <AirplanemodeActiveIcon fontSize="large" />,
+        component: <CloudIcon fontSize="large" />,
         label: 'Paraglide',
       },
       {
-        component: <AirplanemodeActiveIcon fontSize="large" />,
+        component: <CloudIcon fontSize="large" />,
         label: 'Hanglide',
       },
       {
-        component: <AirplanemodeActiveIcon fontSize="large" />,
+        component: <CloudIcon fontSize="large" />,
         label: 'Wingsuit',
       },
       {
-        component: <AirplanemodeActiveIcon fontSize="large" />,
+        component: <CloudIcon fontSize="large" />,
         label: 'BASE Jump',
       },
       {
-        component: <AirplanemodeActiveIcon fontSize="large" />,
+        component: <CloudIcon fontSize="large" />,
         label: 'Glider',
       },
     ],
