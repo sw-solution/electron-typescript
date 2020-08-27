@@ -8,6 +8,20 @@ import IconButton from '@material-ui/core/IconButton';
 import LandscapeIcon from '@material-ui/icons/Landscape';
 import PoolIcon from '@material-ui/icons/Pool';
 import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
+import DirectionsBikeIcon from '@material-ui/icons/DirectionsBike';
+import DirectionsWalkIcon from '@material-ui/icons/DirectionsWalk';
+import DirectionsCarIcon from '@material-ui/icons/DirectionsCar';
+import WavesIcon from '@material-ui/icons/Waves';
+import RowingIcon from '@material-ui/icons/Rowing';
+import AirplanemodeActiveIcon from '@material-ui/icons/AirplanemodeActive';
+import AcUnitIcon from '@material-ui/icons/AcUnit';
+import CloudIcon from '@material-ui/icons/Cloud';
+import BatteryFullIcon from '@material-ui/icons/BatteryFull';
+import LocalGasStationIcon from '@material-ui/icons/LocalGasStation';
+import EvStationIcon from '@material-ui/icons/EvStation';
+import LocalAirportActiveIcon from '@material-ui/icons/LocalAirportActive';
+import DirectionsWalkIcon from '@material-ui/icons/DirectionsWalk';
+import CloudIcon from '@material-ui/icons/Cloud';
 
 import { setSequenceType, selSequenceType } from './slice';
 
