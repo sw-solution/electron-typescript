@@ -1,0 +1,223 @@
+{
+  {
+    "parent_type": "Powered",
+    "parent_icon": "LocalGasStation",
+    "parent_description": "",
+    "parent_children": [
+      {
+        "child_type": "Car",
+        "child_icon": "LocalGasStation",
+        "child_description": "",
+        "child_secondary_parent": "Land"
+      },
+      {
+        "child_type": "Electric Car",
+        "child_icon": "EvStation",
+        "child_description": "",
+        "child_secondary_parent": "Land"
+      },
+      {
+        "child_type": "Electric Bicycle",
+        "child_icon": "DirectionsBike",
+        "child_description": "",
+        "child_secondary_parent": "Land"
+      },
+      {
+        "child_type": "Plane",
+        "child_icon": "LocalAirportActive",
+        "child_description": "",
+        "child_secondary_parent": "Air"
+      },
+      {
+        "child_type": "Helicopter",
+        "child_icon": "BatteryFull",
+        "child_description": "",
+        "child_secondary_parent": "Air"
+      },
+      {
+        "child_type": "Drone",
+        "child_icon": "BatteryFull",
+        "child_description": "",
+        "child_secondary_parent": "Air"
+      },
+      {
+        "child_type": "Electric Scooter",
+        "child_icon": "BatteryFull",
+        "child_description": "",
+        "child_secondary_parent": "Land"
+      },
+      {
+        "child_type": "Boat",
+        "child_icon": "BatteryFull",
+        "child_description": "",
+        "child_secondary_parent": "Water"
+      },
+      {
+        "child_type": "Snowmobile",
+        "child_icon": "AcUnit",
+        "child_description": "",
+        "child_secondary_parent": "Snow"
+      }
+    ]
+  },
+  {
+    "parent_type": "Land",
+    "parent_icon": "Landscape",
+    "parent_description": "",
+    "parent_children": [
+      {
+        "child_type": "Bicycle",
+        "child_icon": "DirectionsBike",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Walk",
+        "child_icon": "DirectionsWalk",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Scooter",
+        "child_icon": "Landscape",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Skateboard",
+        "child_icon": "Landscape",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Rollerskate",
+        "child_icon": "Landscape",
+        "child_description": "",
+        "child_secondary_parent": ""
+      }
+    ],
+  },
+  {
+    "parent_type": "Snow",
+    "parent_icon": "AcUnit",
+    "parent_description": "",
+    "parent_children": [
+      {
+        "child_type": "Ski",
+        "child_icon": "AcUnit",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Snowboard",
+        "child_icon": "AcUnit",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Snowshoe",
+        "child_icon": "AcUnit",
+        "child_description": "",
+        "child_secondary_parent": ""
+      }
+    ],
+  },
+  {
+    "parent_type": "Water",
+    "parent_icon": "Waves",
+    "parent_description": "",
+    "parent_children": [
+      {
+        "child_type": "Swim",
+        "child_icon": "Pool",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Paddleboard",
+        "child_icon": "Waves",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Scuba Dive",
+        "child_icon": "Waves",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Surf",
+        "child_icon": "Waves",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Windsurf",
+        "child_icon": "Waves",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Kiteboard",
+        "child_icon": "Waves",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Canoe",
+        "child_icon": "Rowing",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Freedive",
+        "child_icon": "Waves",
+        "child_description": "",
+        "child_secondary_parent": ""
+      }
+    ]
+  },
+  { 
+    "parent_type": "Air",
+    "parent_icon": "Cloud",
+    "parent_description": "",
+    "parent_children": [
+      {
+        "child_type": "Parachute",
+        "child_icon": "Cloud",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Paraglide",
+        "child_icon": "Cloud",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Hanglide",
+        "child_icon": "Cloud",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Wingsuit",
+        "child_icon": "Cloud",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "BASE Jump",
+        "child_icon": "Cloud",
+        "child_description": "",
+        "child_secondary_parent": ""
+      },
+      {
+        "child_type": "Glider",
+        "child_icon": "Cloud",
+        "child_description": "",
+        "child_secondary_parent": ""
+      }
+    ]
+  }
+}
