@@ -24,7 +24,7 @@
       },
       {
         "child_type": "Plane",
-        "child_icon": "LocalAirportActive",
+        "child_icon": "LocalAirport",
         "child_description": "",
         "child_secondary_parent": "Air"
       },

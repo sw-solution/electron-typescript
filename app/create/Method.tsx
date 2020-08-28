@@ -56,7 +56,7 @@ export default function SequenceMethod() {
         label: 'Electric Bicycle',
       },
       {
-        component: <LocalAirportActiveIcon fontSize="large" />,
+        component: <LocalAirportIcon fontSize="large" />,
         label: 'Plane',
       },
       {
