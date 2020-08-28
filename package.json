@@ -1,8 +1,8 @@
 {
   "name": "mtp",
-  "productName": "Map the Paths Uploader",
-  "version": "1.0.0",
-  "description": "Map the Paths Uploader",
+  "productName": "Map the Paths Desktop Uploader",
+  "version": "0.1.0",
+  "description": "Share your street-level imagery with the world and help improve the map.",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\"",
     "build-dll": "cross-env NODE_ENV=development webpack --config ./configs/webpack.config.renderer.dev.dll.babel.js --colors",
