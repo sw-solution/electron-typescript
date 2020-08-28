@@ -55,7 +55,7 @@ export default function SequenceStartTime() {
         {firstMatchedPoints && (
           <Typography paragraph>
             {`We found the first matching gps record in the track for this photo
-            at lat=${firstMatchedPoints.latitude} lon=${firstMatchedPoints.longitude} alt=${firstMatchedPoints.elevation} at FIRST MATCH TIME.`}
+            at lat=${firstMatchedPoints.latitude} lon=${firstMatchedPoints.longitude} alt=${firstMatchedPoints.elevation} at ${startTime}.`}
           </Typography>
         )}
         {!firstMatchedPoints && (
