@@ -54,7 +54,7 @@ export default function SequenceBur() {
         <Typography variant="h5" align="center" color="textSecondary">
           Create a blurred copy
         </Typography>
-        <Typography variant="h6" align="center" color="textSecondary">
+        <Typography paragraph>
           You can create a copy of the sequence images with publicly
           identifiable information blurred. Do not use this option if 
           uploading to Mapillary or Google Street View. It is only recommended
