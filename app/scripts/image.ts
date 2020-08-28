@@ -688,7 +688,7 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
           roll: p.tags.PosePoseRollDegrees || p.tags.GPSRoll || '',
           camera_make: p.camera_make,
           camera_model: p.camera_model,
-          projection: p.equirectangular ? 'equirectangular' : '',
+          projection: p.equirectangular ? 'equirectangular' : 'flat',
         },
         modified: {
           filename: p.Image,
@@ -703,7 +703,7 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
           roll: p.tags.PosePoseRollDegrees || p.tags.GPSRoll || '',
           camera_make: p.camera_make,
           camera_model: p.camera_model,
-          projection: p.equirectangular ? 'equirectangular' : '',
+          projection: p.equirectangular ? 'equirectangular' : 'flat',
         },
         connections,
       };
