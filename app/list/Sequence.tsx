@@ -15,7 +15,7 @@ import CloudIcon from '@material-ui/icons/Cloud';
 import BatteryFullIcon from '@material-ui/icons/BatteryFull';
 import LocalGasStationIcon from '@material-ui/icons/LocalGasStation';
 import EvStationIcon from '@material-ui/icons/EvStation';
-import LocalAirportActiveIcon from '@material-ui/icons/LocalAirportActive';
+import LocalAirportIcon from '@material-ui/icons/LocalAirport';
 
 import PhotoLibraryIcon from '@material-ui/icons/PhotoLibrary';
 
@@ -23,7 +23,7 @@ import ShowChartIcon from '@material-ui/icons/ShowChart';
 
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 
-import { Box, Typography, Grid, IconButton } from '@material-ui/core';
+import { Box, Typography, Grid } from '@material-ui/core';
 
 import { useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
@@ -82,7 +82,7 @@ export default function Sequence({ data }: Props) {
     Car: <LocalGasStationIcon color="primary" />,
     'Electric Car': <EvStationIcon color="primary" />,
     'Electric Bicycle': <DirectionsBikeIcon color="primary" />,
-    Plane: <LocalAirportActiveIcon color="primary" />,
+    Plane: <LocalAirportIcon color="primary" />,
     Helicopter: <BatteryFullIcon color="primary" />,
     Drone: <BatteryFullIcon color="primary" />,
     'Electric Scooter': <BatteryFullIcon color="primary" />,
