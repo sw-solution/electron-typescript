@@ -16,9 +16,11 @@ Map the Paths Desktop Uploader allows you to:
 3. Published to Map the Paths
   - Which can then be used to publish to Google Street View, Mapillary, etc.
 
-[Download the latest version here](https://www.mapthepaths.com/desktop-uploader).
+[Download the latest version here](https://mtp.trekview.org/upload).
 
 ## Dev Docs
+
+[See the wiki that we've written to help developers understand the logic and function of the Map the Paths Desktop Uploader (MTPU)](https://github.com/trek-view/mtp-desktop-uploader/wiki).
 
 ### Environment / build setup
 
@@ -64,7 +66,3 @@ To package apps for the local platform:
 ```
 yarn package
 ```
-
-## License
-
-OPM Desktop Uploader is licensed under a [GNU AGPLv3 License](/LICENSE.txt).
