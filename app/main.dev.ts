@@ -17,6 +17,8 @@ import {
   Menu,
 } from 'electron';
 
+import axios from 'axios';
+
 import fs from 'fs';
 import rimraf from 'rimraf';
 import dotenv from 'dotenv';
@@ -27,6 +29,8 @@ import jimp from 'jimp';
 import Async from 'async';
 
 import { processVideo } from './scripts/video';
+import Store from './scripts/utils/store';
+
 import { loadImages, updateImages, addLogo, modifyLogo } from './scripts/image';
 import {
   sendToClient,
@@ -50,6 +54,15 @@ let mainWindow: BrowserWindow | null = null;
 
 dotenv.config();
 
+const removeTempFiles = async () => {
+  const tempDirectory = path.join(app.getAppPath(), '../');
+  fs.readdirSync(tempDirectory)
+    .filter((n) => n.endsWith('.png'))
+    .forEach((n) => {
+      fs.unlinkSync(path.join(tempDirectory, n));
+    });
+};
+
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
@@ -61,6 +74,15 @@ if (
 ) {
   require('electron-debug')();
 }
+
+// First instantiate the class
+const store = new Store({
+  configName: 'user-data',
+  defaults: {
+    // 800x600 is the default size of our window
+    token: null,
+  },
+});
 
 const installExtensions = async () => {
   const installer = require('electron-devtools-installer');
@@ -110,6 +132,8 @@ const createWindow = async () => {
 
   Menu.setApplicationMenu(menu);
 
+  removeTempFiles();
+
   mainWindow = new BrowserWindow({
     show: false,
     width: 1024,
@@ -136,6 +160,25 @@ const createWindow = async () => {
     }
   });
 
+  mainWindow.webContents.on('dom-ready', () => {
+    const token = store.get('token');
+    const getUserAPIUrl = process.env.MTP_WEB_USER_API_URL;
+    if (token && getUserAPIUrl) {
+      axios
+        .get(getUserAPIUrl, {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        })
+        .then((res: any) => mainWindow?.webContents.send('user', res))
+        .catch((err: any) => {
+          mainWindow?.webContents.send('loaded_user', null);
+        });
+    } else {
+      mainWindow?.webContents.send('loaded_user', null);
+    }
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -149,25 +192,18 @@ const createWindow = async () => {
   // menuBuilder.buildMenu();
 };
 
-const removeTempFiles = async () => {
-  const tempDirectory = path.join(app.getAppPath(), '../');
-  fs.readdirSync(tempDirectory)
-    .filter((n) => n.endsWith('.png'))
-    .forEach((n) => {
-      fs.unlinkSync(path.join(tempDirectory, n));
-    });
-};
-
 /**
  * Add event listeners for ipcMain
  */
-ipcMain.on('load_config', async (_event: IpcMainEvent) => {
+ipcMain.once('load_config', async (_event: IpcMainEvent) => {
   const [cameras, nadirs] = await Promise.all([
     loadCameras(app),
     loadDefaultNadir(app),
-    removeTempFiles(),
   ]);
-  sendToClient(mainWindow, 'loaded_config', { cameras, nadirs });
+  sendToClient(mainWindow, 'loaded_config', {
+    cameras,
+    nadirs,
+  });
 });
 
 ipcMain.on(

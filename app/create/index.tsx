@@ -212,13 +212,7 @@ export default function CreatePageWrapper() {
       >
         <Logo />
         <List>
-          <ListItem
-            button
-            component="a"
-            onClick={() => {
-              dispatch(push(routes.CREATE));
-            }}
-          >
+          <ListItem button>
             <ListItemIcon>
               <CreateIcon />
             </ListItemIcon>
