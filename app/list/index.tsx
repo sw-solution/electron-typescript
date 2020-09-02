@@ -31,7 +31,7 @@ import { selLoaded, selSeqs, setEndLoad } from './slice';
 
 import routes from '../constants/routes.json';
 import { Summary, TransportType } from '../types/Result';
-import { selConfigLoaded, setConfigLoadEnd, selCameras } from '../base/slice';
+import { selCameras } from '../base/slice';
 import { Camera } from '../types/Camera';
 
 const { ipcRenderer } = window.require('electron');
@@ -67,7 +67,6 @@ interface State {
 export default function ListPageWrapper() {
   const classes = useStyles();
   const loaded = useSelector(selLoaded);
-  const configLoaded = useSelector(selConfigLoaded);
 
   const seqs = useSelector(selSeqs);
   const cameras = useSelector(selCameras);
@@ -84,19 +83,12 @@ export default function ListPageWrapper() {
     ipcRenderer.send('sequences');
   }
 
-  if (!configLoaded) {
-    ipcRenderer.send('load_config');
-  }
   ipcRenderer.on(
     'loaded_sequences',
     (_event: IpcRendererEvent, sequences: Summary[]) => {
       dispatch(setEndLoad(sequences));
     }
   );
-
-  ipcRenderer.on('loaded_config', (_event: IpcRendererEvent, config) => {
-    dispatch(setConfigLoadEnd(config));
-  });
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setState({
