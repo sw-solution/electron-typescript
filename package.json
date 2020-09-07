@@ -86,7 +86,12 @@
     "directories": {
       "buildResources": "resources",
       "output": "release"
-    }
+    },
+    "protocols": [{
+      "name": "app.mtp.desktop",
+      "role": "Viewer",
+      "schemes": ["app.mtp.desktop"]
+    }]
   },
   "repository": {
     "type": "git",

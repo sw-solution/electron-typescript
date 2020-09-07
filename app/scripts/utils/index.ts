@@ -1,4 +1,4 @@
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, App } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import rimraf from 'rimraf';
@@ -10,6 +10,15 @@ import { Result, Summary } from '../../types/Result';
 export const resultdirectory = 'sequences';
 
 export const tempLogo = 'output.png';
+
+export const removeTempFiles = async (app: App) => {
+  const tempDirectory = path.join(app.getAppPath(), '../');
+  fs.readdirSync(tempDirectory)
+    .filter((n) => n.endsWith('.png'))
+    .forEach((n) => {
+      fs.unlinkSync(path.join(tempDirectory, n));
+    });
+};
 
 export function sendToClient(
   win: BrowserWindow | null,
@@ -223,23 +232,10 @@ export const removeDirectory = async (directoryPath: string) => {
   return true;
 };
 
-export const removeTempFiles = async (sequence: any) => {
-  Object.keys(sequence.steps.previewnadir.items).forEach((f: string) => {
-    if (fs.existsSync(sequence.steps.previewnadir.items[f])) {
-      fs.unlinkSync(sequence.steps.previewnadir.items[f]);
-    }
-  });
-
-  if (fs.existsSync(sequence.steps.previewnadir.logofile)) {
-    fs.unlinkSync(sequence.steps.previewnadir.logofile);
-  }
-  return true;
-};
-
-export const resetSequence = async (sequence: any) => {
+export const resetSequence = async (sequence: any, app: App) => {
   await Promise.all([
     removeDirectory(getSequenceBasePath(sequence.steps.name)),
-    removeTempFiles(sequence),
+    removeTempFiles(app),
   ]);
 };
 

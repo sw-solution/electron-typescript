@@ -6,6 +6,7 @@ import { Grid, Button, Box, Slider } from '@material-ui/core';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import AddIcon from '@material-ui/icons/Add';
 import { makeStyles } from '@material-ui/core/styles';
+import ThumbUpIcon from '@material-ui/icons/ThumbUp';
 import Map from '../components/Map';
 
 import {
@@ -16,6 +17,8 @@ import {
   selPoints,
   selSequenceFrame,
   selSequencePosition,
+  selGPXRequired,
+  isRequiredNadir,
 } from './slice';
 
 import {
@@ -34,6 +37,15 @@ const useStyles = makeStyles((theme) => ({
   info: {
     color: 'grey',
     width: '100%',
+  },
+  buttonWrapper: {
+    display: 'flex',
+    flexWrap: 'nowrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    '& > *': {
+      margin: theme.spacing(1),
+    },
   },
 }));
 
@@ -55,6 +67,9 @@ export default function SequenceModifySpace() {
     points: proppoints,
   });
 
+  const allGeoTagged = useSelector(selGPXRequired);
+  const nadir = useSelector(isRequiredNadir);
+
   const { points } = state;
 
   const classes = useStyles();
@@ -72,6 +87,16 @@ export default function SequenceModifySpace() {
     dispatch(setSequencePoints(points));
     dispatch(setSequenceFrame(state.frames));
     dispatch(setCurrentStep('outlier'));
+  };
+
+  const looksGood = () => {
+    dispatch(setSequencePoints(points));
+    dispatch(setSequenceFrame(state.frames));
+    if (nadir) {
+      dispatch(setCurrentStep('nadir'));
+    } else {
+      dispatch(setCurrentStep('blur'));
+    }
   };
 
   const updatePoints = (positionmeter: number, frames: number) => {
@@ -159,7 +184,8 @@ export default function SequenceModifySpace() {
           You can space images by either time OR distance (not both). This is
           useful if you have photos very close together, and want to space them
           out. For example, you could set a minimum distance of 1 meters to
-          discard photos taken in the same spot (e.g. when you we're standing still).
+          discard photos taken in the same spot (e.g. when you we're standing
+          still).
         </Typography>
         <Box mb={1}>
           <Grid container spacing={3}>
@@ -216,7 +242,7 @@ export default function SequenceModifySpace() {
         <Map points={points} />
       </Grid>
       <Grid item xs={12}>
-        <Box mr={1} display="inline-block">
+        <Box className={classes.buttonWrapper}>
           <Button
             endIcon={<ChevronRightIcon />}
             color="secondary"
@@ -225,19 +251,29 @@ export default function SequenceModifySpace() {
           >
             Reset Changes
           </Button>
+          <Button
+            endIcon={<ChevronRightIcon />}
+            color="primary"
+            onClick={confirmMode}
+            variant="contained"
+          >
+            {`${
+              state.frames === 1 && state.position === 1
+                ? 'Skip This Step'
+                : 'Save Changes'
+            }`}
+          </Button>
+          {!allGeoTagged && (
+            <Button
+              endIcon={<ThumbUpIcon />}
+              color="primary"
+              onClick={looksGood}
+              variant="contained"
+            >
+              Looks good!
+            </Button>
+          )}
         </Box>
-        <Button
-          endIcon={<ChevronRightIcon />}
-          color="primary"
-          onClick={confirmMode}
-          variant="contained"
-        >
-          {`${
-            state.frames === 1 && state.position === 1
-              ? 'Skip This Step'
-              : 'Save Changes'
-          }`}
-        </Button>
       </Grid>
     </>
   );

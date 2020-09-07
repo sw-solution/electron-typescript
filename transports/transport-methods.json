@@ -1,222 +1,222 @@
 {
-  {
-    "parent_type": "Powered",
-    "parent_icon": "LocalGasStation",
-    "parent_description": "",
-    "parent_children": [
+  "Powered": {
+    "type": "Powered",
+    "icon": "fas fa-bus",
+    "description": "",
+    "children": [
       {
-        "child_type": "Car",
-        "child_icon": "LocalGasStation",
-        "child_description": "",
-        "child_secondary_parent": "Land"
+        "type": "Car",
+        "icon": "fas fa-car",
+        "description": "",
+        "secondary_parent": "Land"
       },
       {
-        "child_type": "Electric Car",
-        "child_icon": "EvStation",
-        "child_description": "",
-        "child_secondary_parent": "Land"
+        "type": "Electric Car",
+        "icon": "fas fa-charging-station",
+        "description": "",
+        "secondary_parent": "Land"
       },
       {
-        "child_type": "Electric Bicycle",
-        "child_icon": "DirectionsBike",
-        "child_description": "",
-        "child_secondary_parent": "Land"
+        "type": "Electric Bicycle",
+        "icon": "fas fa-bicycle",
+        "description": "",
+        "secondary_parent": "Land"
       },
       {
-        "child_type": "Plane",
-        "child_icon": "LocalAirport",
-        "child_description": "",
-        "child_secondary_parent": "Air"
+        "type": "Plane",
+        "icon": "fas fa-plane",
+        "description": "",
+        "secondary_parent": "Air"
       },
       {
-        "child_type": "Helicopter",
-        "child_icon": "BatteryFull",
-        "child_description": "",
-        "child_secondary_parent": "Air"
+        "type": "Helicopter",
+        "icon": "fas fa-helicopter",
+        "description": "",
+        "secondary_parent": "Air"
       },
       {
-        "child_type": "Drone",
-        "child_icon": "BatteryFull",
-        "child_description": "",
-        "child_secondary_parent": "Air"
+        "type": "Drone",
+        "icon": "fas fa-paper-plane",
+        "description": "",
+        "secondary_parent": "Air"
       },
       {
-        "child_type": "Electric Scooter",
-        "child_icon": "BatteryFull",
-        "child_description": "",
-        "child_secondary_parent": "Land"
+        "type": "Electric Scooter",
+        "icon": "fas fa-ship",
+        "description": "",
+        "secondary_parent": "Land"
       },
       {
-        "child_type": "Boat",
-        "child_icon": "BatteryFull",
-        "child_description": "",
-        "child_secondary_parent": "Water"
+        "type": "Boat",
+        "icon": "fas fa-anchor",
+        "description": "",
+        "secondary_parent": "Water"
       },
       {
-        "child_type": "Snowmobile",
-        "child_icon": "AcUnit",
-        "child_description": "",
-        "child_secondary_parent": "Snow"
+        "type": "Snowmobile",
+        "icon": "AcUnit",
+        "description": "",
+        "secondary_parent": "Snow"
       }
     ]
   },
-  {
-    "parent_type": "Land",
-    "parent_icon": "Landscape",
-    "parent_description": "",
-    "parent_children": [
+  "Land": {
+    "type": "Land",
+    "icon": "fas fa-mountain",
+    "description": "",
+    "children": [
       {
-        "child_type": "Bicycle",
-        "child_icon": "DirectionsBike",
-        "child_description": "",
-        "child_secondary_parent": ""
+        "type": "Bicycle",
+        "icon": "fas fa-bicycle",
+        "description": "",
+        "secondary_parent": ""
       },
       {
-        "child_type": "Walk",
-        "child_icon": "DirectionsWalk",
-        "child_description": "",
-        "child_secondary_parent": ""
+        "type": "Walk",
+        "icon": "fas fa-walking",
+        "description": "",
+        "secondary_parent": ""
       },
       {
-        "child_type": "Scooter",
-        "child_icon": "Landscape",
-        "child_description": "",
-        "child_secondary_parent": ""
+        "type": "Scooter",
+        "icon": "fas fa-ship",
+        "description": "",
+        "secondary_parent": ""
       },
       {
-        "child_type": "Skateboard",
-        "child_icon": "Landscape",
-        "child_description": "",
-        "child_secondary_parent": ""
+        "type": "Skateboard",
+        "icon": "fas fa-skiing-nordic",
+        "description": "",
+        "secondary_parent": ""
       },
       {
-        "child_type": "Rollerskate",
-        "child_icon": "Landscape",
-        "child_description": "",
-        "child_secondary_parent": ""
-      }
-    ],
-  },
-  {
-    "parent_type": "Snow",
-    "parent_icon": "AcUnit",
-    "parent_description": "",
-    "parent_children": [
-      {
-        "child_type": "Ski",
-        "child_icon": "AcUnit",
-        "child_description": "",
-        "child_secondary_parent": ""
-      },
-      {
-        "child_type": "Snowboard",
-        "child_icon": "AcUnit",
-        "child_description": "",
-        "child_secondary_parent": ""
-      },
-      {
-        "child_type": "Snowshoe",
-        "child_icon": "AcUnit",
-        "child_description": "",
-        "child_secondary_parent": ""
-      }
-    ],
-  },
-  {
-    "parent_type": "Water",
-    "parent_icon": "Waves",
-    "parent_description": "",
-    "parent_children": [
-      {
-        "child_type": "Swim",
-        "child_icon": "Pool",
-        "child_description": "",
-        "child_secondary_parent": ""
-      },
-      {
-        "child_type": "Paddleboard",
-        "child_icon": "Waves",
-        "child_description": "",
-        "child_secondary_parent": ""
-      },
-      {
-        "child_type": "Scuba Dive",
-        "child_icon": "Waves",
-        "child_description": "",
-        "child_secondary_parent": ""
-      },
-      {
-        "child_type": "Surf",
-        "child_icon": "Waves",
-        "child_description": "",
-        "child_secondary_parent": ""
-      },
-      {
-        "child_type": "Windsurf",
-        "child_icon": "Waves",
-        "child_description": "",
-        "child_secondary_parent": ""
-      },
-      {
-        "child_type": "Kiteboard",
-        "child_icon": "Waves",
-        "child_description": "",
-        "child_secondary_parent": ""
-      },
-      {
-        "child_type": "Canoe",
-        "child_icon": "Rowing",
-        "child_description": "",
-        "child_secondary_parent": ""
-      },
-      {
-        "child_type": "Freedive",
-        "child_icon": "Waves",
-        "child_description": "",
-        "child_secondary_parent": ""
+        "type": "Rollerskate",
+        "icon": "fas fa-skating",
+        "description": "",
+        "secondary_parent": ""
       }
     ]
   },
-  { 
-    "parent_type": "Air",
-    "parent_icon": "Cloud",
-    "parent_description": "",
-    "parent_children": [
+  "Snow": {
+    "type": "Snow",
+    "icon": "fas fa-snowflake",
+    "description": "",
+    "children": [
       {
-        "child_type": "Parachute",
-        "child_icon": "Cloud",
-        "child_description": "",
-        "child_secondary_parent": ""
+        "type": "Ski",
+        "icon": "fas fa-skiing-nordic",
+        "description": "",
+        "secondary_parent": ""
       },
       {
-        "child_type": "Paraglide",
-        "child_icon": "Cloud",
-        "child_description": "",
-        "child_secondary_parent": ""
+        "type": "Snowboard",
+        "icon": "fas fa-skiing",
+        "description": "",
+        "secondary_parent": ""
       },
       {
-        "child_type": "Hanglide",
-        "child_icon": "Cloud",
-        "child_description": "",
-        "child_secondary_parent": ""
+        "type": "Snowshoe",
+        "icon": "fas fa-skating",
+        "description": "",
+        "secondary_parent": ""
+      }
+    ]
+  },
+  "Water": {
+    "type": "Water",
+    "icon": "fas fa-water",
+    "description": "",
+    "children": [
+      {
+        "type": "Swim",
+        "icon": "fas fa-swimmer",
+        "description": "",
+        "secondary_parent": ""
       },
       {
-        "child_type": "Wingsuit",
-        "child_icon": "Cloud",
-        "child_description": "",
-        "child_secondary_parent": ""
+        "type": "Paddleboard",
+        "icon": "Waves",
+        "description": "",
+        "secondary_parent": ""
       },
       {
-        "child_type": "BASE Jump",
-        "child_icon": "Cloud",
-        "child_description": "",
-        "child_secondary_parent": ""
+        "type": "Scuba Dive",
+        "icon": "Waves",
+        "description": "",
+        "secondary_parent": ""
       },
       {
-        "child_type": "Glider",
-        "child_icon": "Cloud",
-        "child_description": "",
-        "child_secondary_parent": ""
+        "type": "Surf",
+        "icon": "Waves",
+        "description": "",
+        "secondary_parent": ""
+      },
+      {
+        "type": "Windsurf",
+        "icon": "Waves",
+        "description": "",
+        "secondary_parent": ""
+      },
+      {
+        "type": "Kiteboard",
+        "icon": "Waves",
+        "description": "",
+        "secondary_parent": ""
+      },
+      {
+        "type": "Canoe",
+        "icon": "Rowing",
+        "description": "",
+        "secondary_parent": ""
+      },
+      {
+        "type": "Freedive",
+        "icon": "Waves",
+        "description": "",
+        "secondary_parent": ""
+      }
+    ]
+  },
+  "Air": {
+    "type": "Air",
+    "icon": "fab fa-skyatlas",
+    "description": "",
+    "children": [
+      {
+        "type": "Parachute",
+        "icon": "Cloud",
+        "description": "",
+        "secondary_parent": ""
+      },
+      {
+        "type": "Paraglide",
+        "icon": "Cloud",
+        "description": "",
+        "secondary_parent": ""
+      },
+      {
+        "type": "Hanglide",
+        "icon": "Cloud",
+        "description": "",
+        "secondary_parent": ""
+      },
+      {
+        "type": "Wingsuit",
+        "icon": "Cloud",
+        "description": "",
+        "secondary_parent": ""
+      },
+      {
+        "type": "BASE Jump",
+        "icon": "Cloud",
+        "description": "",
+        "secondary_parent": ""
+      },
+      {
+        "type": "Glider",
+        "icon": "Cloud",
+        "description": "",
+        "secondary_parent": ""
       }
     ]
   }

@@ -28,14 +28,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Login() {
-  const gotoExternal = (url: string) => {
-    shell.openExternal(url);
-  };
-
-  const loginUrl = `${process.env.MTP_WEB_AUTH_URL}?client_id=${process.env.MTP_WEB_APP_ID}&response_type=token`;
-  const websiteUrl = process.env.MTP_WEB_URL || '';
-
+export default function About() {
   const classes = useStyles();
 
   return (
@@ -43,24 +36,7 @@ export default function Login() {
       <div className={classes.logoWrapper}>
         <Logo />
       </div>
-      <Typography variant="h6">
-        <span>You are not logged in</span>
-        <Button onClick={() => gotoExternal(websiteUrl)} color="primary">
-          MTP Trekview.
-        </Button>
-        <span>Please login with above.</span>
-      </Typography>
-      <div className={classes.buttonWrapper}>
-        <Button
-          onClick={() => gotoExternal(loginUrl)}
-          endIcon={<ChevronRightRoundedIcon />}
-          size="large"
-          color="primary"
-          variant="contained"
-        >
-          Login
-        </Button>
-      </div>
+      <Typography variant="h5">About</Typography>
     </div>
   );
 }

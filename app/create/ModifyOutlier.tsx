@@ -12,6 +12,7 @@ import {
 
 import { makeStyles } from '@material-ui/core/styles';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import ThumbUpIcon from '@material-ui/icons/ThumbUp';
 
 import Map from '../components/Map';
 
@@ -26,6 +27,8 @@ import {
   selSequenceOutlierMode,
   selPoints,
   setSequencePoints,
+  selGPXRequired,
+  isRequiredNadir,
 } from './slice';
 
 const useStyles = makeStyles((theme) => ({
@@ -36,6 +39,15 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'center',
     '& > *': {
       margin: theme.spacing(2),
+    },
+  },
+  buttonWrapper: {
+    display: 'flex',
+    flexWrap: 'nowrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    '& > *': {
+      margin: theme.spacing(1),
     },
   },
 }));
@@ -57,6 +69,9 @@ export default function SequenceModifyOutlier() {
     metersStr: propmeters.toString(),
     mode: propmode,
   });
+
+  const allGeoTagged = useSelector(selGPXRequired);
+  const nadir = useSelector(isRequiredNadir);
 
   const { points, metersStr, mode } = state;
 
@@ -164,6 +179,18 @@ export default function SequenceModifyOutlier() {
     dispatch(setOutlierMode(mode));
   };
 
+  const looksGood = () => {
+    const meters = parseFloat(metersStr);
+    dispatch(setSequencePoints(points));
+    dispatch(setSequenceOutlierMeters(meters));
+    dispatch(setOutlierMode(mode));
+    if (nadir) {
+      dispatch(setCurrentStep('nadir'));
+    } else {
+      dispatch(setCurrentStep('blur'));
+    }
+  };
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     updatePoints(event.target.value, mode);
   };
@@ -215,9 +242,9 @@ export default function SequenceModifyOutlier() {
           You can remove OR normalise images that have incorrect geo-tags (not
           both). This is useful if you have corrupted GPS, but no backup GPS
           track. Discard simply removes any photos futher than the value entered
-          from the expected path. You can also delete an individual image by 
-          clicking it on the map and selecting the delete icon. Normalise estimates
-          the correct position and assigns that position to the image.
+          from the expected path. You can also delete an individual image by
+          clicking it on the map and selecting the delete icon. Normalise
+          estimates the correct position and assigns that position to the image.
         </Typography>
         <Box mb={1} className={classes.wrapper}>
           <TextField
@@ -256,7 +283,7 @@ export default function SequenceModifyOutlier() {
         <Map points={points} onDelete={removePhoto} />
       </Grid>
       <Grid item xs={12}>
-        <Box mr={1} display="inline-block">
+        <Box className={classes.buttonWrapper}>
           <Button
             endIcon={<ChevronRightIcon />}
             color="secondary"
@@ -265,21 +292,31 @@ export default function SequenceModifyOutlier() {
           >
             Reset Changes
           </Button>
+          <Button
+            endIcon={<ChevronRightIcon />}
+            color="primary"
+            onClick={confirmMode}
+            variant="contained"
+          >
+            {`${
+              metersStr === '0' &&
+              mode === '' &&
+              proppoints.length === points.length
+                ? 'Skip This Step'
+                : 'Confirm Changes'
+            }`}
+          </Button>
+          {!allGeoTagged && (
+            <Button
+              endIcon={<ThumbUpIcon />}
+              color="primary"
+              onClick={looksGood}
+              variant="contained"
+            >
+              Looks good!
+            </Button>
+          )}
         </Box>
-        <Button
-          endIcon={<ChevronRightIcon />}
-          color="primary"
-          onClick={confirmMode}
-          variant="contained"
-        >
-          {`${
-            metersStr === '0' &&
-            mode === '' &&
-            proppoints.length === points.length
-              ? 'Skip This Step'
-              : 'Confirm Changes'
-          }`}
-        </Button>
       </Grid>
     </>
   );

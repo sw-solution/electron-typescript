@@ -1,27 +1,10 @@
 import React, { ReactNode } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import Typography from '@material-ui/core/Typography';
-import Grid from '@material-ui/core/Grid';
-
-import IconButton from '@material-ui/core/IconButton';
-import LandscapeIcon from '@material-ui/icons/Landscape';
-import PoolIcon from '@material-ui/icons/Pool';
-import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
-import DirectionsBikeIcon from '@material-ui/icons/DirectionsBike';
-import DirectionsWalkIcon from '@material-ui/icons/DirectionsWalk';
-import DirectionsCarIcon from '@material-ui/icons/DirectionsCar';
-import WavesIcon from '@material-ui/icons/Waves';
-import RowingIcon from '@material-ui/icons/Rowing';
-import AirplanemodeActiveIcon from '@material-ui/icons/AirplanemodeActive';
-import AcUnitIcon from '@material-ui/icons/AcUnit';
-import CloudIcon from '@material-ui/icons/Cloud';
-import BatteryFullIcon from '@material-ui/icons/BatteryFull';
-import LocalGasStationIcon from '@material-ui/icons/LocalGasStation';
-import EvStationIcon from '@material-ui/icons/EvStation';
-import LocalAirportIcon from '@material-ui/icons/LocalAirport';
+import { Typography, Button, Grid } from '@material-ui/core';
 
 import { setSequenceType, selSequenceType } from './slice';
+import transportType from '../../transports/transport-methods.json';
 
 export default function SequenceType() {
   const type = useSelector(selSequenceType);
@@ -31,43 +14,24 @@ export default function SequenceType() {
     dispatch(setSequenceType(newType));
   };
 
-  const buttons = [
-    {
-      component: <LandscapeIcon fontSize="large" />,
-      label: 'Land',
-    },
-    {
-      component: <WavesIcon fontSize="large" />,
-      label: 'Water',
-    },
-    {
-      component: <CloudIcon fontSize="large" />,
-      label: 'Air',
-    },
-    {
-      component: <AcUnitIcon fontSize="large" />,
-      label: 'Snow',
-    },
-    {
-      component: <BatteryFullIcon fontSize="large" />,
-      label: 'Powered',
-    },
-  ];
+  const buttons = Object.keys(transportType).map((type: string) => {
+    return transportType[type];
+  });
 
   const items: ReactNode[] = [];
 
   buttons.forEach((it) => {
-    const color = it.label === type ? 'secondary' : 'primary';
+    const color = it.type === type ? 'secondary' : 'primary';
     items.push(
-      <Grid item key={it.label}>
-        <IconButton
+      <Grid item key={it.type}>
+        <Button
           size="medium"
           color={color}
-          onClick={() => storeSequenceType(it.label)}
+          startIcon={<span className={it.icon} />}
+          onClick={() => storeSequenceType(it.type)}
         >
-          {it.component}
-        </IconButton>
-        <Typography color={color}>{it.label}</Typography>
+          {it.type}
+        </Button>
       </Grid>
     );
   });
@@ -79,7 +43,8 @@ export default function SequenceType() {
           Where did you capture content?
         </Typography>
         <Typography paragraph>
-          Transport types help people discover your sequence using search queries on Map the Paths Web.
+          Transport types help people discover your sequence using search
+          queries on Map the Paths Web.
         </Typography>
       </Grid>
       <Grid item xs={12}>

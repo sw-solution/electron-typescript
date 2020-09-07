@@ -6,12 +6,17 @@ import { IpcRendererEvent } from 'electron';
 import { Modal, Button } from '@material-ui/core';
 import { Alert, AlertTitle } from '@material-ui/lab';
 import { makeStyles } from '@material-ui/core/styles';
-import { selSequenceName, setInit, selSequence } from '../create/slice';
+import {
+  selSequenceName,
+  setInit,
+  selSequence,
+  setError,
+} from '../create/slice';
 
 import {
   selConfigLoaded,
   setConfigLoadEnd,
-  setUser,
+  setToken,
   selCurrentPath,
 } from '../base/slice';
 import routes from '../constants/routes.json';
@@ -33,6 +38,7 @@ const useStyles = makeStyles((theme) => ({
 
 interface State {
   showModal: boolean;
+  aboutPage: boolean;
 }
 
 type Props = {
@@ -53,6 +59,7 @@ export default function App(props: Props) {
 
   const [state, setState] = useState<State>({
     showModal: false,
+    aboutPage: false,
   });
 
   useEffect(() => {
@@ -60,21 +67,40 @@ export default function App(props: Props) {
       ipcRenderer.send('load_config');
     }
 
-    ipcRenderer.on('loaded_user', (_event: IpcRendererEvent, user) => {
-      if (user) {
-        dispatch(setUser(user));
-      } else if (currentPath !== routes.LOGIN) {
-        dispatch(push(routes.LOGIN));
+    ipcRenderer.on(
+      'loaded_token',
+      (_event: IpcRendererEvent, token: string | null) => {
+        if (token) {
+          dispatch(setToken(token));
+          if (currentPath !== routes.LIST) {
+            dispatch(push(routes.LIST));
+            dispatch(setError(token));
+          }
+        } else if (currentPath !== routes.LOGIN) {
+          dispatch(push(routes.LOGIN));
+        }
       }
-    });
+    );
 
     ipcRenderer.on('loaded_config', (_event: IpcRendererEvent, config) => {
       dispatch(setConfigLoadEnd(config));
     });
 
+    ipcRenderer.on('about_page', (_event: IpcRendererEvent) => {
+      if (name !== '') {
+        setState({
+          showModal: true,
+          aboutPage: true,
+        });
+      } else {
+        dispatch(push(routes.ABOUT));
+      }
+    });
+
     ipcRenderer.on('close_app', (_event: IpcRendererEvent) => {
       if (name !== '') {
         setState({
+          ...state,
           showModal: true,
         });
       } else {
@@ -83,6 +109,7 @@ export default function App(props: Props) {
     });
     return () => {
       ipcRenderer.removeAllListeners('close_app');
+      ipcRenderer.removeAllListeners('about_page');
       ipcRenderer.removeAllListeners('loaded_config');
     };
   });
@@ -90,12 +117,18 @@ export default function App(props: Props) {
   const handleClose = () => {
     setState({
       showModal: false,
+      aboutPage: false,
     });
   };
 
   const closeApp = () => {
+    if (state.aboutPage) {
+      dispatch(push(routes.ABOUT));
+      ipcRenderer.send('reset_sequence', sequence);
+    } else {
+      ipcRenderer.send('closed_app', sequence);
+    }
     handleClose();
-    ipcRenderer.send('closed_app', sequence);
     dispatch(setInit());
   };
 

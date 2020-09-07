@@ -8,7 +8,7 @@ interface State {
   cameras: Camera[];
   nadirs: Nadir[];
   loaded: boolean;
-  user: any;
+  token: string;
   boardId: string;
 }
 
@@ -29,13 +29,13 @@ const baseSlice = createSlice({
       state.nadirs = [...payload.nadirs];
       state.loaded = true;
     },
-    setUser(state, { payload }) {
-      state.user = payload;
+    setToken(state, { payload }) {
+      state.token = payload;
     },
   },
 });
 
-export const { endConfigLoad, setUser } = baseSlice.actions;
+export const { endConfigLoad, setToken } = baseSlice.actions;
 
 export default baseSlice.reducer;
 
