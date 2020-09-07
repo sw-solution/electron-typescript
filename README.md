@@ -31,7 +31,7 @@ Having problems? [Ask a question around the Campfire (our community forum)](http
 
 ## Developers
 
-[See the wiki that we've written to help developers understand the logic and function of the Map the Paths Desktop Uploader (MTPU)](https://github.com/trek-view/mtp-desktop-uploader/wiki).
+[See the wiki that we've written to help developers understand the logic and function of the Map the Paths Desktop Uploader (MTPU)](https://guides.trekview.org/mtp-desktop-uploader/developer-docs).
 
 ## License
 
