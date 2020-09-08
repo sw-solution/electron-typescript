@@ -9,6 +9,9 @@ import { Result, Summary } from '../../types/Result';
 
 export const resultdirectory = 'sequences';
 
+export const resultdirectorypath = (app: App) =>
+  path.resolve(app.getAppPath(), `../${resultdirectory}`);
+
 export const tempLogo = 'output.png';
 
 export const removeTempFiles = async (app: App) => {
@@ -117,20 +120,23 @@ export function getPitch(point1: IGeoPoint, point2: IGeoPoint, distance = -1) {
   return dis !== 0 ? (point2.MAPAltitude - point1.MAPAltitude) / dis : 0;
 }
 
-export function getSequenceBasePath(seqname: string): string {
+export function getSequenceBasePath(seqname: string, basepath: string): string {
   const directoryname = seqname.toLowerCase().replace(/\s/g, '_');
-  return path.resolve(resultdirectory, directoryname);
+  if (basepath) {
+    return path.resolve(basepath, `../${resultdirectory}`, directoryname);
+  }
 }
 
-export function getOriginalBasePath(seqname: string): string {
-  return path.resolve(getSequenceBasePath(seqname), 'originals');
+export function getOriginalBasePath(seqname: string, basepath: string): string {
+  return path.resolve(getSequenceBasePath(seqname, basepath), 'originals');
 }
 
 export function getSequenceImagePath(
   seqname: string,
-  filename: string
+  filename: string,
+  basepath: string
 ): string {
-  return path.resolve(getOriginalBasePath(seqname), filename);
+  return path.resolve(getOriginalBasePath(seqname, basepath), filename);
 }
 
 export enum OutputType {
@@ -142,19 +148,20 @@ export enum OutputType {
 export function getSequenceOutputPath(
   seqname: string,
   filename: string,
-  type: OutputType
+  type: OutputType,
+  basepath: string
 ): string {
-  return path.resolve(getSequenceBasePath(seqname), type, filename);
+  return path.resolve(getSequenceBasePath(seqname, basepath), type, filename);
 }
 
-export function getSequenceLogPath(seqname: string): string {
+export function getSequenceLogPath(seqname: string, basepath: string): string {
   const logofile = seqname.toLowerCase().replace(/\s/g, '_');
-  return path.join(getSequenceBasePath(seqname), `${logofile}.json`);
+  return path.join(getSequenceBasePath(seqname, basepath), `${logofile}.json`);
 }
 
-export function getSequenceGpxPath(seqname: string): string {
+export function getSequenceGpxPath(seqname: string, basepath: string): string {
   const logofile = seqname.toLowerCase().replace(/\s/g, '_');
-  return path.join(getSequenceBasePath(seqname), `${logofile}.gpx`);
+  return path.join(getSequenceBasePath(seqname, basepath), `${logofile}.gpx`);
 }
 
 export function discardPointsBySeconds(
@@ -234,7 +241,7 @@ export const removeDirectory = async (directoryPath: string) => {
 
 export const resetSequence = async (sequence: any, app: App) => {
   await Promise.all([
-    removeDirectory(getSequenceBasePath(sequence.steps.name)),
+    removeDirectory(getSequenceBasePath(sequence.steps.name, app.getAppPath())),
     removeTempFiles(app),
   ]);
 };

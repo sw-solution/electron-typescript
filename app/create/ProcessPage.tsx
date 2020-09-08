@@ -13,6 +13,8 @@ import {
   setNadirPreview,
 } from './slice';
 
+import { selBasePath } from '../base/slice';
+
 import { getSequenceBasePath } from '../scripts/utils';
 
 const { ipcRenderer } = window.require('electron');
@@ -20,11 +22,14 @@ const { ipcRenderer } = window.require('electron');
 export default function SequenceProcessPage() {
   const nextStep = useSelector(selProcessPageNext);
   const name = useSelector(selSequenceName);
+  const basepath = useSelector(selBasePath);
   const dispatch = useDispatch();
 
   useEffect(() => {
     ipcRenderer.on('finish', (_event: IpcRendererEvent) => {
-      dispatch(setCurrentStep(nextStep));
+      if (nextStep !== 'name' && nextStep !== '') {
+        dispatch(setCurrentStep(nextStep));
+      }
     });
 
     ipcRenderer.on(
@@ -37,6 +42,7 @@ export default function SequenceProcessPage() {
 
     return () => {
       ipcRenderer.removeAllListeners('finish');
+      ipcRenderer.removeAllListeners('loaded_preview_nadir');
     };
   });
 
@@ -59,7 +65,8 @@ export default function SequenceProcessPage() {
         {nextStep === 'name' && (
           <Typography align="center" color="textSecondary">
             {`Output can be viewed in [${getSequenceBasePath(
-              name
+              name,
+              basepath
             )}] once complete`}
           </Typography>
         )}

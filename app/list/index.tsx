@@ -226,41 +226,29 @@ export default function ListPageWrapper() {
         </div>
       </Drawer>
       <Wrapper title="Browse Sequences">
-        {loaded && (
-          <Grid container className={classes.gridContainer}>
-            <Grid item xs={12}>
-              <Box style={{ textAlign: 'right', marginBottom: '20px' }}>
-                <Button
-                  onClick={() => {
-                    dispatch(push(routes.CREATE));
-                  }}
-                  color="primary"
-                  startIcon={<AddIcon />}
-                >
-                  Create
-                </Button>
-              </Box>
-            </Grid>
-            {items.length ? (
-              items
-            ) : (
-              <Typography>
-                No sequences exist that match the search criteria. Why not
-                create one? As if you needed an excuse for an adventure!
-              </Typography>
-            )}
-          </Grid>
-        )}
-        {!loaded && (
-          <div style={{ width: '100%' }}>
-            <Box mb={5}>
-              <Typography variant="h5" color="primary">
-                Loading
-              </Typography>
+        <Grid container className={classes.gridContainer}>
+          <Grid item xs={12}>
+            <Box style={{ textAlign: 'right', marginBottom: '20px' }}>
+              <Button
+                onClick={() => {
+                  dispatch(push(routes.CREATE));
+                }}
+                color="primary"
+                startIcon={<AddIcon />}
+              >
+                Create
+              </Button>
             </Box>
-            <LinearProgress />
-          </div>
-        )}
+          </Grid>
+          {items.length ? (
+            items
+          ) : (
+            <Typography>
+              No sequences exist that match the search criteria. Why not create
+              one? As if you needed an excuse for an adventure!
+            </Typography>
+          )}
+        </Grid>
       </Wrapper>
     </div>
   );

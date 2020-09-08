@@ -22,6 +22,7 @@ import { getSequenceImagePath } from '../scripts/utils';
 
 import { IGeoPoint } from '../types/IGeoPoint';
 import { selSequenceName } from '../create/slice';
+import { selBasePath } from '../base/slice';
 
 import markerImg from '../assets/images/marker.svg';
 
@@ -75,6 +76,8 @@ export default function Map(props: Props) {
     (point: IGeoPoint) => point.MAPLatitude && point.MAPLongitude
   );
 
+  const basepath = useSelector(selBasePath);
+
   const centerPoint = () => {
     if (filteredpoints.length) {
       const centerIdx = Math.floor(filteredpoints.length / 2);
@@ -118,7 +121,11 @@ export default function Map(props: Props) {
   };
 
   const getpath = (idx: number) => {
-    return getSequenceImagePath(name, filteredpoints[idx.toString()].Image);
+    return getSequenceImagePath(
+      name,
+      filteredpoints[idx.toString()].Image,
+      basepath
+    );
   };
 
   const removePhoto = () => {
@@ -134,7 +141,8 @@ export default function Map(props: Props) {
   const get2dpath = (idx: number) => {
     const path = getSequenceImagePath(
       name,
-      filteredpoints[idx.toString()].Image
+      filteredpoints[idx.toString()].Image,
+      basepath
     );
     return path.replace(/\\/g, '/');
   };

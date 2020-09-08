@@ -12,8 +12,8 @@ export default function Routes() {
   return (
     <App>
       <Switch>
-        <Route path={routes.CREATE} component={CratePage} />
         <Route path={routes.LOGIN} component={LoginPage} />
+        <Route path={routes.CREATE} component={CratePage} />
         <Route path={routes.ABOUT} component={AboutPage} />
         <Route path={routes.LIST} component={ListPage} />
       </Switch>

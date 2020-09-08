@@ -2,6 +2,7 @@ import React, { useEffect, useState, ReactNode } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { push } from 'connected-react-router';
 import { IpcRendererEvent } from 'electron';
+import { useLocation } from 'react-router-dom';
 
 import { Modal, Button } from '@material-ui/core';
 import { Alert, AlertTitle } from '@material-ui/lab';
@@ -10,14 +11,16 @@ import {
   selSequenceName,
   setInit,
   selSequence,
-  setError,
+  setMapilliaryToken,
+  waitMapiliaryToken,
 } from '../create/slice';
 
 import {
   selConfigLoaded,
   setConfigLoadEnd,
-  setToken,
-  selCurrentPath,
+  setMTPToken,
+  selMTPToken,
+  selMTPTokenWaiting,
 } from '../base/slice';
 import routes from '../constants/routes.json';
 
@@ -51,36 +54,43 @@ export default function App(props: Props) {
   const name = useSelector(selSequenceName);
   const configLoaded = useSelector(selConfigLoaded);
 
+  const waitingMapillaryToken = useSelector(waitMapiliaryToken);
+  const waitingMTPToken = useSelector(selMTPTokenWaiting);
+
   const dispatch = useDispatch();
 
-  const currentPath = useSelector(selCurrentPath);
+  const location = useLocation();
 
   const classes = useStyles();
+
+  const mtpToken = useSelector(selMTPToken);
 
   const [state, setState] = useState<State>({
     showModal: false,
     aboutPage: false,
   });
 
+  ipcRenderer.on(
+    'loaded_token',
+    (_event: IpcRendererEvent, token: string | null) => {
+      if (token) {
+        if (waitingMapillaryToken) {
+          dispatch(setMapilliaryToken(token));
+        } else if (waitingMTPToken) {
+          dispatch(setMTPToken(token));
+        }
+      }
+    }
+  );
+
   useEffect(() => {
+    if (mtpToken === '' && location.pathname !== routes.LOGIN) {
+      // dispatch(push(routes.LOGIN));
+    }
+
     if (!configLoaded) {
       ipcRenderer.send('load_config');
     }
-
-    ipcRenderer.on(
-      'loaded_token',
-      (_event: IpcRendererEvent, token: string | null) => {
-        if (token) {
-          dispatch(setToken(token));
-          if (currentPath !== routes.LIST) {
-            dispatch(push(routes.LIST));
-            dispatch(setError(token));
-          }
-        } else if (currentPath !== routes.LOGIN) {
-          dispatch(push(routes.LOGIN));
-        }
-      }
-    );
 
     ipcRenderer.on('loaded_config', (_event: IpcRendererEvent, config) => {
       dispatch(setConfigLoadEnd(config));

@@ -10,8 +10,6 @@
  */
 import { app, BrowserWindow, shell, Menu, protocol } from 'electron';
 
-import axios from 'axios';
-
 import dotenv from 'dotenv';
 
 import url from 'url';
@@ -19,7 +17,7 @@ import Store from './scripts/utils/store';
 
 import eventsLoader from './scripts/events_loader';
 
-import { sendToClient } from './scripts/utils';
+import { sendToClient, errorHandler } from './scripts/utils';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -36,15 +34,6 @@ if (
 ) {
   require('electron-debug')();
 }
-
-// First instantiate the class
-const store = new Store({
-  configName: 'user-data',
-  defaults: {
-    // 800x600 is the default size of our window
-    token: null,
-  },
-});
 
 const installExtensions = async () => {
   const installer = require('electron-devtools-installer');
@@ -120,27 +109,6 @@ const createWindow = async () => {
     }
   });
 
-  mainWindow.webContents.on('dom-ready', () => {
-    const token = store.get('token');
-    const getUserAPIUrl = process.env.MTP_WEB_USER_API_URL;
-    if (process.env.NODE_ENV !== 'development') {
-      if (token && getUserAPIUrl) {
-        axios
-          .get(getUserAPIUrl, {
-            headers: {
-              Authorization: `Token ${token}`,
-            },
-          })
-          .then((res: any) => mainWindow?.webContents.send('loaded_token', res))
-          .catch((err: any) => {
-            mainWindow?.webContents.send('loaded_token', null);
-          });
-      } else {
-        mainWindow?.webContents.send('loaded_token', null);
-      }
-    }
-  });
-
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -160,11 +128,12 @@ const createWindow = async () => {
  * Add event listeners...
  */
 
-const sendTokenFromUrl = (protocolLink: string) => {
+const sendTokenFromUrl = async (protocolLink: string) => {
   const token = url.parse(protocolLink.replace('#', '?'), true).query
     .access_token;
-  sendToClient(mainWindow, 'loaded_token', token);
-  store.set('token', token);
+  if (token) {
+    sendToClient(mainWindow, 'loaded_token', token);
+  }
 };
 
 app.on('open-url', function (event, protocolLink: string) {
@@ -188,12 +157,15 @@ if (!gotTheLock) {
   app.quit();
 } else {
   app.on('second-instance', (event, commandLine, workingDirectory) => {
-    console.log('second-instance');
+    event.preventDefault();
     // Someone tried to run a second instance, we should focus our window.
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
+      commandLine.forEach((l: string) => {
+        if (l.indexOf('app.mtp.desktop') >= 0) sendTokenFromUrl(l);
+      });
+
       mainWindow.focus();
-      sendTokenFromUrl(commandLine[2]);
     }
   });
 

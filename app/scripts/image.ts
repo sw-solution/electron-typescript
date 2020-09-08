@@ -5,7 +5,12 @@ import dayjs from 'dayjs';
 import { v4 as uuidv4 } from 'uuid';
 import jimp from 'jimp';
 import rimraf from 'rimraf';
+import axios from 'axios';
+import axiosRetry from 'axios-retry';
+
+import FormData from 'form-data';
 import { IGeoPoint } from '../types/IGeoPoint';
+
 import {
   Result,
   Photo,
@@ -25,34 +30,6 @@ import {
 const average = require('image-average-color');
 
 const { Tags, exiftool } = require('exiftool-vendored');
-
-export const filterCorruptImages = (
-  files: string[],
-  dirPath: string,
-  ouptputpath: string,
-  next: CallableFunction
-) => {
-  const newfiles: string[] = [];
-  Async.each(
-    files,
-    (filename: string, cb: CallableFunction) => {
-      jimp
-        .read(path.join(dirPath, filename))
-        .then((image: any) => {
-          // eslint-disable-next-line no-underscore-dangle
-          if (image._rgba) {
-            newfiles.push(filename);
-          }
-          return image;
-        })
-        .catch((err) => console.log('JIMP: ', err));
-    },
-    (error: Error | any) => {
-      if (!error) next(null, newfiles, ouptputpath);
-      else next(error);
-    }
-  );
-};
 
 export const copyFiles = (
   files: string[],
@@ -285,8 +262,10 @@ export function loadImages(
       (cb1: CallableFunction) => {
         fs.exists(outputpath, (existed: boolean) => {
           if (!existed) {
-            fs.mkdir(outputpath, () => {
-              cb1(null);
+            fs.mkdir(outputpath, (err) => {
+              if (err) {
+                cb1(err);
+              } else cb1(null);
             });
           } else {
             cb1(null);
@@ -308,8 +287,10 @@ export function loadImages(
       },
       (cb1: CallableFunction) => {
         const originalpath = path.join(outputpath, 'originals');
-        fs.mkdir(originalpath, () => {
-          cb1(null, files, dirPath, originalpath, corrupedCheck);
+        fs.mkdir(originalpath, (err) => {
+          if (err) {
+            cb1(err);
+          } else cb1(null, files, dirPath, originalpath, corrupedCheck);
         });
       },
       copyFiles,
@@ -416,6 +397,7 @@ export function writeExifTags(
   input_file: string,
   item: IGeoPoint,
   description: Photo,
+  basepath: string,
   outputfile: any = false
 ) {
   return new Promise((resolve, reject) => {
@@ -471,16 +453,22 @@ export function writeNadirImages(
   item: IGeoPoint,
   settings: any,
   description: Description,
+  basepath: string,
   logo: any
 ) {
   return new Promise((resolve, reject) => {
     if (settings.nadirPath !== '' && logo) {
       const filename = item.Image || '';
-      const existingfile = getSequenceImagePath(settings.name, filename);
+      const existingfile = getSequenceImagePath(
+        settings.name,
+        filename,
+        basepath
+      );
       const outputfile = getSequenceOutputPath(
         settings.name,
         filename,
-        OutputType.nadir
+        OutputType.nadir,
+        basepath
       );
 
       const addLogoAsync = addLogo(
@@ -498,10 +486,15 @@ export function writeNadirImages(
         });
       const writeExifAsync = addLogoAsync
         .then(() =>
-          writeExifTags(outputfile, item, {
-            ...description.photo,
-            MTPImageCopy: 'final_nadir',
-          })
+          writeExifTags(
+            outputfile,
+            item,
+            {
+              ...description.photo,
+              MTPImageCopy: 'final_nadir',
+            },
+            basepath
+          )
         )
         .catch((err) => {
           console.error(`Add Logo Error:  ${filename} - `, err);
@@ -525,15 +518,17 @@ export function writeNadirImages(
 export function writeBlurredImage(
   item: IGeoPoint,
   settings: any,
-  description: Description
+  description: Description,
+  basepath: string
 ) {
   return new Promise((resolve, reject) => {
     const filename = item.Image || '';
-    const inputfile = getSequenceImagePath(settings.name, filename);
+    const inputfile = getSequenceImagePath(settings.name, filename, basepath);
     const outputfile = getSequenceOutputPath(
       settings.name,
       filename,
-      OutputType.blur
+      OutputType.blur,
+      basepath
     );
 
     console.log(`Start Updating Jimp: filename ${inputfile}`);
@@ -548,10 +543,15 @@ export function writeBlurredImage(
       });
     const writeExifAsync = jimpAsync
       .then(() =>
-        writeExifTags(outputfile, item, {
-          ...description.photo,
-          MTPImageCopy: 'final_blurred',
-        })
+        writeExifTags(
+          outputfile,
+          item,
+          {
+            ...description.photo,
+            MTPImageCopy: 'final_blurred',
+          },
+          basepath
+        )
       )
       .catch((err) => {
         console.log(`Write Error in Jimp: ${filename} - `, err);
@@ -569,9 +569,14 @@ export function writeBlurredImage(
   });
 }
 
-export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
+export function updateImages(
+  points: IGeoPoint[],
+  settings: any,
+  logo: any,
+  basepath: string,
+  mapillarySession: any
+) {
   return new Promise((resolve, reject) => {
-    console.log('updateImages: ', points);
     const updatedPoints = points
       .filter(
         (p) =>
@@ -719,25 +724,30 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
 
     Async.eachOfLimit(
       updatedPoints,
-      4,
+      1,
       (item: IGeoPoint, key: any, next: CallableFunction) => {
         const desc: Description = descriptions[item.id];
         Async.parallel(
           [
             (cb: CallableFunction) => {
               const filename = item.Image || '';
-              const inputfile = getSequenceImagePath(settings.name, filename);
+              const inputfile = getSequenceImagePath(
+                settings.name,
+                filename,
+                basepath
+              );
               const outputfile = getSequenceOutputPath(
                 settings.name,
                 filename,
-                OutputType.raw
+                OutputType.raw,
+                basepath
               );
-              writeExifTags(inputfile, item, desc.photo, outputfile)
+              writeExifTags(inputfile, item, desc.photo, basepath, outputfile)
                 .then(() => cb())
                 .catch((err) => cb(err));
             },
             (cb: CallableFunction) => {
-              writeNadirImages(item, settings, desc, logo)
+              writeNadirImages(item, settings, desc, basepath, logo)
                 .then(() => cb())
                 .catch((err) => {
                   if (err) {
@@ -747,7 +757,7 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
             },
             (cb: CallableFunction) => {
               if (settings.blur) {
-                writeBlurredImage(item, settings, desc)
+                writeBlurredImage(item, settings, desc, basepath)
                   .then(() => cb())
                   .catch((err) => cb(err));
               } else {
@@ -758,6 +768,67 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
           (err) => {
             if (err) {
               next(err);
+            } else if (mapillarySession) {
+              let outputType = '';
+              if (settings.nadirPath !== '' && logo) {
+                outputType = OutputType.nadir;
+              } else if (settings.nadir) {
+                outputType = OutputType.blur;
+              } else {
+                outputType = OutputType.raw;
+              }
+              const filepath = getSequenceOutputPath(
+                settings.name,
+                item.Image,
+                outputType,
+                basepath
+              );
+
+              try {
+                const formData = new FormData();
+
+                Object.keys(mapillarySession.fields).forEach((k: string) => {
+                  formData.append(k, mapillarySession.fields[k]);
+                });
+
+                formData.append(
+                  'key',
+                  `${mapillarySession.key_prefix}${item.Image}`
+                );
+
+                formData.append('file', fs.createReadStream(filepath), {
+                  filename: item.Image,
+                });
+
+                formData.getLength((error1: any, length: number) => {
+                  if (error1) {
+                    return next(JSON.stringify({ error1, length }));
+                  }
+                  const config = {
+                    method: 'post',
+                    url: mapillarySession.url,
+                    headers: {
+                      ...formData.getHeaders(),
+                      'Content-Length': length,
+                    },
+                    maxContentLength: Infinity,
+                    maxBodyLength: Infinity,
+                    data: formData,
+                  };
+
+                  axiosRetry(axios, { retries: 3 });
+                  // eslint-disable-next-line promise/no-promise-in-callback
+                  return axios(config)
+                    .then((response: any) => {
+                      return next();
+                    })
+                    .catch((error2: any) => {
+                      return next(JSON.stringify(error2));
+                    });
+                });
+              } catch (e) {
+                next(e);
+              }
             } else {
               next();
             }
@@ -766,8 +837,9 @@ export function updateImages(points: IGeoPoint[], settings: any, logo: any) {
       },
       (err) => {
         if (err) {
-          reject(err);
-        } else resolve(resultjson);
+          return reject(err);
+        }
+        return resolve(resultjson);
       }
     );
   });

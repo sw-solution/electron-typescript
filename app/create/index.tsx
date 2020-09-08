@@ -44,6 +44,8 @@ import UploadNadir from './UploadNadir';
 import PreviewNadir from './PreviewNadir';
 import ProcessPage from './ProcessPage';
 import BlurPage from './Blur';
+import DestinationPage from './Destination';
+import DestinationLoginPage from './DestinationLogin';
 
 import routes from '../constants/routes.json';
 import {
@@ -52,7 +54,6 @@ import {
   selCurrentStep,
   goToPrevStep,
   setSequencePoints,
-  setSequenceStartTime,
   setSequenceGpxPoints,
   setSequenceInit,
   setSequenceError,
@@ -128,10 +129,6 @@ export default function CreatePageWrapper() {
       }
     });
 
-    ipcRenderer.on('start_time', (_event: IpcRendererEvent, starttime) => {
-      dispatch(setSequenceStartTime(starttime));
-    });
-
     ipcRenderer.on('add-seq', (_event: IpcRendererEvent, seq) => {
       dispatch(setAddSeq(seq));
       dispatch(setSequenceInit());
@@ -147,12 +144,10 @@ export default function CreatePageWrapper() {
     });
 
     return () => {
-      ipcRenderer.removeAllListeners('start_time');
       ipcRenderer.removeAllListeners('loaded_points');
       ipcRenderer.removeAllListeners('loaded_gpx');
       ipcRenderer.removeAllListeners('add-seq');
       ipcRenderer.removeAllListeners('error');
-      ipcRenderer.removeAllListeners('loaded_cameras');
     };
   });
 
@@ -272,6 +267,8 @@ export default function CreatePageWrapper() {
           {currentStep === 'previewNadir' && <PreviewNadir />}
           {currentStep === 'processPage' && <ProcessPage />}
           {currentStep === 'blur' && <BlurPage />}
+          {currentStep === 'destination' && <DestinationPage />}
+          {currentStep === 'destination_login' && <DestinationLoginPage />}
         </Grid>
         <Modal open={state.showModal} onClose={handleClose}>
           {modalBody}

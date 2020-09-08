@@ -14,7 +14,8 @@ import {
   setProcessStep,
 } from './slice';
 
-import { selNadirs } from '../base/slice';
+import { selBasePath, selNadirs } from '../base/slice';
+
 import { Nadir } from '../types/Nadir';
 
 const { ipcRenderer, remote } = window.require('electron');
@@ -24,6 +25,7 @@ export default function SequenceUploadNadir() {
   const name = useSelector(selSequenceName);
   const points = useSelector(selPoints);
   const nadirs = useSelector(selNadirs);
+  const basepath = useSelector(selBasePath);
 
   const setPath = (url: string) => {
     dispatch(setSequenceNadirPath(url));
@@ -31,7 +33,7 @@ export default function SequenceUploadNadir() {
     const point = points[0];
     ipcRenderer.send('upload_nadir', {
       nadirpath: url,
-      imagepath: getSequenceImagePath(name, points[0].Image),
+      imagepath: getSequenceImagePath(name, points[0].Image, basepath),
       width: point.width,
       height: point.height,
     });
@@ -60,7 +62,8 @@ export default function SequenceUploadNadir() {
           Select the nadir
         </Typography>
         <Typography align="center" color="textSecondary">
-          Allowed filetypes for nadir cap are: jpg, png, tif file only. Must be at least 500px x 500px and square.
+          Allowed filetypes for nadir cap are: jpg, png, tif file only. Must be
+          at least 500px x 500px and square.
         </Typography>
       </Grid>
       <Grid item xs={12}>

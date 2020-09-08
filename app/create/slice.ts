@@ -43,6 +43,13 @@ const initialState = {
       logofile: '',
     },
     blur: false,
+    destination: {
+      mapillary: {
+        token: '',
+        checked: false,
+        waiting: false,
+      },
+    },
   },
   points: [],
   passedPoints: {},
@@ -170,16 +177,20 @@ const createSequenceSlice = createSlice({
       };
     },
     setProcessStep: (state, { payload }) => {
-      state.steps.processPage = payload;
-      state.step = {
-        ...state.step,
-        current: 'processPage',
-        passed: [
-          ...state.step.passed.filter((step) => step !== state.step.current),
-          state.step.current,
-        ],
-      };
-      state.error = null;
+      try {
+        state.steps.processPage = payload;
+        state.step = {
+          ...state.step,
+          current: 'processPage',
+          passed: [
+            ...state.step.passed.filter((step) => step !== state.step.current),
+            state.step.current,
+          ],
+        };
+        state.error = null;
+      } catch (e) {
+        state.error = JSON.stringify(e);
+      }
     },
     setPoints: (state, { payload }) => {
       state.points = [...payload];
@@ -236,6 +247,16 @@ const createSequenceSlice = createSlice({
     },
     setBlur: (state, { payload }) => {
       state.steps.blur = payload;
+    },
+    setMapillary: (state, { payload }) => {
+      state.steps.destination.mapillary.checked = payload;
+    },
+    setMapilliaryToken: (state, { payload }) => {
+      state.steps.destination.mapillary.token = payload;
+      state.steps.destination.mapillary.waiting = false;
+    },
+    setMapilliaryTokenWaiting: (state, { payload }) => {
+      state.steps.destination.mapillary.waiting = payload;
     },
     setInit: (state) => {
       // state = {
@@ -296,6 +317,9 @@ export const {
   setInit,
   setError,
   setBlur,
+  setMapillary,
+  setMapilliaryToken,
+  setMapilliaryTokenWaiting,
 
   resetPoints,
 } = createSequenceSlice.actions;
@@ -536,6 +560,15 @@ export const selSequenceAzimuth = (state: RootState) =>
 export const selError = (state: RootState) => state.create.error;
 
 export const selBlur = (state: RootState) => state.create.steps.blur;
+
+export const selMapillary = (state: RootState) =>
+  state.create.steps.destination.mapillary.checked;
+
+export const selMapillaryToken = (state: RootState) =>
+  state.create.steps.destination.mapillary.token;
+
+export const waitMapiliaryToken = (state: RootState) =>
+  state.create.steps.destination.mapillary.waiting;
 
 export const isRequiredNadir = (state: RootState) =>
   state.create.points.filter((point: IGeoPoint) => !point.equirectangular)

@@ -5,8 +5,9 @@ import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 import jimp from 'jimp';
 import Async from 'async';
+import axios from 'axios';
 
-import { App, ipcMain, BrowserView, protocol } from 'electron';
+import { App, ipcMain, BrowserView } from 'electron';
 import { processVideo } from './video';
 
 import { loadImages, updateImages, addLogo, modifyLogo } from './image';
@@ -14,7 +15,7 @@ import {
   sendToClient,
   sendPoints,
   createdData2List,
-  resultdirectory,
+  resultdirectorypath,
   getSequenceLogPath,
   getSequenceGpxPath,
   getSequenceBasePath,
@@ -28,6 +29,7 @@ import loadCameras from './camera';
 import loadDefaultNadir from './nadir';
 
 export default (mainWindow: BrowserView, app: App) => {
+  const basepath = app.getAppPath();
   // @TODO: Use 'ready-to-show' event
   //        https://github.com/electron/electron/blob/master/docs/api/browser-window.md#using-ready-to-show-event
 
@@ -39,6 +41,7 @@ export default (mainWindow: BrowserView, app: App) => {
     sendToClient(mainWindow, 'loaded_config', {
       cameras,
       nadirs,
+      basepath,
     });
   });
 
@@ -50,10 +53,10 @@ export default (mainWindow: BrowserView, app: App) => {
       seqname: string,
       corrupted: boolean
     ) => {
-      if (!fs.existsSync(resultdirectory)) {
-        fs.mkdirSync(resultdirectory);
+      if (!fs.existsSync(resultdirectorypath(app))) {
+        fs.mkdirSync(resultdirectorypath(app));
       }
-      const sequencebasepath = getSequenceBasePath(seqname);
+      const sequencebasepath = getSequenceBasePath(seqname, basepath);
       if (fs.existsSync(sequencebasepath)) {
         await rimraf.sync(sequencebasepath);
       }
@@ -62,7 +65,7 @@ export default (mainWindow: BrowserView, app: App) => {
       processVideo(
         mainWindow,
         videoPath,
-        getOriginalBasePath(seqname),
+        getOriginalBasePath(seqname, basepath),
         corrupted
       );
     }
@@ -76,8 +79,13 @@ export default (mainWindow: BrowserView, app: App) => {
       seqname: string,
       corrupedCheck: boolean
     ) => {
-      if (!fs.existsSync(resultdirectory)) {
-        fs.mkdirSync(resultdirectory);
+      if (!fs.existsSync(resultdirectorypath(app))) {
+        try {
+          fs.mkdirSync(resultdirectorypath(app));
+        } catch (e) {
+          errorHandler(mainWindow, e);
+          return;
+        }
       }
 
       const imageLength = fs
@@ -111,7 +119,7 @@ export default (mainWindow: BrowserView, app: App) => {
 
       loadImages(
         dirPath,
-        getSequenceBasePath(seqname),
+        getSequenceBasePath(seqname, basepath),
         corrupedCheck,
         (error: any, result: any) => {
           if (error) {
@@ -144,7 +152,7 @@ export default (mainWindow: BrowserView, app: App) => {
     'upload_nadir',
     (_event: IpcMainEvent, { nadirpath, imagepath, width, height }) => {
       const results = {};
-      const templogofile = path.resolve(app.getAppPath(), `../${uuidv4()}.png`);
+      const templogofile = path.resolve(basepath, `../${uuidv4()}.png`);
 
       const modifyLogoAsync = modifyLogo(nadirpath, templogofile)
         .then(() => {
@@ -158,10 +166,7 @@ export default (mainWindow: BrowserView, app: App) => {
             Array(16),
             1,
             (_item: unknown, key: any, cb: CallableFunction) => {
-              const outputfile = path.resolve(
-                app.getAppPath(),
-                `../${uuidv4()}.png`
-              );
+              const outputfile = path.resolve(basepath, `../${uuidv4()}.png`);
               const percentage = (10 + key) / 100;
               // const percentage = 0.15;
               const logoHeight = Math.round(height * percentage);
@@ -220,10 +225,38 @@ export default (mainWindow: BrowserView, app: App) => {
       );
     }
 
-    updateImages(sequence.points, sequence.steps, logo)
+    let data = null;
+
+    if (
+      sequence.steps.destination.mapillary.token &&
+      sequence.steps.destination.mapillary.token !== ''
+    ) {
+      try {
+        data = await axios.post(
+          `https://a.mapillary.com/v3/me/uploads?client_id=${process.env.MAPILLARY_APP_ID}`,
+          {
+            type: 'images/sequence',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${sequence.steps.destination.mapillary.token}`,
+            },
+          }
+        );
+        data = data.data;
+        if (data.error) {
+          return errorHandler(mainWindow, data.error);
+        }
+      } catch (e) {
+        return errorHandler(mainWindow, e);
+      }
+    }
+
+    updateImages(sequence.points, sequence.steps, logo, basepath, data)
       .then(async (resultjson: Result) => {
         fs.writeFileSync(
-          getSequenceLogPath(sequence.steps.name),
+          getSequenceLogPath(sequence.steps.name, basepath),
           JSON.stringify(resultjson)
         );
 
@@ -241,7 +274,7 @@ export default (mainWindow: BrowserView, app: App) => {
         gpxData.setSegmentPoints(points);
 
         fs.writeFileSync(
-          getSequenceGpxPath(sequence.steps.name),
+          getSequenceGpxPath(sequence.steps.name, basepath),
           buildGPX(gpxData.toObject())
         );
 
@@ -252,36 +285,36 @@ export default (mainWindow: BrowserView, app: App) => {
         );
       })
       .catch((err) => {
-        sendToClient(mainWindow, 'error', err);
+        errorHandler(mainWindow, err);
       });
   });
 
   ipcMain.on('sequences', async (_event: IpcMainEvent) => {
-    if (!fs.existsSync(resultdirectory)) {
-      fs.mkdirSync(resultdirectory);
+    if (!fs.existsSync(resultdirectorypath(app))) {
+      fs.mkdirSync(resultdirectorypath(app));
     }
     const sequences = fs
-      .readdirSync(resultdirectory)
+      .readdirSync(resultdirectorypath(app))
       .filter(
         (name) =>
-          fs.lstatSync(getSequenceBasePath(name)).isDirectory() &&
-          fs.existsSync(getSequenceLogPath(name))
+          fs.lstatSync(getSequenceBasePath(name, basepath)).isDirectory() &&
+          fs.existsSync(getSequenceLogPath(name, basepath))
       );
 
-    fs.readdirSync(resultdirectory)
+    fs.readdirSync(resultdirectorypath(app))
       .filter(
         (name) =>
-          fs.lstatSync(getSequenceBasePath(name)).isDirectory() &&
-          !fs.existsSync(getSequenceLogPath(name))
+          fs.lstatSync(getSequenceBasePath(name, basepath)).isDirectory() &&
+          !fs.existsSync(getSequenceLogPath(name, basepath))
       )
       .forEach((d: string) => {
-        rimraf.sync(getSequenceBasePath(d));
+        rimraf.sync(getSequenceBasePath(d, basepath));
       });
 
     const result: Summary[] = sequences
       .map((name: string) => {
         const logdata = JSON.parse(
-          fs.readFileSync(getSequenceLogPath(name)).toString()
+          fs.readFileSync(getSequenceLogPath(name, basepath)).toString()
         );
         return createdData2List(logdata);
       })
@@ -293,8 +326,8 @@ export default (mainWindow: BrowserView, app: App) => {
   });
 
   ipcMain.on('remove_sequence', async (_event: IpcMainEvent, name: string) => {
-    if (fs.existsSync(getSequenceBasePath(name))) {
-      rimraf.sync(getSequenceBasePath(name));
+    if (fs.existsSync(getSequenceBasePath(name, basepath))) {
+      rimraf.sync(getSequenceBasePath(name, basepath));
     }
   });
 

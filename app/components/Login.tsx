@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button, Typography } from '@material-ui/core';
+import { useDispatch, useSelector } from 'react-redux';
 import { shell } from 'electron';
 import ChevronRightRoundedIcon from '@material-ui/icons/ChevronRightRounded';
 
 import { makeStyles } from '@material-ui/core/styles';
+import { push } from 'connected-react-router';
 import Logo from './Logo';
+import routes from '../constants/routes.json';
+
+import {
+  setMTPTokenWaiting,
+  selMTPTokenWaiting,
+  selMTPToken,
+} from '../base/slice';
 
 const useStyles = makeStyles((theme) => ({
   content: {
@@ -33,10 +42,26 @@ export default function Login() {
     shell.openExternal(url);
   };
 
+  const dispath = useDispatch();
+  const tokenWaiting = useSelector(selMTPTokenWaiting);
+
+  const classes = useStyles();
+
   const loginUrl = `${process.env.MTP_WEB_AUTH_URL}?client_id=${process.env.MTP_WEB_APP_ID}&response_type=token`;
   const websiteUrl = process.env.MTP_WEB_URL || '';
 
-  const classes = useStyles();
+  const mtpToken = useSelector(selMTPToken);
+
+  useEffect(() => {
+    if (mtpToken && mtpToken !== '') {
+      dispath(push(routes.LIST));
+    }
+  }, [dispath, mtpToken]);
+
+  const login = () => {
+    dispath(setMTPTokenWaiting(true));
+    gotoExternal(loginUrl);
+  };
 
   return (
     <div className={classes.content}>
@@ -52,13 +77,13 @@ export default function Login() {
       </Typography>
       <div className={classes.buttonWrapper}>
         <Button
-          onClick={() => gotoExternal(loginUrl)}
+          onClick={login}
           endIcon={<ChevronRightRoundedIcon />}
           size="large"
           color="primary"
           variant="contained"
         >
-          Login
+          {tokenWaiting ? 'Signing in' : 'Login'}
         </Button>
       </div>
     </div>

@@ -29,7 +29,7 @@ export default function SequenceNadir() {
         </Typography>
         <Typography paragraph>
           You can add a nadir with a branded logo. Please be aware of branding
-          guidelines for upload destinations.
+          guidelines for upload destination.
         </Typography>
       </Grid>
       <Grid item xs={12}>

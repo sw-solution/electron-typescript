@@ -8,7 +8,9 @@ interface State {
   cameras: Camera[];
   nadirs: Nadir[];
   loaded: boolean;
+  basepath: string | null;
   token: string;
+  tokenWaiting: boolean;
   boardId: string;
 }
 
@@ -16,7 +18,9 @@ const initialState: State = {
   cameras: [],
   nadirs: [],
   loaded: false,
-  user: {},
+  basepath: null,
+  token: '',
+  tokenWaiting: false,
   boardId: uuidv4(),
 };
 
@@ -27,15 +31,24 @@ const baseSlice = createSlice({
     endConfigLoad(state, { payload }) {
       state.cameras = [...payload.cameras];
       state.nadirs = [...payload.nadirs];
+      state.basepath = payload.basepath;
       state.loaded = true;
     },
-    setToken(state, { payload }) {
+    setMTPToken(state, { payload }) {
       state.token = payload;
+      state.tokenWaiting = false;
+    },
+    setMTPTokenWaiting(state, { payload }) {
+      state.tokenWaiting = payload;
     },
   },
 });
 
-export const { endConfigLoad, setToken } = baseSlice.actions;
+export const {
+  endConfigLoad,
+  setMTPToken,
+  setMTPTokenWaiting,
+} = baseSlice.actions;
 
 export default baseSlice.reducer;
 
@@ -51,4 +64,7 @@ export const setConfigLoadEnd = (config: any): AppThunk => {
 
 export const selBoardId = (state: RootState) => state.base.boardId;
 
-export const selCurrentPath = (state: RootState) => state.router.pathname;
+export const selMTPToken = (state: RootState) => state.base.token;
+export const selMTPTokenWaiting = (state: RootState) => state.base.tokenWaiting;
+
+export const selBasePath = (state: RootState) => state.base.basepath;

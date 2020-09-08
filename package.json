@@ -87,11 +87,15 @@
       "buildResources": "resources",
       "output": "release"
     },
-    "protocols": [{
-      "name": "app.mtp.desktop",
-      "role": "Viewer",
-      "schemes": ["app.mtp.desktop"]
-    }]
+    "protocols": [
+      {
+        "name": "app.mtp.desktop",
+        "role": "Viewer",
+        "schemes": [
+          "app.mtp.desktop"
+        ]
+      }
+    ]
   },
   "repository": {
     "type": "git",
@@ -254,6 +258,7 @@
     "@reduxjs/toolkit": "^1.4.0",
     "async": "^3.2.0",
     "axios": "^0.20.0",
+    "axios-retry": "^3.1.8",
     "connected-react-router": "^6.6.1",
     "dayjs": "^1.8.29",
     "dotenv": "^8.2.0",
@@ -261,6 +266,7 @@
     "electron-log": "^4.2.2",
     "electron-updater": "^4.3.1",
     "ffmpeg": "^0.0.4",
+    "form-data": "^3.0.0",
     "gm": "^1.23.1",
     "gpx-builder": "^3.6.0",
     "history": "4.7.2",
