@@ -36,7 +36,23 @@ export default function About() {
       <div className={classes.logoWrapper}>
         <Logo />
       </div>
-      <Typography variant="h5">About</Typography>
+      <Typography variant="h6" align="center" color="textSecondary">
+       About
+      </Typography>
+      <Typography paragraph>
+          Map the Paths Desktop Uploader is maintained by the team at Trek View.
+
+          The code is available on Github under an MIT license.
+
+          This software uses the following open-source tools:
+
+          ffmpeg
+          exiftool
+          imagemagick
+
+          To find out more, go to Map the Paths.
+        </Typography>
     </div>
+
   );
 }

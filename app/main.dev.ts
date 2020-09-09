@@ -55,6 +55,11 @@ const createWindow = async () => {
 
   const menu = Menu.buildFromTemplate([
     {
+      label: 'Home',
+      click() {
+        sendToClient(mainWindow, 'index');
+    },
+    {
       label: 'Help',
       submenu: [
         {
