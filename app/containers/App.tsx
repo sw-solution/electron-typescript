@@ -84,7 +84,12 @@ export default function App(props: Props) {
   );
 
   useEffect(() => {
-    if (mtpToken === '' && location.pathname !== routes.LOGIN) {
+    if (
+      mtpToken === '' &&
+      location.pathname !== routes.LOGIN &&
+      process.env.MTP_WEB_AUTH_URL &&
+      process.env.MTP_WEB_URL
+    ) {
       dispatch(push(routes.LOGIN));
     }
 

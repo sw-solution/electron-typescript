@@ -68,8 +68,6 @@ export default function SequenceModifySpace() {
   });
 
   const allGeoTagged = useSelector(selGPXRequired);
-  const nadir = useSelector(isRequiredNadir);
-
   const { points } = state;
 
   const classes = useStyles();
@@ -92,11 +90,7 @@ export default function SequenceModifySpace() {
   const looksGood = () => {
     dispatch(setSequencePoints(points));
     dispatch(setSequenceFrame(state.frames));
-    if (nadir) {
-      dispatch(setCurrentStep('nadir'));
-    } else {
-      dispatch(setCurrentStep('blur'));
-    }
+    dispatch(setCurrentStep('destination'));
   };
 
   const updatePoints = (positionmeter: number, frames: number) => {

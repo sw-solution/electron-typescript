@@ -184,11 +184,7 @@ export default function SequenceModifyOutlier() {
     dispatch(setSequencePoints(points));
     dispatch(setSequenceOutlierMeters(meters));
     dispatch(setOutlierMode(mode));
-    if (nadir) {
-      dispatch(setCurrentStep('nadir'));
-    } else {
-      dispatch(setCurrentStep('blur'));
-    }
+    dispatch(setCurrentStep('destination'));
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
