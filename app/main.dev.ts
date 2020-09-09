@@ -57,7 +57,8 @@ const createWindow = async () => {
     {
       label: 'Home',
       click() {
-        sendToClient(mainWindow, 'index');
+        sendToClient(mainWindow, '');
+      },
     },
     {
       label: 'Help',
