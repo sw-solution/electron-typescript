@@ -85,7 +85,7 @@ export default function App(props: Props) {
 
   useEffect(() => {
     if (mtpToken === '' && location.pathname !== routes.LOGIN) {
-      // dispatch(push(routes.LOGIN));
+      dispatch(push(routes.LOGIN));
     }
 
     if (!configLoaded) {
