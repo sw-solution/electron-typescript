@@ -78,6 +78,7 @@ const useStyles = makeStyles((theme) => ({
 
   drawerPaper: {
     width: drawerWidth,
+    padding: 8,
   },
 
   gridContainer: {

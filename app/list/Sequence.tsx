@@ -64,9 +64,10 @@ const useStyles = makeStyles((theme) => ({
 
 interface Props {
   data: Summary;
+  onDelete: CallableFunction;
 }
 
-export default function Sequence({ data }: Props) {
+export default function Sequence({ data, onDelete }: Props) {
   const dispatch = useDispatch();
   const classes = useStyles();
 
@@ -114,17 +115,11 @@ export default function Sequence({ data }: Props) {
 
   const { points } = data;
 
-  const removeSeq = (name: string) => {
-    dispatch(setRemoveSeq(name));
-
-    ipcRenderer.send('remove_sequence', name);
-  };
-
   return (
     <Grid xs={12} item className={classes.container}>
       <IconButton
         className={classes.removeButton}
-        onClick={() => removeSeq(data.name)}
+        onClick={() => onDelete(data.name)}
       >
         <DeleteOutlineIcon />
       </IconButton>

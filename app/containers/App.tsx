@@ -88,7 +88,8 @@ export default function App(props: Props) {
       mtpToken === '' &&
       location.pathname !== routes.LOGIN &&
       process.env.MTP_WEB_AUTH_URL &&
-      process.env.MTP_WEB_URL
+      process.env.MTP_WEB_URL &&
+      process.env.NODE_ENV !== 'development'
     ) {
       dispatch(push(routes.LOGIN));
     }

@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { IpcRendererEvent } from 'electron';
+import { Alert, AlertTitle } from '@material-ui/lab';
 
 import { push } from 'connected-react-router';
 
 import {
+  Modal,
   Drawer,
   Box,
   FormControl,
@@ -13,7 +15,6 @@ import {
   Typography,
   TextField,
   Grid,
-  LinearProgress,
   Button,
 } from '@material-ui/core';
 
@@ -27,11 +28,12 @@ import { useSelector, useDispatch } from 'react-redux';
 import Sequence from './Sequence';
 import Logo from '../components/Logo';
 import Wrapper from '../components/Wrapper';
-import { selLoaded, selSeqs, setEndLoad } from './slice';
+import { selLoaded, selSeqs, setEndLoad, setRemoveSeq } from './slice';
 
 import routes from '../constants/routes.json';
 import { Summary, TransportType } from '../types/Result';
 import { selCameras } from '../base/slice';
+
 import { Camera } from '../types/Camera';
 
 const { ipcRenderer } = window.require('electron');
@@ -44,6 +46,7 @@ const useStyles = makeStyles((theme) => ({
   },
   drawerPaper: {
     width: drawerWidth,
+    padding: 8,
   },
   filterWrap: {
     '& > *': {
@@ -54,6 +57,17 @@ const useStyles = makeStyles((theme) => ({
   gridContainer: {
     display: 'block',
   },
+  modalWrapper: {
+    position: 'absolute',
+    width: 400,
+    backgroundColor: theme.palette.background.paper,
+    border: '2px solid #000',
+    boxShadow: theme.shadows[5],
+    padding: theme.spacing(2, 4, 3),
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+  },
 }));
 
 interface State {
@@ -62,6 +76,8 @@ interface State {
   model: string;
   capturedStartDate: string;
   capturedEndDate: string;
+  deleteModalOpen: boolean;
+  deleteSequenceName: string;
 }
 
 export default function ListPageWrapper() {
@@ -77,6 +93,8 @@ export default function ListPageWrapper() {
     model: '',
     capturedStartDate: '',
     capturedEndDate: '',
+    deleteModalOpen: false,
+    deleteSequenceName: '',
   });
 
   if (!loaded) {
@@ -117,6 +135,51 @@ export default function ListPageWrapper() {
     });
   };
 
+  const removeSeq = (name: string) => {
+    setState({
+      ...state,
+      deleteModalOpen: true,
+      deleteSequenceName: name,
+    });
+  };
+
+  const onDeleteModalClose = () => {
+    setState({
+      ...state,
+      deleteModalOpen: false,
+      deleteSequenceName: '',
+    });
+  };
+
+  const modalBody = (
+    <div className={classes.modalWrapper}>
+      <div>
+        <Alert severity="warning">
+          <AlertTitle>WARNING!</AlertTitle>
+          <span>
+            All sequence data (including image files) will be deleted from your
+            computer. Are you sure you want to delete this sequence?
+          </span>
+        </Alert>
+      </div>
+      <div style={{ textAlign: 'right' }}>
+        <Button
+          onClick={() => {
+            dispatch(setRemoveSeq(state.deleteSequenceName));
+            ipcRenderer.send('remove_sequence', state.deleteSequenceName);
+            onDeleteModalClose();
+          }}
+          color="secondary"
+        >
+          OK
+        </Button>
+        <Button onClick={onDeleteModalClose} color="primary">
+          Cancel
+        </Button>
+      </div>
+    </div>
+  );
+
   const items: JSX.Element[] = [];
   seqs.forEach((item: Summary) => {
     if (
@@ -128,7 +191,7 @@ export default function ListPageWrapper() {
       (state.capturedEndDate === '' ||
         dayjs(state.capturedEndDate).isAfter(dayjs(item.captured)))
     ) {
-      items.push(<Sequence data={item} key={item.id} />);
+      items.push(<Sequence data={item} key={item.id} onDelete={removeSeq} />);
     }
   });
 
@@ -249,6 +312,9 @@ export default function ListPageWrapper() {
             </Typography>
           )}
         </Grid>
+        <Modal open={state.deleteModalOpen} onClose={onDeleteModalClose}>
+          {modalBody}
+        </Modal>
       </Wrapper>
     </div>
   );
