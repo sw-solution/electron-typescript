@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
@@ -12,23 +12,31 @@ import {
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
 import {
-  selMapillary,
+  setDestination,
   selSequence,
-  setMapillary,
   setError,
   setProcessStep,
   setCurrentStep,
 } from './slice';
 
+import { selIntegrations } from '../base/slice';
+
 const { ipcRenderer } = window.require('electron');
+
+interface State {
+  [key: string]: boolean;
+}
 
 export default function Destination() {
   const dispatch = useDispatch();
-  const mapillary = useSelector(selMapillary);
+  const integrations = useSelector(selIntegrations);
   const sequence = useSelector(selSequence);
+  const [state, setState] = useState<State>({});
 
   const confirmMode = () => {
-    if (mapillary) {
+    const checked = Object.keys(state).filter((key) => state[key]);
+    if (checked.length > 0) {
+      dispatch(setDestination(state));
       dispatch(setCurrentStep('destination_login'));
     } else if (sequence.points.length) {
       ipcRenderer.send('update_images', sequence);
@@ -38,18 +46,42 @@ export default function Destination() {
     }
   };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setMapillary(event.target.checked));
+  const handleChange = (key: string) => (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setState({
+      ...state,
+      [key]: event.target.checked,
+    });
   };
 
-  const mapillaryCheck = (
-    <Checkbox
-      checked={mapillary}
-      onChange={handleChange}
-      name="checkedB"
-      color="primary"
-    />
-  );
+  const items = Object.keys(integrations).map((key) => {
+    const checkNode = (
+      <Checkbox
+        checked={!!state[key]}
+        onChange={handleChange(key)}
+        name={key}
+        color="primary"
+      />
+    );
+    const integrationLogo = (
+      <img
+        src={`data:image/png;base64, ${integrations[key].logo}`}
+        alt={integrations[key].name}
+        width="70"
+        height="70"
+      />
+    );
+
+    return (
+      <FormControlLabel
+        color="primary"
+        control={checkNode}
+        label={integrationLogo}
+        key={key}
+      />
+    );
+  });
 
   return (
     <>
@@ -59,11 +91,7 @@ export default function Destination() {
         </Typography>
       </Grid>
       <Grid item xs={12}>
-        <FormControlLabel
-          color="primary"
-          control={mapillaryCheck}
-          label="Mapillary"
-        />
+        {items}
       </Grid>
       <Grid item xs={12}>
         <Button
@@ -72,7 +100,13 @@ export default function Destination() {
           onClick={confirmMode}
           variant="contained"
         >
-          {`${mapillary ? 'Confirm Changes' : 'Skip This Step'}`}
+          {`${
+            Object.keys(state).filter(
+              (integration: string) => state[integration]
+            ).length > 0
+              ? 'Confirm Changes'
+              : 'Skip This Step'
+          }`}
         </Button>
       </Grid>
     </>

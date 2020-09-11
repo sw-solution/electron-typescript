@@ -11,16 +11,15 @@ import {
   selSequenceName,
   setInit,
   selSequence,
-  setMapilliaryToken,
-  waitMapiliaryToken,
+  selDestination,
 } from '../create/slice';
 
 import {
   selConfigLoaded,
   setConfigLoadEnd,
-  setMTPToken,
-  selMTPToken,
-  selMTPTokenWaiting,
+  selToken,
+  selTokens,
+  setToken,
 } from '../base/slice';
 import routes from '../constants/routes.json';
 
@@ -48,14 +47,17 @@ type Props = {
   children: ReactNode;
 };
 
+const mtpTokenKey = 'mtp';
+
 export default function App(props: Props) {
   const { children } = props;
   const sequence = useSelector(selSequence);
   const name = useSelector(selSequenceName);
   const configLoaded = useSelector(selConfigLoaded);
 
-  const waitingMapillaryToken = useSelector(waitMapiliaryToken);
-  const waitingMTPToken = useSelector(selMTPTokenWaiting);
+  const destination = useSelector(selDestination);
+
+  const tokens = useSelector(selTokens);
 
   const dispatch = useDispatch();
 
@@ -63,7 +65,7 @@ export default function App(props: Props) {
 
   const classes = useStyles();
 
-  const mtpToken = useSelector(selMTPToken);
+  const mtpToken = useSelector(selToken)(mtpTokenKey);
 
   const [state, setState] = useState<State>({
     showModal: false,
@@ -74,10 +76,18 @@ export default function App(props: Props) {
     'loaded_token',
     (_event: IpcRendererEvent, token: string | null) => {
       if (token) {
-        if (waitingMapillaryToken) {
-          dispatch(setMapilliaryToken(token));
-        } else if (waitingMTPToken) {
-          dispatch(setMTPToken(token));
+        let key;
+        Object.keys(destination).forEach((integration: string) => {
+          if (tokens[integration] && tokens[integration].waiting) {
+            key = integration;
+          }
+        });
+        if (tokens[mtpTokenKey] && tokens[mtpTokenKey].waiting && !key) {
+          key = mtpTokenKey;
+        }
+        if (key) {
+          dispatch(setToken({ key, token }));
+          ipcRenderer.send('set_token', key, token);
         }
       }
     }
@@ -85,11 +95,13 @@ export default function App(props: Props) {
 
   useEffect(() => {
     if (
-      mtpToken === '' &&
+      !mtpToken &&
       location.pathname !== routes.LOGIN &&
       process.env.MTP_WEB_AUTH_URL &&
-      process.env.MTP_WEB_URL &&
-      process.env.NODE_ENV !== 'development'
+      process.env.MTP_WEB_APP_ID &&
+      process.env.MTP_WEB_APP_SECRET &&
+      process.env.NODE_ENV !== 'development' &&
+      process.env.MTP_WEB_URL
     ) {
       dispatch(push(routes.LOGIN));
     }

@@ -53,7 +53,8 @@
     ],
     "extraResources": [
       "static",
-      "cameras"
+      "cameras",
+      "integrations"
     ],
     "dmg": {
       "contents": [
@@ -170,6 +171,7 @@
     "@types/enzyme-adapter-react-16": "^1.0.6",
     "@types/history": "^4.7.6",
     "@types/jest": "^26.0.3",
+    "@types/mkdirp": "^1.0.1",
     "@types/node": "12",
     "@types/react": "^16.9.38",
     "@types/react-dom": "^16.9.8",
@@ -275,6 +277,7 @@
     "leaflet": "^1.6.0",
     "mapbox-gl": "^1.11.1",
     "material-ui-chip-input": "^1.1.0",
+    "mkdirp": "^1.0.4",
     "pannellum-react": "^1.2.4",
     "react": "^16.13.1",
     "react-dom": "^16.12.0",

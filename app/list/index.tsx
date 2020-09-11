@@ -101,7 +101,7 @@ export default function ListPageWrapper() {
     ipcRenderer.send('sequences');
   }
 
-  ipcRenderer.on(
+  ipcRenderer.once(
     'loaded_sequences',
     (_event: IpcRendererEvent, sequences: Summary[]) => {
       dispatch(setEndLoad(sequences));

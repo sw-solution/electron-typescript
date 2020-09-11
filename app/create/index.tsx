@@ -66,6 +66,7 @@ import {
 import { setAddSeq } from '../list/slice';
 import Logo from '../components/Logo';
 import Wrapper from '../components/Wrapper';
+import { setToken } from '../base/slice';
 
 const { ipcRenderer } = window.require('electron');
 

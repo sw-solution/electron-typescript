@@ -97,6 +97,11 @@ export function createdData2List(data: Result): Summary {
     created: sequence.created,
     captured: sequence.earliest_time,
     camera: sequence.uploader_camera,
+    destination: sequence.destination
+      ? {
+          ...sequence.destination,
+        }
+      : {},
   };
 }
 
@@ -157,6 +162,17 @@ export function getSequenceOutputPath(
 export function getSequenceLogPath(seqname: string, basepath: string): string {
   const logofile = seqname.toLowerCase().replace(/\s/g, '_');
   return path.join(getSequenceBasePath(seqname, basepath), `${logofile}.json`);
+}
+
+export function getSequenceIntegrationLogPath(
+  seqname: string,
+  basepath: string,
+  integrationModuleName: string
+): string {
+  return path.join(
+    getSequenceBasePath(seqname, basepath),
+    `${integrationModuleName}_sequence.json`
+  );
 }
 
 export function getSequenceGpxPath(seqname: string, basepath: string): string {

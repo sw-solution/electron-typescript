@@ -1,41 +1,23 @@
 import React from 'react';
 
 import IconButton from '@material-ui/core/IconButton';
-import LandscapeIcon from '@material-ui/icons/Landscape';
-import PoolIcon from '@material-ui/icons/Pool';
-import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
-import DirectionsBikeIcon from '@material-ui/icons/DirectionsBike';
-import DirectionsWalkIcon from '@material-ui/icons/DirectionsWalk';
-import DirectionsCarIcon from '@material-ui/icons/DirectionsCar';
-import WavesIcon from '@material-ui/icons/Waves';
-import RowingIcon from '@material-ui/icons/Rowing';
-import AirplanemodeActiveIcon from '@material-ui/icons/AirplanemodeActive';
-import AcUnitIcon from '@material-ui/icons/AcUnit';
-import CloudIcon from '@material-ui/icons/Cloud';
-import BatteryFullIcon from '@material-ui/icons/BatteryFull';
-import LocalGasStationIcon from '@material-ui/icons/LocalGasStation';
-import EvStationIcon from '@material-ui/icons/EvStation';
-import LocalAirportIcon from '@material-ui/icons/LocalAirport';
-
-import PhotoLibraryIcon from '@material-ui/icons/PhotoLibrary';
-
-import ShowChartIcon from '@material-ui/icons/ShowChart';
 
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 
-import { Box, Typography, Grid } from '@material-ui/core';
-
-import { useDispatch } from 'react-redux';
+import { Box, Typography, Grid, Avatar, Chip, Badge } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
-import Chip from '@material-ui/core/Chip';
-
+import { useSelector } from 'react-redux';
+import DoneIcon from '@material-ui/icons/Done';
+import ErrorIcon from '@material-ui/icons/Error';
+import PublishIcon from '@material-ui/icons/Publish';
 import Map from '../components/Map';
 
-import { setRemoveSeq } from './slice';
-import { Summary } from '../types/Result';
+import transportType from '../../transports/transport-methods.json';
 
-const { ipcRenderer } = window.require('electron');
+import { selIntegrations } from '../base/slice';
+
+import { Summary } from '../types/Result';
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -60,6 +42,9 @@ const useStyles = makeStyles((theme) => ({
     right: 0,
     top: 0,
   },
+  destinationWrapper: {
+    textAlign: 'left',
+  },
 }));
 
 interface Props {
@@ -68,52 +53,45 @@ interface Props {
 }
 
 export default function Sequence({ data, onDelete }: Props) {
-  const dispatch = useDispatch();
   const classes = useStyles();
 
-  const types = {
-    Land: <LandscapeIcon color="primary" />,
-    Water: <PoolIcon color="primary" />,
-    Air: <FlightTakeoffIcon color="primary" />,
-    Snow: <AcUnitIcon color="primary" />,
-    Powered: <BatteryFullIcon color="primary" />,
-  };
+  const { type, method, points } = data;
 
-  const method = {
-    Car: <LocalGasStationIcon color="primary" />,
-    'Electric Car': <EvStationIcon color="primary" />,
-    'Electric Bicycle': <DirectionsBikeIcon color="primary" />,
-    Plane: <LocalAirportIcon color="primary" />,
-    Helicopter: <BatteryFullIcon color="primary" />,
-    Drone: <BatteryFullIcon color="primary" />,
-    'Electric Scooter': <BatteryFullIcon color="primary" />,
-    Boat: <BatteryFullIcon color="primary" />,
-    Bicycle: <DirectionsBikeIcon color="primary" />,
-    Walk: <DirectionsWalkIcon color="primary" />,
-    Scooter: <LandscapeIcon color="primary" />,
-    Skateboard: <LandscapeIcon color="primary" />,
-    Rollerskate: <LandscapeIcon color="primary" />,
-    Ski: <AcUnitIcon color="primary" />,
-    Snowboard: <AcUnitIcon color="primary" />,
-    Snowmobile: <AcUnitIcon color="primary" />,
-    Snowshoe: <AcUnitIcon color="primary" />,
-    Swim: <PoolIcon color="primary" />,
-    Paddleboard: <RowingIcon color="primary" />,
-    'Scuba Dive': <WavesIcon color="primary" />,
-    Surf: <WavesIcon color="primary" />,
-    Windsurf: <WavesIcon color="primary" />,
-    Kiteboard: <WavesIcon color="primary" />,
-    Canoe: <RowingIcon color="primary" />,
-    Freedive: <WavesIcon color="primary" />,
-    Parachute: <CloudIcon color="primary" />,
-    Paraglide: <CloudIcon color="primary" />,
-    Hanglide: <CloudIcon color="primary" />,
-    Wingsuit: <CloudIcon color="primary" />,
-    'BASE Jump': <CloudIcon color="primary" />,
-    Glider: <CloudIcon color="primary" />,
-  };
+  const methodIcons = transportType[type].children.reduce(
+    (obj: any, item: any) => {
+      obj[item.type] = item.icon;
+      return obj;
+    },
+    {}
+  );
 
-  const { points } = data;
+  const integrations = useSelector(selIntegrations);
+
+  const destinationIcons = Object.keys(data.destination).map((key: string) => {
+    let icon = <DoneIcon color="primary" fontSize="small" />;
+    if (
+      typeof data.destination[key] === 'string' &&
+      data.destination[key].startsWith('Error')
+    ) {
+      icon = <ErrorIcon color="error" fontSize="small" />;
+    } else if (data.destination[key] !== '') {
+      icon = <PublishIcon color="action" fontSize="small" />;
+    }
+
+    return (
+      <Badge
+        overlap="circle"
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        badgeContent={icon}
+        key={key}
+      >
+        <Avatar src={`data:image/png;base64, ${integrations[key].logo}`} />
+      </Badge>
+    );
+  });
 
   return (
     <Grid xs={12} item className={classes.container}>
@@ -131,31 +109,32 @@ export default function Sequence({ data, onDelete }: Props) {
           <Typography variant="h5" color="primary" align="left">
             {data.name}
           </Typography>
+          <div className={classes.destinationWrapper}>{destinationIcons}</div>
           <Typography color="primary" align="left" paragraph>
             {data.description}
           </Typography>
           <Box className={classes.information}>
             <div>
-              {types[data.type]}
+              <span className={transportType[type].icon} />
               <Typography color="primary" variant="caption" display="block">
                 {data.type}
               </Typography>
             </div>
             <div>
-              {method[data.method]}
+              <span className={methodIcons[method]} />
               <Typography color="primary" variant="caption" display="block">
                 {data.method}
               </Typography>
             </div>
             <div>
-              <ShowChartIcon color="primary" />
+              <span className="fas fa-people-arrows" />
               <Typography color="primary" variant="caption" display="block">
-                {data.total_km.toFixed(2)}
+                {data.total_km.toFixed(3)}
                 <span>KM</span>
               </Typography>
             </div>
             <div>
-              <PhotoLibraryIcon color="primary" />
+              <span className="far fa-images" />
               <Typography color="primary" variant="caption" display="block">
                 {points.length}
               </Typography>

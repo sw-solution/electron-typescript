@@ -17,7 +17,7 @@ import Store from './scripts/utils/store';
 
 import eventsLoader from './scripts/events_loader';
 
-import { sendToClient, errorHandler } from './scripts/utils';
+import { sendToClient } from './scripts/utils';
 
 let mainWindow: BrowserWindow | null = null;
 

@@ -129,7 +129,47 @@ export async function writeTags2Image(
   const strStartTime = commonData['Main:GPSDateTime'];
   const duration = Math.ceil(commonData['Main:Duration']);
 
-  console.log('commonData: ', commonData);
+  const deleteTagKeys = [
+    'Orientation',
+    'tz',
+    'errors',
+    'Directory',
+    'ExifToolVersion',
+    'Megapixels',
+    'EncodingProcess',
+    'GPSPosition',
+    'ColorComponents',
+    'MIMEType',
+    'AutoRotation',
+  ];
+
+  const tags: {
+    [key: string]: any;
+  } = {};
+
+  Object.keys(commonData).forEach((key: string) => {
+    const convertedKey = key.replace(/.+:/, '');
+    if (
+      deleteTagKeys.indexOf(convertedKey) < 0 &&
+      convertedKey.indexOf('File') < 0 &&
+      convertedKey.indexOf('GPS') < 0 &&
+      convertedKey.indexOf('Date') < 0 &&
+      convertedKey.indexOf('Version') < 0 &&
+      convertedKey.indexOf('Thumbnail') < 0 &&
+      convertedKey.indexOf('Duration') < 0 &&
+      convertedKey.indexOf('Audio') < 0 &&
+      convertedKey.indexOf('Media') < 0 &&
+      convertedKey.indexOf('Time') < 0 &&
+      convertedKey.indexOf('Rotation') < 0 &&
+      convertedKey.indexOf('Text') < 0 &&
+      convertedKey.indexOf('Video') < 0 &&
+      convertedKey.indexOf('Source') < 0 &&
+      convertedKey.indexOf('Track') < 0 &&
+      convertedKey.indexOf('Color') < 0 &&
+      convertedKey.indexOf('Image') < 0
+    )
+      tags[convertedKey] = commonData[key];
+  });
 
   let starttime: Dayjs;
   if (strStartTime) {
@@ -190,7 +230,7 @@ export async function writeTags2Image(
           height: commonData['Main:ImageHeight'],
           equirectangular:
             commonData['Main:ProjectionType'] === 'equirectangular',
-          tags: {},
+          tags,
         });
       } else if (datalist.length) {
         nextitem = datalist[datalist.length - 1];
@@ -207,7 +247,7 @@ export async function writeTags2Image(
           height: commonData['Main:ImageHeight'],
           equirectangular:
             commonData['Main:ProjectionType'] === 'equirectangular',
-          tags: {},
+          tags,
         });
       } else {
         item = new IGeoPoint({

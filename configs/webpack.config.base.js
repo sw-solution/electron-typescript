@@ -48,6 +48,7 @@ export default {
       NODE_ENV: 'production',
       MAPBOX_TOKEN: process.env.MAPBOX_TOKEN,
       MTP_WEB_AUTH_URL: process.env.MTP_WEB_AUTH_URL,
+      MTP_WEB_URL: process.env.MTP_WEB_URL,
       MTP_WEB_APP_ID: process.env.MTP_WEB_APP_ID,
       MTP_WEB_APP_SECRET: process.env.MTP_WEB_APP_SECRET,
       MAPILLARY_APP_ID: process.env.MAPILLARY_APP_ID,

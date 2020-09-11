@@ -8,6 +8,10 @@ export enum TransportType {
   Snow = 'Snow',
 }
 
+export interface Destination {
+  [key: string]: string | boolean;
+}
+
 export interface Sequence {
   id: string;
   distance_km: number;
@@ -22,6 +26,7 @@ export interface Sequence {
   uploader_camera: string;
   uploader_tags: string[];
   created: string;
+  destination: Destination;
 }
 
 export interface Connection {
@@ -112,4 +117,5 @@ export interface Summary {
   captured: string;
   total_km: number;
   camera: string;
+  destination: Destination;
 }

@@ -3,24 +3,30 @@ import { v4 as uuidv4 } from 'uuid';
 import { RootState, AppThunk } from '../store';
 import { Camera } from '../types/Camera';
 import { Nadir } from '../types/Nadir';
+import { Integration } from '../types/Integration';
 
 interface State {
   cameras: Camera[];
   nadirs: Nadir[];
+  integrations: Integration;
   loaded: boolean;
   basepath: string | null;
-  token: string;
-  tokenWaiting: boolean;
+  tokens: {
+    [key: string]: {
+      waiting: boolean;
+      value: string;
+    };
+  };
   boardId: string;
 }
 
 const initialState: State = {
   cameras: [],
   nadirs: [],
+  integrations: {},
   loaded: false,
   basepath: null,
-  token: '',
-  tokenWaiting: false,
+  tokens: {},
   boardId: uuidv4(),
 };
 
@@ -31,23 +37,52 @@ const baseSlice = createSlice({
     endConfigLoad(state, { payload }) {
       state.cameras = [...payload.cameras];
       state.nadirs = [...payload.nadirs];
+      state.integrations = { ...payload.integrations };
       state.basepath = payload.basepath;
+      state.tokens = Object.keys(payload.tokens).reduce(
+        (obj: any, key: string) => {
+          obj[key] = {
+            waiting: false,
+            value: payload.tokens[key],
+          };
+          return obj;
+        },
+        {}
+      );
       state.loaded = true;
     },
-    setMTPToken(state, { payload }) {
-      state.token = payload;
-      state.tokenWaiting = false;
+    setToken(state, { payload }) {
+      state.tokens = {
+        ...state.tokens,
+        [payload.key]: {
+          waiting: true,
+          token: payload.token,
+        },
+      };
     },
-    setMTPTokenWaiting(state, { payload }) {
-      state.tokenWaiting = payload;
+    setTokens(state, { payload }) {
+      state.tokens = {
+        ...state.tokens,
+        ...payload,
+      };
+    },
+    setTokenWaiting(state, { payload }) {
+      state.tokens = {
+        ...state.tokens,
+        [payload.key]: {
+          ...state.tokens[payload.key],
+          waiting: payload.waiting,
+        },
+      };
     },
   },
 });
 
 export const {
   endConfigLoad,
-  setMTPToken,
-  setMTPTokenWaiting,
+  setToken,
+  setTokens,
+  setTokenWaiting,
 } = baseSlice.actions;
 
 export default baseSlice.reducer;
@@ -55,6 +90,7 @@ export default baseSlice.reducer;
 export const selConfigLoaded = (state: RootState) => state.base.loaded;
 export const selCameras = (state: RootState) => state.base.cameras;
 export const selNadirs = (state: RootState) => state.base.nadirs;
+export const selIntegrations = (state: RootState) => state.base.integrations;
 
 export const setConfigLoadEnd = (config: any): AppThunk => {
   return (dispatch) => {
@@ -64,7 +100,19 @@ export const setConfigLoadEnd = (config: any): AppThunk => {
 
 export const selBoardId = (state: RootState) => state.base.boardId;
 
-export const selMTPToken = (state: RootState) => state.base.token;
-export const selMTPTokenWaiting = (state: RootState) => state.base.tokenWaiting;
+export const selTokens = (state: RootState) => state.base.tokens;
+
+export const selToken = (state: RootState) => (tokenKey: string) => {
+  if (state.base.tokens[tokenKey]) {
+    return state.base.tokens[tokenKey].value;
+  }
+  return null;
+};
+export const selTokenWaiting = (state: RootState) => (tokenKey: string) => {
+  if (state.base.tokens[tokenKey]) {
+    return state.base.tokens[tokenKey].waiting;
+  }
+  return false;
+};
 
 export const selBasePath = (state: RootState) => state.base.basepath;

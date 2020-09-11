@@ -43,13 +43,7 @@ const initialState = {
       logofile: '',
     },
     blur: false,
-    destination: {
-      mapillary: {
-        token: '',
-        checked: false,
-        waiting: false,
-      },
-    },
+    destination: {},
   },
   points: [],
   passedPoints: {},
@@ -177,20 +171,15 @@ const createSequenceSlice = createSlice({
       };
     },
     setProcessStep: (state, { payload }) => {
-      try {
-        state.steps.processPage = payload;
-        state.step = {
-          ...state.step,
-          current: 'processPage',
-          passed: [
-            ...state.step.passed.filter((step) => step !== state.step.current),
-            state.step.current,
-          ],
-        };
-        state.error = null;
-      } catch (e) {
-        state.error = JSON.stringify(e);
-      }
+      state.steps.processPage = payload;
+      state.step = {
+        ...state.step,
+        current: 'processPage',
+        passed: [
+          ...state.step.passed.filter((step) => step !== state.step.current),
+          state.step.current,
+        ],
+      };
     },
     setPoints: (state, { payload }) => {
       state.points = [...payload];
@@ -248,15 +237,18 @@ const createSequenceSlice = createSlice({
     setBlur: (state, { payload }) => {
       state.steps.blur = payload;
     },
-    setMapillary: (state, { payload }) => {
-      state.steps.destination.mapillary.checked = payload;
+    updateDestination: (state, { payload }) => {
+      state.steps.destination = {
+        ...state.steps.destination,
+        [payload.key]: payload.checked,
+      };
     },
-    setMapilliaryToken: (state, { payload }) => {
-      state.steps.destination.mapillary.token = payload;
-      state.steps.destination.mapillary.waiting = false;
-    },
-    setMapilliaryTokenWaiting: (state, { payload }) => {
-      state.steps.destination.mapillary.waiting = payload;
+
+    setDestination: (state, { payload }) => {
+      state.steps.destination = {
+        ...state.steps.destination,
+        ...payload,
+      };
     },
     setInit: (state) => {
       // state = {
@@ -317,9 +309,8 @@ export const {
   setInit,
   setError,
   setBlur,
-  setMapillary,
-  setMapilliaryToken,
-  setMapilliaryTokenWaiting,
+  updateDestination,
+  setDestination,
 
   resetPoints,
 } = createSequenceSlice.actions;
@@ -461,10 +452,10 @@ export const setSequenceInit = (): AppThunk => {
 export const setSequenceError = (error: any): AppThunk => {
   return (dispatch, getState) => {
     const state = getState();
+    dispatch(setError(error));
     if (state.create.step.current === 'processPage') {
       dispatch(goToPrevStep());
     }
-    dispatch(setError(error));
   };
 };
 
@@ -561,14 +552,8 @@ export const selError = (state: RootState) => state.create.error;
 
 export const selBlur = (state: RootState) => state.create.steps.blur;
 
-export const selMapillary = (state: RootState) =>
-  state.create.steps.destination.mapillary.checked;
-
-export const selMapillaryToken = (state: RootState) =>
-  state.create.steps.destination.mapillary.token;
-
-export const waitMapiliaryToken = (state: RootState) =>
-  state.create.steps.destination.mapillary.waiting;
+export const selDestination = (state: RootState) =>
+  state.create.steps.destination;
 
 export const isRequiredNadir = (state: RootState) =>
   state.create.points.filter((point: IGeoPoint) => !point.equirectangular)

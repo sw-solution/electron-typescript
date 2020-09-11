@@ -7,10 +7,20 @@ import jimp from 'jimp';
 import Async from 'async';
 import axios from 'axios';
 
-import { App, ipcMain, BrowserView } from 'electron';
+import { App, ipcMain, BrowserWindow, IpcMainEvent } from 'electron';
+import { Session } from '../types/Session';
 import { processVideo } from './video';
 
+import { Result, Summary, Photo } from '../types/Result';
+
+import {
+  loadMapillarySessionData,
+  findSequences,
+} from './integrations/mapillary';
+
 import { loadImages, updateImages, addLogo, modifyLogo } from './image';
+import tokenStore from './tokens';
+
 import {
   sendToClient,
   sendPoints,
@@ -25,23 +35,49 @@ import {
   removeTempFiles,
 } from './utils';
 
+import { readGPX } from './utils/gpx';
+
 import loadCameras from './camera';
+import loadIntegrations from './integration';
 import loadDefaultNadir from './nadir';
 
-export default (mainWindow: BrowserView, app: App) => {
+axios.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    throw err;
+  }
+);
+
+if (process.env.NODE_ENV === 'development') {
+  tokenStore.set(
+    'mapillary',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJtcHkiLCJzdWIiOiJ6dkhRTlZNNGtCcG5nNldIRlhwSWR6IiwiYXVkIjoiZW5aSVVVNVdUVFJyUW5CdVp6WlhTRVpZY0Vsa2VqcGxZVFl3TlRCbU1UUXdNVEExTXpReSIsImlhdCI6MTU5OTQ3NjU5NjM4NiwianRpIjoiYmFmYTQyNjI3ZGNiZTFlNzgzY2FiZWU1MzRjM2QzNDQiLCJzY28iOlsidXNlcjplbWFpbCIsInByaXZhdGU6dXBsb2FkIl0sInZlciI6MX0.K_4Y-4dyL3Xu9uc55XZ0u7XVKRG_sNl4m3_ETgbTkb4'
+  );
+}
+
+export default (mainWindow: BrowserWindow, app: App) => {
   const basepath = app.getAppPath();
-  // @TODO: Use 'ready-to-show' event
-  //        https://github.com/electron/electron/blob/master/docs/api/browser-window.md#using-ready-to-show-event
+
+  ipcMain.on(
+    'set_token',
+    (_event: IpcMainEvent, key: string, token: string) => {
+      tokenStore.set(key, token);
+    }
+  );
 
   ipcMain.once('load_config', async (_event: IpcMainEvent) => {
-    const [cameras, nadirs] = await Promise.all([
+    const [cameras, nadirs, integrations] = await Promise.all([
       loadCameras(app),
       loadDefaultNadir(app),
+      loadIntegrations(app),
     ]);
+    console.log(tokenStore.getAll());
     sendToClient(mainWindow, 'loaded_config', {
       cameras,
       nadirs,
+      integrations,
       basepath,
+      tokens: tokenStore.getAll(),
     });
   });
 
@@ -98,7 +134,8 @@ export default (mainWindow: BrowserView, app: App) => {
         ).length;
 
       if (imageLength) {
-        return errorHandler(mainWindow, 'The images should be jpeg or jpg');
+        errorHandler(mainWindow, 'The images should be jpeg or jpg');
+        return;
       }
 
       if (
@@ -111,10 +148,11 @@ export default (mainWindow: BrowserView, app: App) => {
               name.toLowerCase().endsWith('.jpg')
           ).length === 1
       ) {
-        return errorHandler(
+        errorHandler(
           mainWindow,
           'More than one image is required to create a sequence.'
         );
+        return;
       }
 
       loadImages(
@@ -151,7 +189,9 @@ export default (mainWindow: BrowserView, app: App) => {
   ipcMain.on(
     'upload_nadir',
     (_event: IpcMainEvent, { nadirpath, imagepath, width, height }) => {
-      const results = {};
+      const results: {
+        [key: string]: any;
+      } = {};
       const templogofile = path.resolve(basepath, `../${uuidv4()}.png`);
 
       const modifyLogoAsync = modifyLogo(nadirpath, templogofile)
@@ -211,6 +251,7 @@ export default (mainWindow: BrowserView, app: App) => {
   );
 
   ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
+    // eslint-disable-next-line global-require
     const { buildGPX, GarminBuilder } = require('gpx-builder');
     const { Point } = GarminBuilder.MODELS;
 
@@ -225,75 +266,64 @@ export default (mainWindow: BrowserView, app: App) => {
       );
     }
 
-    let data = null;
+    let mapillarySessionData = null;
 
-    if (
-      sequence.steps.destination.mapillary.token &&
-      sequence.steps.destination.mapillary.token !== ''
-    ) {
-      try {
-        data = await axios.post(
-          `https://a.mapillary.com/v3/me/uploads?client_id=${process.env.MAPILLARY_APP_ID}`,
-          {
-            type: 'images/sequence',
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${sequence.steps.destination.mapillary.token}`,
-            },
-          }
-        );
-        data = data.data;
-        if (data.error) {
-          return errorHandler(mainWindow, data.error);
-        }
-      } catch (e) {
-        return errorHandler(mainWindow, e);
+    if (sequence.steps.destination.mapillary) {
+      const sessionData: Session = await loadMapillarySessionData(
+        tokenStore.get('mapillary')
+      );
+      if (sessionData.error) {
+        return errorHandler(mainWindow, sessionData.error);
+      }
+      if (sessionData.data) {
+        mapillarySessionData = sessionData.data;
       }
     }
+    const resultjson: Result = await updateImages(
+      sequence.points,
+      sequence.steps,
+      logo,
+      basepath,
+      mapillarySessionData
+    );
 
-    updateImages(sequence.points, sequence.steps, logo, basepath, data)
-      .then(async (resultjson: Result) => {
-        fs.writeFileSync(
-          getSequenceLogPath(sequence.steps.name, basepath),
-          JSON.stringify(resultjson)
-        );
+    if (mapillarySessionData) {
+      const mapillarySessionKey = mapillarySessionData.key;
 
-        await removeTempFiles(app);
+      resultjson.sequence.destination.mapillary = mapillarySessionKey;
+    }
 
-        const gpxData = new GarminBuilder();
+    fs.writeFileSync(
+      getSequenceLogPath(sequence.steps.name, basepath),
+      JSON.stringify(resultjson)
+    );
 
-        const points = Object.values(resultjson.photo).map((p: Photo) => {
-          return new Point(p.MAPLatitude, p.MAPLongitude, {
-            ele: p.MAPAltitude,
-            time: dayjs(p.GPSDateTime).toDate(),
-          });
-        });
+    await removeTempFiles(app);
 
-        gpxData.setSegmentPoints(points);
+    const gpxData = new GarminBuilder();
 
-        fs.writeFileSync(
-          getSequenceGpxPath(sequence.steps.name, basepath),
-          buildGPX(gpxData.toObject())
-        );
-
-        return sendToClient(
-          mainWindow,
-          'add-seq',
-          createdData2List(resultjson)
-        );
-      })
-      .catch((err) => {
-        errorHandler(mainWindow, err);
+    const points = Object.values(resultjson.photo).map((p: Photo) => {
+      return new Point(p.MAPLatitude, p.MAPLongitude, {
+        ele: p.MAPAltitude,
+        time: dayjs(p.GPSDateTime).toDate(),
       });
+    });
+
+    gpxData.setSegmentPoints(points);
+
+    fs.writeFileSync(
+      getSequenceGpxPath(sequence.steps.name, basepath),
+      buildGPX(gpxData.toObject())
+    );
+
+    return sendToClient(mainWindow, 'add-seq', createdData2List(resultjson));
   });
 
-  ipcMain.on('sequences', async (_event: IpcMainEvent) => {
+  ipcMain.once('sequences', async (_event: IpcMainEvent) => {
     if (!fs.existsSync(resultdirectorypath(app))) {
       fs.mkdirSync(resultdirectorypath(app));
     }
-    const sequences = fs
+    const sequencesDirectories = fs
       .readdirSync(resultdirectorypath(app))
       .filter(
         (name) =>
@@ -311,18 +341,44 @@ export default (mainWindow: BrowserView, app: App) => {
         rimraf.sync(getSequenceBasePath(d, basepath));
       });
 
-    const result: Summary[] = sequences
+    const sequences: Result[] = sequencesDirectories
       .map((name: string) => {
-        const logdata = JSON.parse(
+        return JSON.parse(
           fs.readFileSync(getSequenceLogPath(name, basepath)).toString()
         );
-        return createdData2List(logdata);
       })
       .sort((a: any, b: any) => {
         return dayjs(a.created).isBefore(dayjs(b.created)) ? 1 : -1;
       });
 
-    sendToClient(mainWindow, 'loaded_sequences', result);
+    // const summaries: Summary[] = sequences.map((s: Result) =>
+    //   createdData2List(s)
+    // );
+
+    const summaries: Summary[] = await Promise.all(
+      sequences.map(async (s: Result) => {
+        const summary = createdData2List(s);
+        if (
+          s.sequence.destination &&
+          s.sequence.destination.mapillary &&
+          s.sequence.destination.mapillary !== ''
+        ) {
+          const { error, data } = await findSequences(
+            tokenStore.get('mapillary'),
+            s.sequence.destination.mapillary,
+            s.photo
+          );
+          if (data) {
+            summary.destination.mapillary = '';
+          } else if (error) {
+            summary.destination.mapillary = `Error: ${error}`;
+          }
+        }
+        return summary;
+      })
+    );
+
+    sendToClient(mainWindow, 'loaded_sequences', summaries);
   });
 
   ipcMain.on('remove_sequence', async (_event: IpcMainEvent, name: string) => {

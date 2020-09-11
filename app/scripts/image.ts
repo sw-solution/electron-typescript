@@ -5,10 +5,8 @@ import dayjs from 'dayjs';
 import { v4 as uuidv4 } from 'uuid';
 import jimp from 'jimp';
 import rimraf from 'rimraf';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
+import mkdirp from 'mkdirp';
 
-import FormData from 'form-data';
 import { IGeoPoint } from '../types/IGeoPoint';
 
 import {
@@ -26,6 +24,8 @@ import {
   discardPointsBySeconds,
   parseExifDateTime,
 } from './utils';
+
+import { uploadImage } from './integrations/mapillary';
 
 const average = require('image-average-color');
 
@@ -397,55 +397,72 @@ export function writeExifTags(
   input_file: string,
   item: IGeoPoint,
   description: Photo,
-  basepath: string,
   outputfile: any = false
 ) {
   return new Promise((resolve, reject) => {
     const datetime = dayjs(item.GPSDateTime);
-    if (outputfile) {
-      fs.exists(outputfile, (existed) => {
-        if (existed) {
-          fs.unlink(outputfile, console.log);
-        }
-      });
-    }
 
-    const options: string[] = outputfile
-      ? ['-o', outputfile]
-      : ['-overwrite_original'];
+    Async.waterfall(
+      [
+        (cb: CallableFunction) => {
+          if (outputfile) {
+            mkdirp(path.dirname(outputfile))
+              // eslint-disable-next-line consistent-return
+              // eslint-disable-next-line promise/always-return
+              .then(() => {
+                // eslint-disable-next-line promise/always-return
+                fs.copyFile(input_file, outputfile, (err2: any) => {
+                  if (err2) return cb(err2);
+                  return cb(null, outputfile);
+                });
+              })
+              .catch((err: any) => {
+                cb(err);
+              });
+          } else {
+            cb(null, input_file);
+          }
+        },
+        (inputFile: string, cb: CallableFunction) => {
+          const options: string[] = ['-overwrite_original'];
 
-    const azimuth = (item.Azimuth || 0) > 0 ? item.Azimuth : 360 + item.Azimuth;
+          const azimuth =
+            (item.Azimuth || 0) > 0 ? item.Azimuth : 360 + item.Azimuth;
 
-    let tags = item.tags || {};
+          let tags = item.tags || {};
 
-    tags = {
-      ...tags,
-      AllDates: datetime.format('YYYY-MM-DDTHH:mm:ss'),
-      GPSTimeStamp: datetime.format('HH:mm:ss'),
-      GPSDateStamp: datetime.format('YYYY-MM-DD'),
-      GPSLatitude: item.MAPLatitude,
-      GPSLongitude: item.MAPLongitude,
-      GPSAltitude: item.MAPAltitude,
-      PoseHeadingDegrees: azimuth,
-      GPSImgDirection: azimuth,
-      CameraElevationAngle: item.Pitch,
-      PosePitchDegrees: item.Pitch,
-      ImageDescription: JSON.stringify({
-        ...description,
-        GPSDateTime: undefined,
-      }),
-    };
+          tags = {
+            ...tags,
+            AllDates: datetime.format('YYYY-MM-DDTHH:mm:ss'),
+            GPSTimeStamp: datetime.format('HH:mm:ss'),
+            GPSDateStamp: datetime.format('YYYY-MM-DD'),
+            GPSLatitude: item.MAPLatitude,
+            GPSLongitude: item.MAPLongitude,
+            GPSAltitude: item.MAPAltitude,
+            PoseHeadingDegrees: azimuth,
+            GPSImgDirection: azimuth,
+            CameraElevationAngle: item.Pitch,
+            PosePitchDegrees: item.Pitch,
+            ImageDescription: JSON.stringify({
+              ...description,
+              GPSDateTime: undefined,
+            }),
+          };
 
-    exiftool
-      .write(input_file, tags, options)
-      .then(() => {
-        console.log(`End Updating Exiftool: filename ${input_file}`);
-        return resolve();
-      })
-      .catch((error: any) => {
-        console.error(`Error in writing tags: ${input_file} - `, error);
-        return resolve();
-      });
+          exiftool
+            .write(inputFile, tags, options)
+            .then(() => cb())
+            .catch((error: any) => {
+              console.log('Writing Exif tags issue: ', error);
+              cb();
+            });
+        },
+      ],
+      (err) => {
+        if (err) return reject(err);
+        return resolve(err);
+      }
+    );
   });
 }
 
@@ -486,15 +503,10 @@ export function writeNadirImages(
         });
       const writeExifAsync = addLogoAsync
         .then(() =>
-          writeExifTags(
-            outputfile,
-            item,
-            {
-              ...description.photo,
-              MTPImageCopy: 'final_nadir',
-            },
-            basepath
-          )
+          writeExifTags(outputfile, item, {
+            ...description.photo,
+            MTPImageCopy: 'final_nadir',
+          })
         )
         .catch((err) => {
           console.error(`Add Logo Error:  ${filename} - `, err);
@@ -543,15 +555,10 @@ export function writeBlurredImage(
       });
     const writeExifAsync = jimpAsync
       .then(() =>
-        writeExifTags(
-          outputfile,
-          item,
-          {
-            ...description.photo,
-            MTPImageCopy: 'final_blurred',
-          },
-          basepath
-        )
+        writeExifTags(outputfile, item, {
+          ...description.photo,
+          MTPImageCopy: 'final_blurred',
+        })
       )
       .catch((err) => {
         console.log(`Write Error in Jimp: ${filename} - `, err);
@@ -575,7 +582,7 @@ export function updateImages(
   logo: any,
   basepath: string,
   mapillarySession: any
-) {
+): Promise<Result> {
   return new Promise((resolve, reject) => {
     const updatedPoints = points
       .filter(
@@ -602,7 +609,7 @@ export function updateImages(
 
     if (updatedPoints.length === 0) {
       // eslint-disable-next-line prefer-promise-reject-errors
-      return reject('There are not images after calculating');
+      return reject(new Error('There are not images after calculating'));
     }
 
     const durationsec = updatedPoints[updatedPoints.length - 1]
@@ -626,6 +633,7 @@ export function updateImages(
         uploader_tags: settings.tags,
         created: dayjs().format('YYYY-MM-DD'),
         uploader_camera: settings.camera,
+        destination: {},
       },
       photo: {},
     };
@@ -742,7 +750,7 @@ export function updateImages(
                 OutputType.raw,
                 basepath
               );
-              writeExifTags(inputfile, item, desc.photo, basepath, outputfile)
+              writeExifTags(inputfile, item, desc.photo, outputfile)
                 .then(() => cb())
                 .catch((err) => cb(err));
             },
@@ -784,60 +792,22 @@ export function updateImages(
                 basepath
               );
 
-              try {
-                const formData = new FormData();
-
-                Object.keys(mapillarySession.fields).forEach((k: string) => {
-                  formData.append(k, mapillarySession.fields[k]);
-                });
-
-                formData.append(
-                  'key',
-                  `${mapillarySession.key_prefix}${item.Image}`
-                );
-
-                formData.append('file', fs.createReadStream(filepath), {
-                  filename: item.Image,
-                });
-
-                formData.getLength((error1: any, length: number) => {
-                  if (error1) {
-                    return next(JSON.stringify({ error1, length }));
-                  }
-                  const config = {
-                    method: 'post',
-                    url: mapillarySession.url,
-                    headers: {
-                      ...formData.getHeaders(),
-                      'Content-Length': length,
-                    },
-                    maxContentLength: Infinity,
-                    maxBodyLength: Infinity,
-                    data: formData,
-                  };
-
-                  axiosRetry(axios, { retries: 3 });
-                  // eslint-disable-next-line promise/no-promise-in-callback
-                  return axios(config)
-                    .then((response: any) => {
-                      return next();
-                    })
-                    .catch((error2: any) => {
-                      return next(JSON.stringify(error2));
-                    });
-                });
-              } catch (e) {
-                next(e);
-              }
+              // eslint-disable-next-line promise/no-promise-in-callback
+              uploadImage(filepath, item.Image, mapillarySession)
+                .then(() => next())
+                .catch((err: any) => next(err));
             } else {
               next();
             }
           }
         );
       },
-      (err) => {
+      (err: any) => {
         if (err) {
-          return reject(err);
+          console.log('Updating Image Issue: ', err);
+          return typeof err === 'string'
+            ? reject(new Error(err))
+            : reject(new Error(err.message));
         }
         return resolve(resultjson);
       }
