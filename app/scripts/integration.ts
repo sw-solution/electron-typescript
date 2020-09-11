@@ -2,6 +2,10 @@ import { App } from 'electron';
 import path from 'path';
 import fs from 'fs';
 
+const loginUrls = {
+  mapillary: `https://www.mapillary.com/connect?client_id=${process.env.MAPILLARY_APP_ID}&response_type=token&scope=user:email%20private:upload&redirect_uri=${process.env.MAPILLARY_REDIRECT_URI}`,
+};
+
 export default async function loadIntegrations(app: App | null) {
   const integrationsRootPath = path.resolve(
     app?.getAppPath(),
@@ -28,14 +32,9 @@ export default async function loadIntegrations(app: App | null) {
           .toString()
       );
 
-      const { params } = config.oauth;
-      const queryString = Object.keys(params)
-        .map((p: string) => `${p}=${process.env[params[p]]}`)
-        .join('&');
-
       const settings = {
         name: config.name,
-        loginUrl: `${config.oauth.baseUrl}&${queryString}`,
+        loginUrl: loginUrls[m],
       };
 
       obj[m] = {

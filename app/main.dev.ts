@@ -8,7 +8,7 @@
  * When running `yarn build` or `yarn build-main`, this file is compiled to
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  */
-import { app, BrowserWindow, shell, Menu, protocol } from 'electron';
+import { app, BrowserWindow, shell, Menu } from 'electron';
 
 import url from 'url';
 
@@ -17,8 +17,6 @@ import eventsLoader from './scripts/events_loader';
 import { sendToClient } from './scripts/utils';
 
 let mainWindow: BrowserWindow | null = null;
-
-console.log(process.env.NODE_ENV);
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
