@@ -10,10 +10,7 @@
  */
 import { app, BrowserWindow, shell, Menu, protocol } from 'electron';
 
-import dotenv from 'dotenv';
-
 import url from 'url';
-import Store from './scripts/utils/store';
 
 import eventsLoader from './scripts/events_loader';
 
@@ -21,7 +18,7 @@ import { sendToClient } from './scripts/utils';
 
 let mainWindow: BrowserWindow | null = null;
 
-dotenv.config();
+console.log(process.env.NODE_ENV);
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');

@@ -12,6 +12,7 @@ import {
   setInit,
   selSequence,
   selDestination,
+  setError,
 } from '../create/slice';
 
 import {

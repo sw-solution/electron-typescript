@@ -7,8 +7,6 @@ import webpack from 'webpack';
 import dotenv from 'dotenv';
 import { dependencies as externals } from '../app/package.json';
 
-dotenv.config();
-
 export default {
   externals: [
     ...Object.keys(externals || {}).filter((x) => x !== 'react-map-gl'),
@@ -46,14 +44,7 @@ export default {
   plugins: [
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'production',
-      MAPBOX_TOKEN: process.env.MAPBOX_TOKEN,
-      MTP_WEB_AUTH_URL: process.env.MTP_WEB_AUTH_URL,
-      MTP_WEB_URL: process.env.MTP_WEB_URL,
-      MTP_WEB_APP_ID: process.env.MTP_WEB_APP_ID,
-      MTP_WEB_APP_SECRET: process.env.MTP_WEB_APP_SECRET,
-      MAPILLARY_APP_ID: process.env.MAPILLARY_APP_ID,
-      MAPILLARY_REDIRECT_URI: process.env.MAPILLARY_REDIRECT_URI,
-      NODE_OPTIONS: '--max-old-space-size=8192',
+      ...dotenv.config().parsed,
     }),
 
     new webpack.NamedModulesPlugin(),
