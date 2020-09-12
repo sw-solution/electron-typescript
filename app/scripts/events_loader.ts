@@ -48,11 +48,6 @@ axios.interceptors.response.use(
   }
 );
 
-if (process.env.NODE_ENV === 'production') {
-  tokenStore.set('mtp', null);
-  tokenStore.set('mapillary', null);
-}
-
 export default (mainWindow: BrowserWindow, app: App) => {
   const basepath = app.getAppPath();
 
