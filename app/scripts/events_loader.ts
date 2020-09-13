@@ -11,7 +11,7 @@ import { App, ipcMain, BrowserWindow, IpcMainEvent } from 'electron';
 import { Session } from '../types/Session';
 import { processVideo } from './video';
 
-import { Result, Summary, Photo } from '../types/Result';
+import { Result, Summary, ExportPhoto } from '../types/Result';
 
 import {
   loadMapillarySessionData,
@@ -302,14 +302,12 @@ export default (mainWindow: BrowserWindow, app: App) => {
 
     const gpxData = new GarminBuilder();
 
-    const points = Object.values(resultjson.photo).map((p: Photo) => {
-      return new Point(p.MAPLatitude, p.MAPLongitude, {
-        ele: p.MAPAltitude,
-        time: dayjs(p.GPSDateTime).toDate(),
+    const points = Object.values(resultjson.photo).map((p: ExportPhoto) => {
+      return new Point(p.modified.latitude, p.modified.longitude, {
+        ele: p.modified.altitude,
+        time: dayjs(p.modified.GPSDateTime).toDate(),
       });
     });
-
-    console.log('points: ', points);
 
     gpxData.setSegmentPoints(points);
 
