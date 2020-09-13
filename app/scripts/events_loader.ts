@@ -48,6 +48,13 @@ axios.interceptors.response.use(
   }
 );
 
+if (process.env.NODE_ENV === 'development') {
+  tokenStore.set(
+    'mapillary',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJtcHkiLCJzdWIiOiJ6dkhRTlZNNGtCcG5nNldIRlhwSWR6IiwiYXVkIjoiZW5aSVVVNVdUVFJyUW5CdVp6WlhTRVpZY0Vsa2VqcGxZVFl3TlRCbU1UUXdNVEExTXpReSIsImlhdCI6MTU5OTQ3NjU5NjM4NiwianRpIjoiYmFmYTQyNjI3ZGNiZTFlNzgzY2FiZWU1MzRjM2QzNDQiLCJzY28iOlsidXNlcjplbWFpbCIsInByaXZhdGU6dXBsb2FkIl0sInZlciI6MX0.K_4Y-4dyL3Xu9uc55XZ0u7XVKRG_sNl4m3_ETgbTkb4'
+  );
+}
+
 export default (mainWindow: BrowserWindow, app: App) => {
   const basepath = app.getAppPath();
 
@@ -64,7 +71,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
       loadDefaultNadir(app),
       loadIntegrations(app),
     ]);
-    console.log(tokenStore.getAll());
+
     sendToClient(mainWindow, 'loaded_config', {
       cameras,
       nadirs,
@@ -302,6 +309,8 @@ export default (mainWindow: BrowserWindow, app: App) => {
       });
     });
 
+    console.log('points: ', points);
+
     gpxData.setSegmentPoints(points);
 
     fs.writeFileSync(
@@ -334,41 +343,39 @@ export default (mainWindow: BrowserWindow, app: App) => {
         rimraf.sync(getSequenceBasePath(d, basepath));
       });
 
-    const sequences: Result[] = sequencesDirectories
-      .map((name: string) => {
-        return JSON.parse(
-          fs.readFileSync(getSequenceLogPath(name, basepath)).toString()
-        );
-      })
-      .sort((a: any, b: any) => {
-        return dayjs(a.created).isBefore(dayjs(b.created)) ? 1 : -1;
-      });
-
-    // const summaries: Summary[] = sequences.map((s: Result) =>
-    //   createdData2List(s)
-    // );
+    const sequences: Result[] = sequencesDirectories.map((name: string) => {
+      return JSON.parse(
+        fs.readFileSync(getSequenceLogPath(name, basepath)).toString()
+      );
+    });
 
     const summaries: Summary[] = await Promise.all(
-      sequences.map(async (s: Result) => {
-        const summary = createdData2List(s);
-        if (
-          s.sequence.destination &&
-          s.sequence.destination.mapillary &&
-          s.sequence.destination.mapillary !== ''
-        ) {
-          const { error, data } = await findSequences(
-            tokenStore.get('mapillary'),
-            s.sequence.destination.mapillary,
-            s.photo
-          );
-          if (data) {
-            summary.destination.mapillary = '';
-          } else if (error) {
-            summary.destination.mapillary = `Error: ${error}`;
+      sequences
+        .map(async (s: Result) => {
+          const summary = createdData2List(s);
+          if (
+            s.sequence.destination &&
+            s.sequence.destination.mapillary &&
+            s.sequence.destination.mapillary !== '' &&
+            !s.sequence.destination.mapillary.startsWith('Error') &&
+            tokenStore.get('mapillary')
+          ) {
+            const { error, data } = await findSequences(
+              tokenStore.get('mapillary'),
+              s.sequence.destination.mapillary,
+              s.photo
+            );
+            if (data) {
+              summary.destination.mapillary = '';
+            } else if (error) {
+              summary.destination.mapillary = `Error: ${error}`;
+            }
           }
-        }
-        return summary;
-      })
+          return summary;
+        })
+        .sort((a: any, b: any) => {
+          return dayjs(a.created).isBefore(dayjs(b.created)) ? 1 : -1;
+        })
     );
 
     sendToClient(mainWindow, 'loaded_sequences', summaries);

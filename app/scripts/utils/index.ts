@@ -125,11 +125,12 @@ export function getPitch(point1: IGeoPoint, point2: IGeoPoint, distance = -1) {
   return dis !== 0 ? (point2.MAPAltitude - point1.MAPAltitude) / dis : 0;
 }
 
-export function getSequenceBasePath(seqname: string, basepath: string): string {
+export function getSequenceBasePath(
+  seqname: string,
+  basepath: string
+): string | any {
   const directoryname = seqname.toLowerCase().replace(/\s/g, '_');
-  if (basepath) {
-    return path.resolve(basepath, `../${resultdirectory}`, directoryname);
-  }
+  return path.resolve(basepath, `../${resultdirectory}`, directoryname);
 }
 
 export function getOriginalBasePath(seqname: string, basepath: string): string {

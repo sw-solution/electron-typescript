@@ -7,6 +7,16 @@ const loginUrls = {
 };
 
 export default async function loadIntegrations(app: App | null) {
+  if (
+    !(
+      process.env.MTP_WEB_APP_ID &&
+      process.env.MTP_WEB_APP_SECRET &&
+      process.env.MTP_WEB_URL &&
+      process.env.MTP_WEB_AUTH_URL
+    )
+  )
+    return {};
+
   const integrationsRootPath = path.resolve(
     app?.getAppPath(),
     '../integrations'

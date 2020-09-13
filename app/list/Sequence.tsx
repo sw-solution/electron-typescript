@@ -4,7 +4,15 @@ import IconButton from '@material-ui/core/IconButton';
 
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 
-import { Box, Typography, Grid, Avatar, Chip, Badge } from '@material-ui/core';
+import {
+  Box,
+  Typography,
+  Grid,
+  Avatar,
+  Chip,
+  Badge,
+  Tooltip,
+} from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { useSelector } from 'react-redux';
@@ -69,28 +77,35 @@ export default function Sequence({ data, onDelete }: Props) {
 
   const destinationIcons = Object.keys(data.destination).map((key: string) => {
     let icon = <DoneIcon color="primary" fontSize="small" />;
+    let message = 'Published';
     if (
       typeof data.destination[key] === 'string' &&
       data.destination[key].startsWith('Error')
     ) {
       icon = <ErrorIcon color="error" fontSize="small" />;
+      message = data.destination[key].replace('Error:', '');
     } else if (data.destination[key] !== '') {
       icon = <PublishIcon color="action" fontSize="small" />;
+      message = 'Uploading';
     }
 
-    return (
-      <Badge
-        overlap="circle"
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        badgeContent={icon}
-        key={key}
-      >
-        <Avatar src={`data:image/png;base64, ${integrations[key].logo}`} />
-      </Badge>
-    );
+    if (integrations[key] && integrations[key].logo) {
+      return (
+        <Tooltip title={message} key={key}>
+          <Badge
+            overlap="circle"
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            badgeContent={icon}
+          >
+            <Avatar src={`data:image/png;base64, ${integrations[key].logo}`} />
+          </Badge>
+        </Tooltip>
+      );
+    }
+    return <div key={key} />;
   });
 
   return (

@@ -5,6 +5,7 @@ import path from 'path';
 import Async from 'async';
 import { BrowserWindow } from 'electron';
 import fs from 'fs';
+import mkdirp from 'mkdirp';
 
 import { VGeoPoint, VGeoPointModel } from '../types/VGeoPoint';
 import { IGeoPoint } from '../types/IGeoPoint';
@@ -376,7 +377,11 @@ export function splitVideoToImage(
   }
 }
 
-export function loadVideo(videoPath: string, callback: CallableFunction) {
+export function loadVideo(
+  videoPath: string,
+  outputPath: string,
+  callback: CallableFunction
+) {
   const exif = new ExifTool({
     taskTimeoutMillis: 1073741824,
     maxProcAgeMillis: 1073741825,
@@ -385,11 +390,28 @@ export function loadVideo(videoPath: string, callback: CallableFunction) {
     .read(videoPath, ['-ee', '-G3', '-s', '-api', 'largefilesupport=1'])
     .then((tags: typeof Tags) => {
       exif.end();
-      return callback(null, tags);
+
+      // eslint-disable-next-line promise/no-nesting
+      mkdirp(outputPath)
+        .then(() => {
+          fs.writeFile(
+            path.join(outputPath, 'VIDEO_telemetry.json'),
+            JSON.stringify(tags),
+            (err: any) => {
+              if (err) {
+                callback(err);
+              } else {
+                callback(null, tags);
+              }
+            }
+          );
+        })
+        .catch((err) => callback(err));
     })
     .catch((err: Error) => {
-      console.log('Loading Video: ', err);
       exif.end();
+
+      console.log('Loading Video: ', err);
       callback(err);
     });
 }
@@ -400,7 +422,7 @@ export function processVideo(
   outputPath: string,
   corrupted: boolean
 ) {
-  loadVideo(videoPath, (error: any, tags: typeof Tags) => {
+  loadVideo(videoPath, outputPath, (error: any, tags: typeof Tags) => {
     if (error) {
       errorHandler(win, error);
     } else {
