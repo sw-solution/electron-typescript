@@ -23,7 +23,8 @@ import Map from '../components/Map';
 
 import transportType from '../../transports/transport-methods.json';
 
-import { selIntegrations } from '../base/slice';
+import { selIntegrations, selBasePath } from '../base/slice';
+import { getSequenceLogPath } from '../scripts/utils';
 
 import { Summary } from '../types/Result';
 
@@ -62,6 +63,8 @@ interface Props {
 
 export default function Sequence({ data, onDelete }: Props) {
   const classes = useStyles();
+
+  const basepath = useSelector(selBasePath);
 
   const { type, method, points } = data;
 
@@ -120,57 +123,70 @@ export default function Sequence({ data, onDelete }: Props) {
         <Grid xs={4} item>
           <Map points={points} height={200} showPopup={false} id={data.name} />
         </Grid>
-        <Grid xs={5} item>
-          <Typography variant="h5" color="primary" align="left">
-            {data.name}
-          </Typography>
-          <div className={classes.destinationWrapper}>{destinationIcons}</div>
-          <Typography color="primary" align="left" paragraph>
-            {data.description}
-          </Typography>
-          <Box className={classes.information}>
-            <div>
-              <span className={transportType[type].icon} />
-              <Typography color="primary" variant="caption" display="block">
-                {data.type}
+        <Grid xs={8} item>
+          <Grid container>
+            <Grid xs={7} item>
+              <Typography variant="h5" color="primary" align="left">
+                {data.name}
               </Typography>
-            </div>
-            <div>
-              <span className={methodIcons[method]} />
-              <Typography color="primary" variant="caption" display="block">
-                {data.method}
+              <div className={classes.destinationWrapper}>
+                {destinationIcons}
+              </div>
+              <Typography color="primary" align="left" paragraph>
+                {data.description}
               </Typography>
-            </div>
-            <div>
-              <span className="fas fa-people-arrows" />
+              <Box className={classes.information}>
+                <div>
+                  <span className={transportType[type].icon} />
+                  <Typography color="primary" variant="caption" display="block">
+                    {data.type}
+                  </Typography>
+                </div>
+                <div>
+                  <span className={methodIcons[method]} />
+                  <Typography color="primary" variant="caption" display="block">
+                    {data.method}
+                  </Typography>
+                </div>
+                <div>
+                  <span className="fas fa-people-arrows" />
+                  <Typography color="primary" variant="caption" display="block">
+                    {data.total_km.toFixed(3)}
+                    <span>KM</span>
+                  </Typography>
+                </div>
+                <div>
+                  <span className="far fa-images" />
+                  <Typography color="primary" variant="caption" display="block">
+                    {points.length}
+                  </Typography>
+                </div>
+              </Box>
+            </Grid>
+            <Grid xs={5} item>
+              <div className={classes.information}>
+                {data.tags.map((tag: string) => (
+                  <Chip key={tag} label={tag} color="primary" size="small" />
+                ))}
+              </div>
               <Typography color="primary" variant="caption" display="block">
-                {data.total_km.toFixed(3)}
-                <span>KM</span>
+                <span>Captured:</span>
+                {data.captured}
               </Typography>
-            </div>
-            <div>
-              <span className="far fa-images" />
-              <Typography color="primary" variant="caption" display="block">
-                {points.length}
-              </Typography>
-            </div>
-          </Box>
-        </Grid>
-        <Grid xs={3} item>
-          <div className={classes.information}>
-            {data.tags.map((tag: string) => (
-              <Chip key={tag} label={tag} color="primary" />
-            ))}
-          </div>
-          <Typography color="primary" variant="caption" display="block">
-            <span>Captured:</span>
-            {data.captured}
-          </Typography>
 
-          <Typography color="primary" variant="caption" display="block">
-            <span>Created:</span>
-            {data.created}
-          </Typography>
+              <Typography color="primary" variant="caption" display="block">
+                <span>Created:</span>
+                {data.created}
+              </Typography>
+            </Grid>
+          </Grid>
+          <Grid container alignItems="center" spacing={3}>
+            <Grid xs={12} item>
+              <Typography variant="caption" color="secondary">
+                {basepath ? getSequenceLogPath(data.name, basepath) : ''}
+              </Typography>
+            </Grid>
+          </Grid>
         </Grid>
       </Grid>
     </Grid>

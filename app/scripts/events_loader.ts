@@ -392,12 +392,12 @@ export default (mainWindow: BrowserWindow, app: App) => {
             } else if (error) {
               summary.destination.mapillary = `Error: ${error}`;
               s.sequence.destination.mapillary = `Error: ${error}`;
-
-              fs.writeFileSync(
-                getSequenceLogPath(s.sequence.uploader_sequence_name, basepath),
-                JSON.stringify(s)
-              );
             }
+
+            fs.writeFileSync(
+              getSequenceLogPath(s.sequence.uploader_sequence_name, basepath),
+              JSON.stringify(s)
+            );
           }
           return summary;
         })
