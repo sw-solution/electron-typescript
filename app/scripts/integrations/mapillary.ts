@@ -9,8 +9,8 @@ import { Photos } from '../../types/Result';
 axios.interceptors.response.use(
   (res) => res,
   (err) => {
-    console.log('Axios Error: ', err);
-    throw err.response;
+    console.log(err.response.data);
+    throw new Error(JSON.stringify(err.response.data));
   }
 );
 
@@ -180,6 +180,6 @@ export const findSequences = async (
     }
     return {};
   } catch (e) {
-    return { error: e.message };
+    return { error: e };
   }
 };

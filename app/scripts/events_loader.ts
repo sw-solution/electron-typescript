@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 import jimp from 'jimp';
 import Async from 'async';
-import axios from 'axios';
 
 import { App, ipcMain, BrowserWindow, IpcMainEvent } from 'electron';
 import { Session } from '../types/Session';
@@ -41,13 +40,6 @@ import { readGPX } from './utils/gpx';
 import loadCameras from './camera';
 import loadIntegrations from './integration';
 import loadDefaultNadir from './nadir';
-
-axios.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    throw err.data.error.message;
-  }
-);
 
 if (process.env.NODE_ENV === 'development') {
   tokenStore.set(

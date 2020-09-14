@@ -778,10 +778,8 @@ export function updateImages(
               next(err);
             } else if (mapillarySession) {
               let outputType = '';
-              if (settings.nadirPath !== '' && logo) {
+              if (settings.nadirPath !== '') {
                 outputType = OutputType.nadir;
-              } else if (settings.nadir) {
-                outputType = OutputType.blur;
               } else {
                 outputType = OutputType.raw;
               }

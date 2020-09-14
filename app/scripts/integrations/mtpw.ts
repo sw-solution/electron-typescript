@@ -2,6 +2,14 @@ import axios from 'axios';
 import qs from 'qs';
 import { Sequence } from '../../types/Result';
 
+axios.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    console.log(err.response.data);
+    throw new Error(JSON.stringify(err.response.data));
+  }
+);
+
 export const postSequence = async (sequence: Sequence, token: string) => {
   const data = {
     name: sequence.uploader_sequence_name,
@@ -21,10 +29,12 @@ export const postSequence = async (sequence: Sequence, token: string) => {
 
   try {
     const res = await axios(config);
+    console.log(res);
     return {
       mtpwSequence: res.data,
     };
   } catch (error) {
+    console.log(error);
     return {
       mtpwError: error,
     };

@@ -248,7 +248,9 @@ export function discardPointsBySeconds(
 export const errorHandler = (mainWindow: BrowserWindow | null, err: any) => {
   if (typeof err === 'string') {
     sendToClient(mainWindow, 'error', err);
-  } else if (err) {
+  } else if (err.message) {
+    sendToClient(mainWindow, 'error', err.message);
+  } else {
     sendToClient(mainWindow, 'error', JSON.stringify(err));
   }
 };
