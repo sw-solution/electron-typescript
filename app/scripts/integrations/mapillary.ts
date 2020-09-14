@@ -5,12 +5,12 @@ import fs from 'fs';
 
 import { Session } from '../../types/Session';
 import { Photos } from '../../types/Result';
+import axiosErrorHandler from '../utils/axios';
 
 axios.interceptors.response.use(
   (res) => res,
   (err) => {
-    console.log(err.response.data);
-    throw new Error(JSON.stringify(err.response.data));
+    throw err;
   }
 );
 
@@ -62,7 +62,7 @@ export const publishSession = async (
     return {};
   } catch (error) {
     return {
-      error,
+      error: axiosErrorHandler(error),
     };
   }
 };
@@ -105,7 +105,9 @@ export const uploadImage = (
       // eslint-disable-next-line promise/no-promise-in-callback
       axios(config)
         .then(() => resolve())
-        .catch((err: any) => reject(err));
+        .catch((err: any) => {
+          reject(axiosErrorHandler(err));
+        });
     });
   });
 };
@@ -180,6 +182,8 @@ export const findSequences = async (
     }
     return {};
   } catch (e) {
-    return { error: e };
+    return {
+      error: axiosErrorHandler(e),
+    };
   }
 };

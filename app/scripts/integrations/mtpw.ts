@@ -1,12 +1,12 @@
 import axios from 'axios';
 import qs from 'qs';
 import { Sequence } from '../../types/Result';
+import axiosErrorHandler from '../utils/axios';
 
 axios.interceptors.response.use(
   (res) => res,
   (err) => {
-    console.log(err.response.data);
-    throw new Error(JSON.stringify(err.response.data));
+    throw err;
   }
 );
 
@@ -14,7 +14,7 @@ export const postSequence = async (sequence: Sequence, token: string) => {
   const data = {
     name: sequence.uploader_sequence_name,
     description: sequence.uploader_sequence_description,
-    transport_type: sequence.uploader_transport_type,
+    transport_type: sequence.uploader_transport_method,
     tag: sequence.uploader_tags.join(','),
   };
 
@@ -29,14 +29,17 @@ export const postSequence = async (sequence: Sequence, token: string) => {
 
   try {
     const res = await axios(config);
-    console.log(res);
+    if (res.data.error) {
+      return {
+        mtpwError: res.data.error,
+      };
+    }
     return {
       mtpwSequence: res.data,
     };
   } catch (error) {
-    console.log(error);
     return {
-      mtpwError: error,
+      mtpwError: axiosErrorHandler(error),
     };
   }
 };
@@ -65,9 +68,8 @@ export const updateSequence = async (
     await axios(config);
     return {};
   } catch (error) {
-    console.log('PUT ERROR:', error);
     return {
-      seqError: error,
+      seqError: axiosErrorHandler(error),
     };
   }
 };
