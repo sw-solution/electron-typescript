@@ -82,6 +82,11 @@ const createSequenceSlice = createSlice({
     goToPrevStep: (state) => {
       const passedlength = state.step.passed.length;
       if (passedlength) {
+        const { current } = state.step;
+        state.steps = {
+          ...state.steps,
+          [current]: initialState.steps[current],
+        };
         state.step = {
           ...state.step,
           current: state.step.passed[passedlength - 1],
