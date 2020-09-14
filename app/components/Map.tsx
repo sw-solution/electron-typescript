@@ -1,6 +1,7 @@
-import React, { useState, ReactNode } from 'react';
+import React, { useState, ReactNode, createRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import ReactMapboxGl, { Marker, ZoomControl } from 'react-mapbox-gl';
+
+import mapboxgl, { Map } from 'mapbox-gl';
 import dayjs from 'dayjs';
 
 import {
@@ -50,26 +51,32 @@ interface Props {
   showPopup?: boolean;
   height?: number;
   onDelete?: CallableFunction | null;
+  id?: string;
 }
 
 interface State {
   isopen: boolean;
   selected: number;
   showMessage: boolean;
+  // zoom: number;
 }
 
-const MapBox = ReactMapboxGl({
-  accessToken: process.env.MAPBOX_TOKEN || '',
-});
+mapboxgl.accessToken = process.env.MAPBOX_TOKEN;
 
-export default function Map(props: Props) {
-  const { points, height, showPopup, onDelete } = props;
+export default function MapBox(props: Props) {
+  const { points, height, showPopup, onDelete, id } = props;
   const name = useSelector(selSequenceName);
+  const mapId = id
+    ? `map_${id.replace(/\s/g, '_')}`
+    : `map_${name.replace(/\s/g, '_')}`;
   const [state, setState] = useState<State>({
     isopen: false,
     selected: -1,
     showMessage: false,
+    // zoom: 22,
   });
+
+  const [map, setMap] = useState<Map | null>(null);
 
   const classes = useStyles();
   const filteredpoints = points.filter(
@@ -87,7 +94,7 @@ export default function Map(props: Props) {
     return [51.5, -0.09];
   };
 
-  const showPhoto = (idx: number) => () => {
+  const showPhoto = (idx: number) => {
     setState({
       isopen: true,
       selected: idx,
@@ -236,61 +243,136 @@ export default function Map(props: Props) {
     </div>
   );
 
-  const markers = filteredpoints.map((point: IGeoPoint, idx: number) => {
-    return (
-      <Marker
-        key={`marker-${idx.toString()}`}
-        coordinates={[point.MAPLongitude || 0, point.MAPLatitude || 0]}
-        anchor="center"
-        onClick={showPhoto(idx)}
-      >
-        <div
-          style={{
-            backgroundImage: `url(${markerImg})`,
-            backgroundSize: '100% 100%',
-            height: '20px',
-            width: '20px',
-            transform: `rotate(${point.Azimuth}deg)`,
-            cursor: 'pointer',
-          }}
-        />
-      </Marker>
-    );
-  });
+  useEffect(() => {
+    if (map) {
+      const markerImgId = 'custom-marker';
+      if (!map.hasImage(markerImgId)) {
+        const img = new Image(36, 36);
+        img.onload = () => map.addImage(markerImgId, img);
+        img.src = markerImg;
+      }
 
-  const drawLines = (map) => {
-    map.addLayer({
-      id: 'route',
-      type: 'line',
-      source: {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          properties: {},
-          geometry: {
-            type: 'LineString',
-            coordinates: filteredpoints.map((point) => {
-              return [point.MAPLongitude, point.MAPLatitude];
-            }),
-          },
+      const lineSourceId = 'route_source';
+      const routeSourceData = {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'LineString',
+          coordinates: filteredpoints.map((point) => {
+            return [point.MAPLongitude, point.MAPLatitude];
+          }),
         },
-      },
-      layout: {
-        'line-join': 'round',
-        'line-cap': 'round',
-      },
-      paint: {
-        'line-color': '#28a745',
-        'line-width': 2,
-      },
-    });
-  };
+      };
+      if (map.getSource(lineSourceId)) {
+        map.getSource(lineSourceId).setData(routeSourceData);
+      } else {
+        map.addSource(lineSourceId, {
+          type: 'geojson',
+          data: routeSourceData,
+        });
+      }
+      if (!map.getLayer('route')) {
+        map.addLayer({
+          id: 'route',
+          type: 'line',
+          source: 'route_source',
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round',
+          },
+          paint: {
+            'line-color': '#28a745',
+            'line-width': 2,
+          },
+        });
+      }
+
+      const markerSourceId = 'maker_source';
+      const markerSourceData = {
+        type: 'FeatureCollection',
+        features: filteredpoints.map((point: IGeoPoint, idx: number) => {
+          return {
+            type: 'Feature',
+            properties: {
+              rotate: point.Azimuth,
+              index: idx,
+            },
+            geometry: {
+              type: 'Point',
+              coordinates: [point.MAPLongitude, point.MAPLatitude],
+            },
+          };
+        }),
+      };
+      if (map.getSource(markerSourceId)) {
+        map.getSource(markerSourceId).setData(markerSourceData);
+      } else {
+        map.addSource(markerSourceId, {
+          type: 'geojson',
+          data: markerSourceData,
+        });
+      }
+
+      const markerSymoblId = 'marker';
+      if (!map.getLayer(markerSymoblId)) {
+        map.addLayer({
+          id: markerSymoblId,
+          type: 'symbol',
+          source: markerSourceId,
+          layout: {
+            'icon-image': markerImgId,
+            'icon-size': 0.8,
+            'icon-allow-overlap': true,
+            'icon-rotate': ['get', 'rotate'],
+          },
+        });
+        if (showPopup && name) {
+          map.on('click', markerSymoblId, (e) => {
+            const bbox = [
+              [e.point.x - 5, e.point.y - 5],
+              [e.point.x + 5, e.point.y + 5],
+            ];
+
+            const features = map.queryRenderedFeatures(bbox, {
+              layers: [markerSymoblId],
+            });
+            if (features.length) {
+              showPhoto(features[0].properties.index);
+            }
+          });
+        }
+      }
+    }
+  }, [filteredpoints, map, name, showPopup]);
+
+  useEffect(() => {
+    if (!map) {
+      const newMap = new mapboxgl.Map({
+        container: mapId,
+        style: 'mapbox://styles/mapbox/streets-v9',
+        center: centerPoint(),
+        zoom: [16],
+      });
+
+      newMap.scrollZoom.enable();
+      newMap.dragPan.enable();
+      newMap.dragRotate.enable();
+
+      newMap.on('load', (e) => {
+        setMap(newMap);
+      });
+    }
+  });
 
   return (
     <div>
       {points.length && (
         <>
-          <MapBox
+          <div
+            id={mapId}
+            style={{ width: '100%', height: `${height.toString()}px` }}
+          />
+          {/* <MapBox
             style="mapbox://styles/mapbox/streets-v9"
             containerStyle={{
               height: `${height.toString()}px`,
@@ -302,7 +384,7 @@ export default function Map(props: Props) {
           >
             <ZoomControl />
             {markers}
-          </MapBox>
+          </MapBox> */}
           {state.selected >= 0 && showPopup && (
             <Modal open={state.isopen} onClose={handleClose}>
               {modalBody}
@@ -314,8 +396,9 @@ export default function Map(props: Props) {
   );
 }
 
-Map.defaultProps = {
+MapBox.defaultProps = {
   height: 350,
   showPopup: true,
   onDelete: null,
+  id: null,
 };

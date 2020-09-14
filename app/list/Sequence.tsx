@@ -118,7 +118,7 @@ export default function Sequence({ data, onDelete }: Props) {
       </IconButton>
       <Grid container alignItems="center" spacing={3}>
         <Grid xs={4} item>
-          <Map points={points} height={200} showPopup={false} />
+          <Map points={points} height={200} showPopup={false} id={data.name} />
         </Grid>
         <Grid xs={5} item>
           <Typography variant="h5" color="primary" align="left">

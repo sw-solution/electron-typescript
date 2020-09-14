@@ -87,7 +87,6 @@ export default function App(props: Props) {
           key = mtpTokenKey;
         }
         if (key) {
-          dispatch(setError(token));
           dispatch(setToken({ key, token }));
           ipcRenderer.send('set_token', key, token);
         }
