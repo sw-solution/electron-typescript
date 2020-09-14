@@ -17,6 +17,7 @@ import {
   loadMapillarySessionData,
   findSequences,
 } from './integrations/mapillary';
+import { postSequence, updateSequence } from './integrations/mtpw';
 
 import { loadImages, updateImages, addLogo, modifyLogo } from './image';
 import tokenStore from './tokens';
@@ -49,10 +50,14 @@ axios.interceptors.response.use(
 );
 
 if (process.env.NODE_ENV === 'development') {
-  tokenStore.set(
-    'mapillary',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJtcHkiLCJzdWIiOiJ6dkhRTlZNNGtCcG5nNldIRlhwSWR6IiwiYXVkIjoiZW5aSVVVNVdUVFJyUW5CdVp6WlhTRVpZY0Vsa2VqcGxZVFl3TlRCbU1UUXdNVEExTXpReSIsImlhdCI6MTU5OTQ3NjU5NjM4NiwianRpIjoiYmFmYTQyNjI3ZGNiZTFlNzgzY2FiZWU1MzRjM2QzNDQiLCJzY28iOlsidXNlcjplbWFpbCIsInByaXZhdGU6dXBsb2FkIl0sInZlciI6MX0.K_4Y-4dyL3Xu9uc55XZ0u7XVKRG_sNl4m3_ETgbTkb4'
-  );
+  // tokenStore.set(
+  //   'mapillary',
+  //   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJtcHkiLCJzdWIiOiJ6dkhRTlZNNGtCcG5nNldIRlhwSWR6IiwiYXVkIjoiZW5aSVVVNVdUVFJyUW5CdVp6WlhTRVpZY0Vsa2VqcGxZVFl3TlRCbU1UUXdNVEExTXpReSIsImlhdCI6MTU5OTQ3NjU5NjM4NiwianRpIjoiYmFmYTQyNjI3ZGNiZTFlNzgzY2FiZWU1MzRjM2QzNDQiLCJzY28iOlsidXNlcjplbWFpbCIsInByaXZhdGU6dXBsb2FkIl0sInZlciI6MX0.K_4Y-4dyL3Xu9uc55XZ0u7XVKRG_sNl4m3_ETgbTkb4'
+  // );
+  // tokenStore.set('mtp', '8rJqBLV6hkDatnv23XJ9BZDzYNNVTA');
+} else {
+  tokenStore.set('mtp', null);
+  tokenStore.set('mapillary', null);
 }
 
 export default (mainWindow: BrowserWindow, app: App) => {
@@ -267,10 +272,11 @@ export default (mainWindow: BrowserWindow, app: App) => {
     }
 
     let mapillarySessionData = null;
+    const mapillaryToken = tokenStore.get('mapillary');
 
     if (sequence.steps.destination.mapillary) {
       const sessionData: Session = await loadMapillarySessionData(
-        tokenStore.get('mapillary')
+        mapillaryToken
       );
       if (sessionData.error) {
         return errorHandler(mainWindow, sessionData.error);
@@ -291,6 +297,31 @@ export default (mainWindow: BrowserWindow, app: App) => {
       const mapillarySessionKey = mapillarySessionData.key;
 
       resultjson.sequence.destination.mapillary = mapillarySessionKey;
+    }
+
+    const mtpwToken = tokenStore.get('mtp');
+    if (mtpwToken) {
+      const { mtpwSequence, mtpwError } = await postSequence(
+        resultjson.sequence,
+        mtpwToken
+      );
+
+      if (mtpwError) {
+        return errorHandler(mainWindow, mtpwError);
+      }
+
+      if (mapillaryToken && sequence.steps.destination.mapillary) {
+        const { seqError } = await updateSequence(
+          mtpwSequence.unique_id,
+          mtpwToken,
+          resultjson.sequence.id,
+          mapillaryToken
+        );
+
+        if (seqError) {
+          return errorHandler(mainWindow, mtpwError);
+        }
+      }
     }
 
     fs.writeFileSync(
