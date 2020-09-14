@@ -9,63 +9,63 @@
         "icon": "fas fa-car",
         "description": "",
         "secondary_parent": "Land",
-        "mtp_api": "Powered-Car"
+        "mtp_api": "Car"
       },
       {
         "type": "Electric Car",
         "icon": "fas fa-charging-station",
         "description": "",
         "secondary_parent": "Land",
-        "mtp_api": "Powered-Electric Car"
+        "mtp_api": "Electric Car"
       },
       {
         "type": "Electric Bicycle",
         "icon": "fas fa-bicycle",
         "description": "",
         "secondary_parent": "Land",
-        "mtp_api": "Powered-Electric Bicycle"
+        "mtp_api": "Electric Bicycle"
       },
       {
         "type": "Plane",
         "icon": "fas fa-plane",
         "description": "",
         "secondary_parent": "Air",
-        "mtp_api": "Powered-Plane"
+        "mtp_api": "Plane"
       },
       {
         "type": "Helicopter",
         "icon": "fas fa-helicopter",
         "description": "",
         "secondary_parent": "Air",
-        "mtp_api": "Powered-Helicopter"
+        "mtp_api": "Helicopter"
       },
       {
         "type": "Drone",
         "icon": "fas fa-car-battery",
         "description": "",
         "secondary_parent": "Air",
-        "mtp_api": "Powered-Drone"
+        "mtp_api": "Drone"
       },
       {
         "type": "Electric Scooter",
         "icon": "fas fa-car-battery",
         "description": "",
         "secondary_parent": "Land",
-        "mtp_api": "Powered-Electric Scooter"
+        "mtp_api": "Electric Scooter"
       },
       {
         "type": "Boat",
         "icon": "fas fa-car-battery",
         "description": "",
         "secondary_parent": "Water",
-        "mtp_api": "Powered-Boat"
+        "mtp_api": "Boat"
       },
       {
         "type": "Snowmobile",
         "icon": "fas fa-car-battery",
         "description": "",
         "secondary_parent": "Snow",
-        "mtp_api": "Powered-Snowmobile"
+        "mtp_api": "Snowmobile"
       }
     ]
   },
@@ -79,35 +79,35 @@
         "icon": "fas fa-bicycle",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Land-Bicycle"
+        "mtp_api": "Bicycle"
       },
       {
         "type": "Walk",
         "icon": "fas fa-walking",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Land-Walk"
+        "mtp_api": "Walk"
       },
       {
         "type": "Scooter",
         "icon": "fas fa-ship",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Land-Scooter"
+        "mtp_api": "Scooter"
       },
       {
         "type": "Skateboard",
         "icon": "fas fa-skiing-nordic",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Land-Skateboard"
+        "mtp_api": "Skateboard"
       },
       {
         "type": "Rollerskate",
         "icon": "fas fa-skating",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Land-Rollerskate"
+        "mtp_api": "Rollerskate"
       }
     ]
   },
@@ -121,21 +121,21 @@
         "icon": "fas fa-skiing-nordic",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Snow-Ski"
+        "mtp_api": "Ski"
       },
       {
         "type": "Snowboard",
         "icon": "fas fa-skiing",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Snow-Snowboard"
+        "mtp_api": "Snowboard"
       },
       {
         "type": "Snowshoe",
         "icon": "fas fa-skating",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Snow-Snowshoe"
+        "mtp_api": "Snowshoe"
       }
     ]
   },
@@ -149,63 +149,63 @@
         "icon": "fas fa-swimmer",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Water-Swim"
+        "mtp_api": "Swim"
       },
       {
         "type": "Paddleboard",
         "icon": "fas fa-water",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Water-Paddleboard"
+        "mtp_api": "Paddleboard"
       },
       {
         "type": "Scuba Dive",
         "icon": "fas fa-water",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Water-Scuba Dive"
+        "mtp_api": "Scuba Dive"
       },
       {
         "type": "Surf",
         "icon": "fas fa-water",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Water-Surf"
+        "mtp_api": "Surf"
       },
       {
         "type": "Windsurf",
         "icon": "fas fa-water",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Water-Windsurf"
+        "mtp_api": "Windsurf"
       },
       {
         "type": "Kiteboard",
         "icon": "fas fa-water",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Water-Kiteboard"
+        "mtp_api": "Kiteboard"
       },
       {
         "type": "Canoe",
         "icon": "fas fa-water",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Water-Canoe"
+        "mtp_api": "Canoe"
       },
       {
         "type": "Freedive",
         "icon": "fas fa-water",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Water-Freedive"
+        "mtp_api": "Freedive"
       },
       {
         "type": "Kayak",
         "icon": "fas fa-water",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Water-Kayak"
+        "mtp_api": "Kayak"
       }
     ]
   },
@@ -219,42 +219,42 @@
         "icon": "fas fa-cloud",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Air-Parachute"
+        "mtp_api": "Parachute"
       },
       {
         "type": "Paraglide",
         "icon": "fas fa-cloud",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Air-Paraglide"
+        "mtp_api": "Paraglide"
       },
       {
         "type": "Hang Glide",
         "icon": "fas fa-cloud",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Air-Hang Glide"
+        "mtp_api": "Hang Glide"
       },
       {
         "type": "Wingsuit",
         "icon": "fas fa-cloud",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Air-Wingsuit"
+        "mtp_api": "Wingsuit"
       },
       {
         "type": "BASE Jump",
         "icon": "fas fa-cloud",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Air-BASE Jump"
+        "mtp_api": "BASE Jump"
       },
       {
         "type": "Glider",
         "icon": "fas fa-cloud",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Air-Glider"
+        "mtp_api": "Glider"
       }
     ]
   }
