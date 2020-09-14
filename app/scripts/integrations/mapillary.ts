@@ -4,12 +4,13 @@ import FormData from 'form-data';
 import fs from 'fs';
 
 import { Session } from '../../types/Session';
-import { Sequence, Photo, Photos } from '../../types/Result';
+import { Photos } from '../../types/Result';
 
 axios.interceptors.response.use(
   (res) => res,
   (err) => {
-    throw err;
+    console.log('Axios Error: ', err);
+    throw err.response;
   }
 );
 

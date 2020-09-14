@@ -246,7 +246,11 @@ export function discardPointsBySeconds(
 }
 
 export const errorHandler = (mainWindow: BrowserWindow | null, err: any) => {
-  sendToClient(mainWindow, 'error', err.message || err);
+  if (typeof err === 'string') {
+    sendToClient(mainWindow, 'error', err);
+  } else if (err) {
+    sendToClient(mainWindow, 'error', JSON.stringify(err));
+  }
 };
 
 export const removeDirectory = async (directoryPath: string) => {
