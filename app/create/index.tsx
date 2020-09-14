@@ -66,7 +66,7 @@ import {
 import { setAddSeq } from '../list/slice';
 import Logo from '../components/Logo';
 import Wrapper from '../components/Wrapper';
-import { setToken } from '../base/slice';
+import RequireModify from './RequireModify';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -260,6 +260,7 @@ export default function CreatePageWrapper() {
           {currentStep === 'gpx' && <UploadGpx />}
           {currentStep === 'startTime' && <StartTime />}
           {currentStep === 'modifyTime' && <ModifyTime />}
+          {currentStep === 'requireModify' && <RequireModify />}
           {currentStep === 'modifySpace' && <ModifySpace />}
           {currentStep === 'outlier' && <ModifyOutlier />}
           {currentStep === 'azimuth' && <ModifyAzimuth />}

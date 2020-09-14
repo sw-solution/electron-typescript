@@ -15,6 +15,7 @@ import {
   selGPXPoints,
   setSequencePoints,
   selFirstMatchedPoints,
+  selGPXRequired,
 } from './slice';
 import { importGpx } from '../scripts/utils';
 
@@ -25,6 +26,7 @@ export default function SequenceStartTime() {
   const points = useSelector(selPoints);
   const gpxPoints = useSelector(selGPXPoints);
   const firstMatchedPoints = useSelector(selFirstMatchedPoints);
+  const allGeoTagged = useSelector(selGPXRequired);
 
   const modifyTime = () => {
     dispatch(setCurrentStep('modifyTime'));
@@ -33,7 +35,11 @@ export default function SequenceStartTime() {
   const correctTime = () => {
     const newpoints = importGpx(points, gpxPoints);
     dispatch(setSequencePoints(newpoints));
-    dispatch(setCurrentStep('modifySpace'));
+    if (!allGeoTagged) {
+      dispatch(setCurrentStep('requireModify'));
+    } else {
+      dispatch(setCurrentStep('modifySpace'));
+    }
   };
 
   return (

@@ -31,7 +31,7 @@ export default function SequenceUploadGpx() {
 
   useEffect(() => {
     if (!required && !importgpx && proppoints.length) {
-      dispatch(setCurrentStep('modifySpace'));
+      dispatch(setCurrentStep('requireModify'));
     }
   });
 
@@ -63,7 +63,11 @@ export default function SequenceUploadGpx() {
   const discardPoints = () => {
     dispatch(setSequencePoints(geotagged));
     if (geotagged.length) {
-      dispatch(setCurrentStep('modifySpace'));
+      if (required) {
+        dispatch(setCurrentStep('modifySpace'));
+      } else {
+        dispatch(setCurrentStep('requireModify'));
+      }
     } else {
       dispatch(setError('There will be no images.'));
     }
