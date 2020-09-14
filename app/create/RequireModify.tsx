@@ -9,7 +9,7 @@ import ThumbUpIcon from '@material-ui/icons/ThumbUp';
 
 import Map from '../components/Map';
 
-import { setCurrentStep, selPoints, isRequiredNadir } from './slice';
+import { setCurrentStep, selPoints } from './slice';
 
 const useStyles = makeStyles((theme) => ({
   wrapper: {
@@ -37,16 +37,10 @@ export default function RequireModify() {
 
   const points = useSelector(selPoints);
 
-  const nadir = useSelector(isRequiredNadir);
-
   const classes = useStyles();
 
   const confirmMode = () => {
-    if (nadir) {
-      dispatch(setCurrentStep('nadir'));
-    } else {
-      dispatch(setCurrentStep('blur'));
-    }
+    dispatch(setCurrentStep('destination'));
   };
 
   const requireModify = () => {
