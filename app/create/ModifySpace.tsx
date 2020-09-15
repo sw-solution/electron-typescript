@@ -257,16 +257,6 @@ export default function SequenceModifySpace() {
                 : 'Save Changes'
             }`}
           </Button>
-          {!allGeoTagged && (
-            <Button
-              endIcon={<ThumbUpIcon />}
-              color="primary"
-              onClick={looksGood}
-              variant="contained"
-            >
-              Looks good!
-            </Button>
-          )}
         </Box>
       </Grid>
     </>

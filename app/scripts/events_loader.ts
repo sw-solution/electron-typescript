@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 import jimp from 'jimp';
 import Async from 'async';
+import url from 'url';
 
 import { App, ipcMain, BrowserWindow, IpcMainEvent } from 'electron';
 import { Session } from '../types/Session';
@@ -42,12 +43,12 @@ import loadIntegrations from './integration';
 import loadDefaultNadir from './nadir';
 
 if (process.env.NODE_ENV === 'development') {
-  // tokenStore.set(
-  //   'mapillary',
-  //   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJtcHkiLCJzdWIiOiJ6dkhRTlZNNGtCcG5nNldIRlhwSWR6IiwiYXVkIjoiZW5aSVVVNVdUVFJyUW5CdVp6WlhTRVpZY0Vsa2VqcGxZVFl3TlRCbU1UUXdNVEExTXpReSIsImlhdCI6MTU5OTQ3NjU5NjM4NiwianRpIjoiYmFmYTQyNjI3ZGNiZTFlNzgzY2FiZWU1MzRjM2QzNDQiLCJzY28iOlsidXNlcjplbWFpbCIsInByaXZhdGU6dXBsb2FkIl0sInZlciI6MX0.K_4Y-4dyL3Xu9uc55XZ0u7XVKRG_sNl4m3_ETgbTkb4'
-  // );
   tokenStore.set('mapillary', null);
-  tokenStore.set('mtp', '8rJqBLV6hkDatnv23XJ9BZDzYNNVTA');
+  // tokenStore.set('mapillary', null);
+  tokenStore.set('mtp', {
+    waiting: false,
+    value: '8rJqBLV6hkDatnv23XJ9BZDzYNNVTA',
+  });
 } else {
   tokenStore.set('mtp', null);
   tokenStore.set('mapillary', null);
@@ -56,12 +57,9 @@ if (process.env.NODE_ENV === 'development') {
 export default (mainWindow: BrowserWindow, app: App) => {
   const basepath = app.getAppPath();
 
-  ipcMain.on(
-    'set_token',
-    (_event: IpcMainEvent, key: string, token: string) => {
-      tokenStore.set(key, token);
-    }
-  );
+  ipcMain.on('set_token', (_event: IpcMainEvent, key: string, token: any) => {
+    tokenStore.set(key, token);
+  });
 
   ipcMain.once('load_config', async (_event: IpcMainEvent) => {
     const [cameras, nadirs, integrations] = await Promise.all([
@@ -263,7 +261,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
     }
 
     let mapillarySessionData = null;
-    const mapillaryToken = tokenStore.get('mapillary');
+    const mapillaryToken = tokenStore.getValue('mapillary');
 
     const { mapillary, mtp } = sequence.steps.destination;
 
@@ -291,7 +289,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
       resultjson.sequence.destination.mapillary = mapillarySessionKey;
     }
 
-    const mtpwToken = tokenStore.get('mtp');
+    const mtpwToken = tokenStore.getValue('mtp');
     if (mtpwToken && mtp) {
       const { mtpwSequence, mtpwError } = await postSequence(
         resultjson.sequence,
@@ -379,10 +377,10 @@ export default (mainWindow: BrowserWindow, app: App) => {
             s.sequence.destination.mapillary &&
             s.sequence.destination.mapillary !== '' &&
             !s.sequence.destination.mapillary.startsWith('Error') &&
-            tokenStore.get('mapillary')
+            tokenStore.getValue('mapillary')
           ) {
             const { error, data } = await findSequences(
-              tokenStore.get('mapillary'),
+              tokenStore.getValue('mapillary'),
               s.sequence.destination.mapillary,
               s.photo
             );
@@ -430,4 +428,33 @@ export default (mainWindow: BrowserWindow, app: App) => {
       app.quit();
     }
   });
+};
+
+export const sendTokenFromUrl = async (
+  mainWindow: BrowserWindow,
+  protocolLink: string
+) => {
+  const token = url.parse(protocolLink.replace('#', '?'), true).query
+    .access_token;
+
+  if (token) {
+    const tokens = tokenStore.getAll();
+
+    Object.keys(tokens).forEach((key: string) => {
+      if (tokens[key] && tokens[key].waiting && !tokens[key].value) {
+        tokens[key] = {
+          waiting: false,
+          value: token,
+        };
+        tokenStore.set(key, tokens[key]);
+      } else if (!tokens[key]) {
+        tokens[key] = {
+          waiting: false,
+          value: null,
+        };
+        tokenStore.set(key, tokens[key]);
+      }
+    });
+    sendToClient(mainWindow, 'loaded_token', tokens);
+  }
 };

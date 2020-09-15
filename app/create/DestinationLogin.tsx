@@ -5,12 +5,7 @@ import { shell } from 'electron';
 import { Typography, Grid, Button } from '@material-ui/core';
 
 import { selSequence, setProcessStep, selError, selDestination } from './slice';
-import {
-  setTokenWaiting,
-  selIntegrations,
-  selTokens,
-  setToken,
-} from '../base/slice';
+import { setTokenWaiting, selIntegrations, selTokens } from '../base/slice';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -41,7 +36,7 @@ export default function DestinationLogin() {
 
   const login = (integration: string) => {
     dispatch(setTokenWaiting({ waiting: true, key: integration }));
-
+    ipcRenderer.send('set_token', integration, { value: null, waiting: true });
     gotoExternal(integrations[integration].loginUrl);
   };
 

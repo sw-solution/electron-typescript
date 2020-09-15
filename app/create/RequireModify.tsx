@@ -54,7 +54,9 @@ export default function RequireModify() {
           Your temporary sequence
         </Typography>
         <Typography paragraph>
-          Here's what your sequence looks like. You can make changes to the GPS positioning or add a nadir by clicking Advance settings. Alternatively you can skip all these steps if you're ready to upload.
+          Here's what your sequence looks like. You can make changes to the GPS
+          positioning or add a nadir by clicking Advance settings. Alternatively
+          you can skip all these steps if you're ready to upload.
         </Typography>
       </Grid>
       <Grid item xs={12}>

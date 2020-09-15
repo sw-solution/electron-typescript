@@ -41,7 +41,7 @@ export const loadMapillarySessionData = async (
     };
   } catch (e) {
     return {
-      error: axiosErrorHandler(e, 'MapillarySession: '),
+      error: axiosErrorHandler(e, 'MapillarySession'),
     };
   }
 };

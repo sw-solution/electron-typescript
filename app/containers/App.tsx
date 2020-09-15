@@ -7,21 +7,14 @@ import { useLocation } from 'react-router-dom';
 import { Modal, Button } from '@material-ui/core';
 import { Alert, AlertTitle } from '@material-ui/lab';
 import { makeStyles } from '@material-ui/core/styles';
-import {
-  selSequenceName,
-  setInit,
-  selSequence,
-  selDestination,
-} from '../create/slice';
+import { selSequenceName, setInit, selSequence } from '../create/slice';
 
 import {
   selConfigLoaded,
   setConfigLoadEnd,
   selToken,
-  selTokens,
-  setToken,
   selIntegrations,
-  selTokenWaiting,
+  setTokens,
 } from '../base/slice';
 import routes from '../constants/routes.json';
 
@@ -57,9 +50,6 @@ export default function App(props: Props) {
   const name = useSelector(selSequenceName);
   const configLoaded = useSelector(selConfigLoaded);
 
-  const destination = useSelector(selDestination);
-
-  const tokens = useSelector(selTokens);
   const integrations = useSelector(selIntegrations);
 
   const dispatch = useDispatch();
@@ -69,7 +59,6 @@ export default function App(props: Props) {
   const classes = useStyles();
 
   const mtpToken = useSelector(selToken)(mtpTokenKey);
-  const mtpTokenWaiting = useSelector(selTokenWaiting)(mtpTokenKey);
 
   const [state, setState] = useState<State>({
     showModal: false,
@@ -78,24 +67,8 @@ export default function App(props: Props) {
 
   ipcRenderer.on(
     'loaded_token',
-    (_event: IpcRendererEvent, token: string | null) => {
-      if (token) {
-        let key;
-        Object.keys(destination).forEach((integration: string) => {
-          if (tokens[integration] && tokens[integration].waiting) {
-            key = integration;
-          }
-        });
-
-        if (!key && integrations[mtpTokenKey] && mtpTokenWaiting) {
-          key = mtpTokenKey;
-        }
-
-        if (key) {
-          dispatch(setToken({ key, token }));
-          ipcRenderer.send('set_token', key, token);
-        }
-      }
+    (_event: IpcRendererEvent, storedTokens: any) => {
+      dispatch(setTokens(storedTokens));
     }
   );
 
@@ -124,6 +97,7 @@ export default function App(props: Props) {
     ipcRenderer.on('about_page', (_event: IpcRendererEvent) => {
       if (name !== '') {
         setState({
+          ...state,
           showModal: true,
           aboutPage: true,
         });
@@ -151,6 +125,7 @@ export default function App(props: Props) {
 
   const handleClose = () => {
     setState({
+      ...state,
       showModal: false,
       aboutPage: false,
     });

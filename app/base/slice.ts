@@ -55,7 +55,7 @@ const baseSlice = createSlice({
       state.tokens = {
         ...state.tokens,
         [payload.key]: {
-          waiting: true,
+          waiting: false,
           value: payload.token,
         },
       };

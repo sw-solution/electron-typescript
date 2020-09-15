@@ -29,13 +29,17 @@ export default class Store {
 
     // We'll use the `configName` property to set the file name and path.join to bring it all together as a string
     this.path = path.join(userDataPath, `${opts.configName}.json`);
-    console.log(userDataPath);
     this.data = parseDataFile(this.path, opts.defaults);
   }
 
   // This will just return the property on the `data` object
   get(key: string) {
     return this.data[key];
+  }
+
+  getValue(key: string) {
+    if (this.data[key] && this.data[key].value) return this.data[key].value;
+    return null;
   }
 
   getAll() {

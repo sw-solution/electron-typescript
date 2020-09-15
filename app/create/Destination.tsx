@@ -19,7 +19,7 @@ import {
   setCurrentStep,
 } from './slice';
 
-import { selIntegrations } from '../base/slice';
+import { selIntegrations, selTokens } from '../base/slice';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -33,14 +33,19 @@ export default function Destination() {
   const sequence = useSelector(selSequence);
   const [state, setState] = useState<State>({});
 
+  const tokens = useSelector(selTokens);
+
   const confirmMode = () => {
-    const checked = Object.keys(state).filter((key) => state[key]);
+    const checked = Object.keys(state).filter(
+      (key) => key !== 'mtp' && state[key]
+    );
     if (checked.length > 0) {
       dispatch(setDestination(state));
       dispatch(setCurrentStep('destination_login'));
     } else if (sequence.points.length) {
-      ipcRenderer.send('update_images', sequence);
+      dispatch(setDestination(state));
       dispatch(setProcessStep('name'));
+      ipcRenderer.send('update_images', sequence);
     } else {
       dispatch(setError('There is no photos.'));
     }
@@ -65,12 +70,14 @@ export default function Destination() {
       />
     );
     const integrationLogo = (
-      <img
-        src={`data:image/png;base64, ${integrations[key].logo}`}
-        alt={integrations[key].name}
-        width="70"
-        height="70"
-      />
+      <>
+        <img
+          src={`data:image/png;base64, ${integrations[key].logo}`}
+          alt={integrations[key].name}
+          width="70"
+          height="70"
+        />
+      </>
     );
 
     return (

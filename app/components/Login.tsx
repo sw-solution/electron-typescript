@@ -14,8 +14,9 @@ import {
   selTokenWaiting,
   selToken,
   selIntegrations,
-  setToken,
 } from '../base/slice';
+
+const { ipcRenderer } = window.require('electron');
 
 const useStyles = makeStyles((theme) => ({
   content: {
@@ -69,6 +70,7 @@ export default function Login() {
 
   const login = () => {
     dispatch(setTokenWaiting({ waiting: true, key: tokenKey }));
+    ipcRenderer.send('set_token', tokenKey, { value: null, waiting: true });
     gotoExternal(integrations[tokenKey].loginUrl);
   };
 
@@ -78,7 +80,10 @@ export default function Login() {
         <Logo />
       </div>
       <Typography variant="h6">
-        <span>You need to sign in to Map the Paths Web to continue. Please login by clicking the sign in button below. You can get a free account</span>
+        <span>
+          You need to sign in to Map the Paths Web to continue. Please login by
+          clicking the sign in button below. You can get a free account
+        </span>
         <Button onClick={() => gotoExternal(websiteUrl)} color="primary">
           here
         </Button>

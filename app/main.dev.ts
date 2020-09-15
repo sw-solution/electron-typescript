@@ -10,9 +10,7 @@
  */
 import { app, BrowserWindow, shell, Menu } from 'electron';
 
-import url from 'url';
-
-import eventsLoader from './scripts/events_loader';
+import eventsLoader, { sendTokenFromUrl } from './scripts/events_loader';
 
 import { sendToClient } from './scripts/utils';
 
@@ -129,17 +127,9 @@ const createWindow = async () => {
  * Add event listeners...
  */
 
-const sendTokenFromUrl = async (protocolLink: string) => {
-  const token = url.parse(protocolLink.replace('#', '?'), true).query
-    .access_token;
-  if (token) {
-    sendToClient(mainWindow, 'loaded_token', token);
-  }
-};
-
 app.on('open-url', function (event, protocolLink: string) {
   event.preventDefault();
-  sendTokenFromUrl(protocolLink);
+  sendTokenFromUrl(mainWindow, protocolLink);
 });
 
 app.setAsDefaultProtocolClient('app.mtp.desktop');
@@ -161,11 +151,10 @@ if (!gotTheLock) {
     event.preventDefault();
     // Someone tried to run a second instance, we should focus our window.
     if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
       commandLine.forEach((l: string) => {
-        if (l.indexOf('app.mtp.desktop') >= 0) sendTokenFromUrl(l);
+        if (l.indexOf('app.mtp.desktop:') >= 0) sendTokenFromUrl(mainWindow, l);
       });
-
+      if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
     }
   });
