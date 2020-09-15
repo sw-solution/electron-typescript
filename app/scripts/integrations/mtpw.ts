@@ -31,7 +31,7 @@ export const postSequence = async (sequence: Sequence, token: string) => {
     const res = await axios(config);
     if (res.data.error) {
       return {
-        mtpwError: res.data.error,
+        mtpwError: `MTPWCreateSequence: ${res.data.error}`,
       };
     }
     return {
@@ -39,7 +39,7 @@ export const postSequence = async (sequence: Sequence, token: string) => {
     };
   } catch (error) {
     return {
-      mtpwError: axiosErrorHandler(error),
+      mtpwError: axiosErrorHandler(error, 'MTPWCreateSequence'),
     };
   }
 };
@@ -69,7 +69,7 @@ export const updateSequence = async (
     return {};
   } catch (error) {
     return {
-      seqError: axiosErrorHandler(error),
+      seqError: axiosErrorHandler(error, 'MTPWImportSequence'),
     };
   }
 };

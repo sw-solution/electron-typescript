@@ -12,7 +12,6 @@ import {
   setInit,
   selSequence,
   selDestination,
-  setError,
 } from '../create/slice';
 
 import {
@@ -21,6 +20,8 @@ import {
   selToken,
   selTokens,
   setToken,
+  selIntegrations,
+  selTokenWaiting,
 } from '../base/slice';
 import routes from '../constants/routes.json';
 
@@ -59,6 +60,7 @@ export default function App(props: Props) {
   const destination = useSelector(selDestination);
 
   const tokens = useSelector(selTokens);
+  const integrations = useSelector(selIntegrations);
 
   const dispatch = useDispatch();
 
@@ -67,6 +69,7 @@ export default function App(props: Props) {
   const classes = useStyles();
 
   const mtpToken = useSelector(selToken)(mtpTokenKey);
+  const mtpTokenWaiting = useSelector(selTokenWaiting)(mtpTokenKey);
 
   const [state, setState] = useState<State>({
     showModal: false,
@@ -83,9 +86,11 @@ export default function App(props: Props) {
             key = integration;
           }
         });
-        if (tokens[mtpTokenKey] && tokens[mtpTokenKey].waiting && !key) {
+
+        if (!key && integrations[mtpTokenKey] && mtpTokenWaiting) {
           key = mtpTokenKey;
         }
+
         if (key) {
           dispatch(setToken({ key, token }));
           ipcRenderer.send('set_token', key, token);
@@ -101,6 +106,7 @@ export default function App(props: Props) {
       process.env.MTP_WEB_AUTH_URL &&
       process.env.MTP_WEB_APP_ID &&
       process.env.MTP_WEB_APP_SECRET &&
+      integrations[mtpTokenKey] &&
       process.env.NODE_ENV !== 'development' &&
       process.env.MTP_WEB_URL
     ) {

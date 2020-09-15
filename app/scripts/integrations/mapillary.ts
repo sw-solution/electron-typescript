@@ -33,7 +33,7 @@ export const loadMapillarySessionData = async (
     sessoinDataData = sessoinDataData.data;
     if (sessoinDataData.error) {
       return {
-        error: sessoinDataData.error,
+        error: `MapillarySession: ${sessoinDataData.error}`,
       };
     }
     return {
@@ -41,7 +41,7 @@ export const loadMapillarySessionData = async (
     };
   } catch (e) {
     return {
-      error: e,
+      error: axiosErrorHandler(e, 'MapillarySession: '),
     };
   }
 };
@@ -62,7 +62,7 @@ export const publishSession = async (
     return {};
   } catch (error) {
     return {
-      error: axiosErrorHandler(error),
+      error: axiosErrorHandler(error, 'MapillaryPublishSession'),
     };
   }
 };
@@ -106,7 +106,11 @@ export const uploadImage = (
       axios(config)
         .then(() => resolve())
         .catch((err: any) => {
-          reject(axiosErrorHandler(err));
+          console.log(
+            'MapillaryUploadImage: ',
+            axiosErrorHandler(err, 'MapillaryUploadImage')
+          );
+          reject(axiosErrorHandler(err, 'MapillaryUploadImage'));
         });
     });
   });
@@ -183,7 +187,7 @@ export const findSequences = async (
     return {};
   } catch (e) {
     return {
-      error: axiosErrorHandler(e),
+      error: axiosErrorHandler(e, 'MapillaryFindSequences'),
     };
   }
 };

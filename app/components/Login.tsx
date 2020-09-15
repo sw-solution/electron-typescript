@@ -9,7 +9,13 @@ import { push } from 'connected-react-router';
 import Logo from './Logo';
 import routes from '../constants/routes.json';
 
-import { setTokenWaiting, selTokenWaiting, selToken } from '../base/slice';
+import {
+  setTokenWaiting,
+  selTokenWaiting,
+  selToken,
+  selIntegrations,
+  setToken,
+} from '../base/slice';
 
 const useStyles = makeStyles((theme) => ({
   content: {
@@ -40,24 +46,30 @@ export default function Login() {
     shell.openExternal(url);
   };
 
-  const dispath = useDispatch();
+  const dispatch = useDispatch();
   const tokenWaiting = useSelector(selTokenWaiting)(tokenKey);
   const token = useSelector(selToken)(tokenKey);
+  const integrations = useSelector(selIntegrations);
 
   const classes = useStyles();
 
-  const loginUrl = `${process.env.MTP_WEB_AUTH_URL}?client_id=${process.env.MTP_WEB_APP_ID}&response_type=token`;
   const websiteUrl = process.env.MTP_WEB_URL || '';
 
   useEffect(() => {
     if (token && token !== '') {
-      dispath(push(routes.LIST));
+      dispatch(push(routes.LIST));
     }
-  }, [dispath, token]);
+  }, [dispatch, token]);
+
+  useEffect(() => {
+    if (!integrations[tokenKey]) {
+      dispatch(push(routes.LIST));
+    }
+  }, [integrations, dispatch]);
 
   const login = () => {
-    dispath(setTokenWaiting({ waiting: true, key: 'mtp' }));
-    gotoExternal(loginUrl);
+    dispatch(setTokenWaiting({ waiting: true, key: tokenKey }));
+    gotoExternal(integrations[tokenKey].loginUrl);
   };
 
   return (

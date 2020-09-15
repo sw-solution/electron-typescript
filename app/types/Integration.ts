@@ -1,10 +1,7 @@
 export interface Module {
   logo: string;
   name: string;
-  oauth: {
-    params: any;
-    baseUrl: string;
-  };
+  loginUrl: string;
 }
 
 export interface Integration {

@@ -793,7 +793,9 @@ export function updateImages(
               // eslint-disable-next-line promise/no-promise-in-callback
               uploadImage(filepath, item.Image, mapillarySession)
                 .then(() => next())
-                .catch((err: any) => next(err));
+                .catch((err: any) => {
+                  next(err);
+                });
             } else {
               next();
             }

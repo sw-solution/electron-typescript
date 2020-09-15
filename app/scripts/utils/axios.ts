@@ -1,13 +1,14 @@
-const axiosErrorHandler = (error) => {
+const axiosErrorHandler = (error: any, apiName?: string) => {
   let err = '';
   if (error.response) {
-    err = error.response.data;
-  } else if (error.request) {
-    err = error.request;
-  } else {
+    err = JSON.stringify(error.response.data);
+  } else if (error.errno === 'ECONNREFUSED') {
+    err = 'API Service is down now. Please check';
+  } else if (error.message) {
     err = error.message;
   }
-  return err;
+
+  return apiName ? `${apiName} : ${err}` : err;
 };
 
 export default axiosErrorHandler;

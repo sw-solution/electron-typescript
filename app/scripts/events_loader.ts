@@ -42,10 +42,11 @@ import loadIntegrations from './integration';
 import loadDefaultNadir from './nadir';
 
 if (process.env.NODE_ENV === 'development') {
-  tokenStore.set(
-    'mapillary',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJtcHkiLCJzdWIiOiJ6dkhRTlZNNGtCcG5nNldIRlhwSWR6IiwiYXVkIjoiZW5aSVVVNVdUVFJyUW5CdVp6WlhTRVpZY0Vsa2VqcGxZVFl3TlRCbU1UUXdNVEExTXpReSIsImlhdCI6MTU5OTQ3NjU5NjM4NiwianRpIjoiYmFmYTQyNjI3ZGNiZTFlNzgzY2FiZWU1MzRjM2QzNDQiLCJzY28iOlsidXNlcjplbWFpbCIsInByaXZhdGU6dXBsb2FkIl0sInZlciI6MX0.K_4Y-4dyL3Xu9uc55XZ0u7XVKRG_sNl4m3_ETgbTkb4'
-  );
+  // tokenStore.set(
+  //   'mapillary',
+  //   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJtcHkiLCJzdWIiOiJ6dkhRTlZNNGtCcG5nNldIRlhwSWR6IiwiYXVkIjoiZW5aSVVVNVdUVFJyUW5CdVp6WlhTRVpZY0Vsa2VqcGxZVFl3TlRCbU1UUXdNVEExTXpReSIsImlhdCI6MTU5OTQ3NjU5NjM4NiwianRpIjoiYmFmYTQyNjI3ZGNiZTFlNzgzY2FiZWU1MzRjM2QzNDQiLCJzY28iOlsidXNlcjplbWFpbCIsInByaXZhdGU6dXBsb2FkIl0sInZlciI6MX0.K_4Y-4dyL3Xu9uc55XZ0u7XVKRG_sNl4m3_ETgbTkb4'
+  // );
+  tokenStore.set('mapillary', null);
   tokenStore.set('mtp', '8rJqBLV6hkDatnv23XJ9BZDzYNNVTA');
 } else {
   tokenStore.set('mtp', null);
@@ -252,21 +253,21 @@ export default (mainWindow: BrowserWindow, app: App) => {
     const { buildGPX, GarminBuilder } = require('gpx-builder');
     const { Point } = GarminBuilder.MODELS;
 
-    const logo =
-      sequence.steps.previewnadir.logofile !== ''
-        ? await jimp.read(sequence.steps.previewnadir.logofile)
-        : null;
-    if (sequence.steps.previewnadir.logofile !== '' && logo) {
+    const { logofile, percentage } = sequence.steps.previewnadir;
+    const logo = logofile !== '' ? await jimp.read(logofile) : null;
+    if (logofile !== '' && logo) {
       logo.resize(
         sequence.points[0].width,
-        sequence.points[0].height * sequence.steps.previewnadir.percentage
+        sequence.points[0].height * percentage
       );
     }
 
     let mapillarySessionData = null;
     const mapillaryToken = tokenStore.get('mapillary');
 
-    if (sequence.steps.destination.mapillary) {
+    const { mapillary, mtp } = sequence.steps.destination;
+
+    if (mapillary) {
       const sessionData: Session = await loadMapillarySessionData(
         mapillaryToken
       );
@@ -287,12 +288,11 @@ export default (mainWindow: BrowserWindow, app: App) => {
 
     if (mapillarySessionData) {
       const mapillarySessionKey = mapillarySessionData.key;
-
       resultjson.sequence.destination.mapillary = mapillarySessionKey;
     }
 
     const mtpwToken = tokenStore.get('mtp');
-    if (mtpwToken) {
+    if (mtpwToken && mtp) {
       const { mtpwSequence, mtpwError } = await postSequence(
         resultjson.sequence,
         mtpwToken
@@ -302,7 +302,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
         return errorHandler(mainWindow, mtpwError);
       }
 
-      if (mapillaryToken && sequence.steps.destination.mapillary) {
+      if (mapillaryToken && mapillary) {
         const { seqError } = await updateSequence(
           mtpwSequence.unique_id,
           mtpwToken,
