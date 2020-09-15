@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
 import Typography from '@material-ui/core/Typography';
@@ -19,14 +19,25 @@ import { getSequenceBasePath } from '../scripts/utils';
 
 const { ipcRenderer } = window.require('electron');
 
+interface State {
+  message: string | null;
+}
+
 export default function SequenceProcessPage() {
   const nextStep = useSelector(selProcessPageNext);
   const name = useSelector(selSequenceName);
   const basepath = useSelector(selBasePath);
   const dispatch = useDispatch();
+  const [state, setState] = useState<State>({
+    message: null,
+  });
 
   useEffect(() => {
     ipcRenderer.on('finish', (_event: IpcRendererEvent) => {
+      setState({
+        ...state,
+        message: null,
+      });
       if (nextStep !== 'name' && nextStep !== '') {
         dispatch(setCurrentStep(nextStep));
       }
@@ -40,8 +51,18 @@ export default function SequenceProcessPage() {
       }
     );
 
+    ipcRenderer.on(
+      'loaded_message',
+      (_event: IpcRendererEvent, msg: string) => {
+        setState({
+          message: msg,
+        });
+      }
+    );
+
     return () => {
       ipcRenderer.removeAllListeners('finish');
+      ipcRenderer.removeAllListeners('loaded_message');
       ipcRenderer.removeAllListeners('loaded_preview_nadir');
     };
   });
@@ -52,6 +73,13 @@ export default function SequenceProcessPage() {
         <Typography variant="h6" align="center" color="textSecondary">
           Processing
         </Typography>
+      </Grid>
+      <Grid item xs={12}>
+        {state.message && (
+          <Typography variant="caption" align="center" color="textPrimary">
+            {state.message}
+          </Typography>
+        )}
       </Grid>
       <Grid item xs={12}>
         <LinearProgress />

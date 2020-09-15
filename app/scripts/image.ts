@@ -7,6 +7,7 @@ import jimp from 'jimp';
 import rimraf from 'rimraf';
 import mkdirp from 'mkdirp';
 
+import { BrowserWindow } from 'electron';
 import { IGeoPoint } from '../types/IGeoPoint';
 
 import {
@@ -23,6 +24,7 @@ import {
   getSequenceOutputFilePath,
   discardPointsBySeconds,
   parseExifDateTime,
+  sendToClient,
 } from './utils';
 
 import { uploadImage } from './integrations/mapillary';
@@ -577,6 +579,7 @@ export function writeBlurredImage(
 }
 
 export function updateImages(
+  win: BrowserWindow,
   points: IGeoPoint[],
   settings: any,
   logo: any,
@@ -734,6 +737,12 @@ export function updateImages(
       updatedPoints,
       1,
       (item: IGeoPoint, key: any, next: CallableFunction) => {
+        sendToClient(
+          win,
+          'loaded_message',
+          `Start updating file: ${item.Image}`
+        );
+
         const desc: Description = descriptions[item.id];
         Async.parallel(
           [
@@ -777,6 +786,11 @@ export function updateImages(
             if (err) {
               next(err);
             } else if (mapillarySession) {
+              sendToClient(
+                win,
+                'loaded_message',
+                `End updating file: ${item.Image}`
+              );
               let outputType = '';
               if (settings.nadirPath !== '') {
                 outputType = OutputType.nadir;
@@ -789,14 +803,29 @@ export function updateImages(
                 outputType,
                 basepath
               );
+              sendToClient(
+                win,
+                'loaded_message',
+                `Start uploading file: ${item.Image}`
+              );
 
               // eslint-disable-next-line promise/no-promise-in-callback
               uploadImage(filepath, item.Image, mapillarySession)
                 .then(() => next())
                 .catch((err: any) => {
+                  sendToClient(
+                    win,
+                    'loaded_message',
+                    `End uploading file: ${item.Image}`
+                  );
                   next(err);
                 });
             } else {
+              sendToClient(
+                win,
+                'loaded_message',
+                `End updating file: ${item.Image}`
+              );
               next();
             }
           }
@@ -804,7 +833,6 @@ export function updateImages(
       },
       (err: any) => {
         if (err) {
-          console.log('Updating Image Issue: ', err);
           return typeof err === 'string'
             ? reject(new Error(err))
             : reject(new Error(err.message));

@@ -53,6 +53,7 @@ interface Props {
 interface State {
   openModal: boolean;
   step: number;
+  message: string | null;
   dest: {
     [key: string]: boolean | string;
   };
@@ -96,6 +97,13 @@ export default function EditSequence({ data, onClose }: Props) {
       ...state,
       error: err,
       step: 0,
+    });
+  });
+
+  ipcRenderer.on('update_loaded_message', (_event, msg) => {
+    setState({
+      ...state,
+      message: msg,
     });
   });
 
@@ -196,6 +204,7 @@ export default function EditSequence({ data, onClose }: Props) {
   const modalBody = (
     <div className={classes.paper}>
       <Typography variant="h5">{name}</Typography>
+
       {error && (
         <div>
           <Alert severity="error">
@@ -224,7 +233,16 @@ export default function EditSequence({ data, onClose }: Props) {
         </>
       )}
       {step === 1 && <div>{loginItems}</div>}
-      {step === 2 && <LinearProgress />}
+      {step === 2 && (
+        <>
+          {state.message && (
+            <Typography variant="caption" color="textPrimary">
+              {state.message}
+            </Typography>
+          )}
+          <LinearProgress />
+        </>
+      )}
     </div>
   );
 

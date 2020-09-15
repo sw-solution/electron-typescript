@@ -282,6 +282,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
       }
     }
     const resultjson: Result = await updateImages(
+      mainWindow,
       sequence.points,
       sequence.steps,
       logo,
@@ -480,7 +481,17 @@ export default (mainWindow: BrowserWindow, app: App) => {
             const res = await Promise.all(
               points.map(async (item: IGeoPoint) => {
                 const filepath = path.join(directoryPath, item.Image);
+                sendToClient(
+                  mainWindow,
+                  'update_loaded_message',
+                  `Start uploading: ${item.Image}`
+                );
                 await uploadImage(filepath, item.Image, sessionData.data);
+                sendToClient(
+                  mainWindow,
+                  'update_loaded_message',
+                  `End uploading: ${item.Image}`
+                );
               })
             );
             resultjson.sequence.destination.mapillary = sessionData.data.key;
