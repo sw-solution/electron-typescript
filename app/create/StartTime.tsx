@@ -8,7 +8,7 @@ import Box from '@material-ui/core/Box';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
 import {
-  selStartTime,
+  selModifiedStartTime,
   selGPXStartTime,
   setCurrentStep,
   selPoints,
@@ -16,29 +16,33 @@ import {
   setSequencePoints,
   selFirstMatchedPoints,
   selGPXRequired,
+  selModifyTime,
+  setModifyTime,
 } from './slice';
 import { importGpx } from '../scripts/utils';
 
 export default function SequenceStartTime() {
   const dispatch = useDispatch();
-  const startTime = useSelector(selStartTime);
+  const startTime = useSelector(selModifiedStartTime);
   const gpxStartTime = useSelector(selGPXStartTime);
   const points = useSelector(selPoints);
   const gpxPoints = useSelector(selGPXPoints);
   const firstMatchedPoints = useSelector(selFirstMatchedPoints);
   const allGeoTagged = useSelector(selGPXRequired);
+  const time = useSelector(selModifyTime);
 
   const modifyTime = () => {
     dispatch(setCurrentStep('modifyTime'));
   };
 
   const correctTime = () => {
-    const newpoints = importGpx(points, gpxPoints);
+    const newpoints = importGpx(points, gpxPoints, time);
     dispatch(setSequencePoints(newpoints));
     if (!allGeoTagged) {
       dispatch(setCurrentStep('requireModify'));
     } else {
       dispatch(setCurrentStep('modifySpace'));
+      dispatch(setModifyTime(0));
     }
   };
 

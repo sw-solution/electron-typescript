@@ -11,14 +11,10 @@ import dayjs from 'dayjs';
 import {
   selStartTime,
   setSequenceModifyTime,
-  selPoints,
-  setSequencePoints,
   selModifyTime,
   selGPXStartTime,
   setCurrentStep,
 } from './slice';
-
-import { IGeoPoint } from '../types/IGeoPoint';
 
 interface State {
   modifyTime: string;
@@ -35,7 +31,6 @@ export default function SequenceStartTime() {
     .add(propModifyTime * -1, 'second')
     .format('YYYY-MM-DDTHH:mm:ss');
 
-  const points = useSelector(selPoints);
   const [state, setState] = React.useState<State>({
     modifyTime: propModifyTime.toString(),
   });
@@ -50,16 +45,7 @@ export default function SequenceStartTime() {
   };
 
   const correctTime = () => {
-    const time = parseFloat(modifyTime) - propModifyTime;
-    const newpoints = points.map((p: IGeoPoint) => {
-      return new IGeoPoint({
-        ...p,
-        DateTimeOriginal: dayjs(p.DateTimeOriginal)
-          .add(time, 'second')
-          .format('YYYY-MM-DDTHH:mm:ss'),
-      });
-    });
-    dispatch(setSequencePoints(newpoints));
+    const time = parseFloat(modifyTime);
     dispatch(setSequenceModifyTime(time));
     dispatch(setCurrentStep('startTime'));
   };

@@ -510,15 +510,28 @@ export const selGPXStartTime = (state: RootState) =>
     ? Object.keys(state.create.steps.gpx.points)[0]
     : null;
 
-export const selFirstMatchedPoints = (state: RootState) => {
-  const gpxPoints = selGPXPoints(state);
+export const selModifyTime = (state: RootState) =>
+  state.create.steps.modifyTime;
+
+export const selModifiedStartTime = (state: RootState) => {
   const startTime = selStartTime(state);
-  if (startTime in gpxPoints) return gpxPoints[startTime];
+  const modifyTime = selModifyTime(state);
+  if (startTime) {
+    return dayjs(startTime)
+      .add(modifyTime, 'second')
+      .format('YYYY-MM-DDTHH:mm:ss');
+  }
   return null;
 };
 
-export const selModifyTime = (state: RootState) =>
-  state.create.steps.modifyTime;
+export const selFirstMatchedPoints = (state: RootState) => {
+  const gpxPoints = selGPXPoints(state);
+
+  const startTime = selModifiedStartTime(state);
+
+  if (startTime && startTime in gpxPoints) return gpxPoints[startTime];
+  return null;
+};
 
 export const selSequenceTags = (state: RootState) => state.create.steps.tags;
 
