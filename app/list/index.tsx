@@ -29,13 +29,20 @@ import { useSelector, useDispatch } from 'react-redux';
 import Sequence from './Sequence';
 import Logo from '../components/Logo';
 import Wrapper from '../components/Wrapper';
-import { selLoaded, selSeqs, setEndLoad, setRemoveSeq } from './slice';
+import {
+  selLoaded,
+  selSeqs,
+  setEndLoad,
+  setRemoveSeq,
+  updateSequence,
+} from './slice';
 
 import routes from '../constants/routes.json';
 import { Summary, TransportType } from '../types/Result';
 import { selCameras } from '../base/slice';
 
 import { Camera } from '../types/Camera';
+import EditSequence from './EditSequence';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -79,6 +86,7 @@ interface State {
   capturedEndDate: string;
   deleteModalOpen: boolean;
   deleteSequenceName: string;
+  selected?: Summary;
 }
 
 export default function ListPageWrapper() {
@@ -96,6 +104,7 @@ export default function ListPageWrapper() {
     capturedEndDate: '',
     deleteModalOpen: false,
     deleteSequenceName: '',
+    selected: null,
   });
 
   if (!loaded) {
@@ -108,6 +117,10 @@ export default function ListPageWrapper() {
       dispatch(setEndLoad(sequences));
     }
   );
+
+  ipcRenderer.on('update_sequence_finish', (_event, sequence: Summary) => {
+    dispatch(updateSequence(sequence));
+  });
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setState({
@@ -141,6 +154,20 @@ export default function ListPageWrapper() {
       ...state,
       deleteModalOpen: true,
       deleteSequenceName: name,
+    });
+  };
+
+  const selectSeq = (data: Summary) => {
+    setState({
+      ...state,
+      selected: data,
+    });
+  };
+
+  const unselectSeq = (data: Summary) => {
+    setState({
+      ...state,
+      selected: null,
     });
   };
 
@@ -192,7 +219,14 @@ export default function ListPageWrapper() {
       (state.capturedEndDate === '' ||
         dayjs(state.capturedEndDate).isAfter(dayjs(item.captured)))
     ) {
-      items.push(<Sequence data={item} key={item.id} onDelete={removeSeq} />);
+      items.push(
+        <Sequence
+          data={item}
+          key={item.id}
+          onDelete={removeSeq}
+          onSelect={selectSeq}
+        />
+      );
     }
   });
 
@@ -321,6 +355,9 @@ export default function ListPageWrapper() {
         <Modal open={state.deleteModalOpen} onClose={onDeleteModalClose}>
           {modalBody}
         </Modal>
+        {state.selected && (
+          <EditSequence data={state.selected} onClose={unselectSeq} />
+        )}
       </Wrapper>
     </div>
   );

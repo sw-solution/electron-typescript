@@ -29,10 +29,24 @@ const listSlice = createSlice({
     removeSeq(state, { payload }) {
       state.seqs = state.seqs.filter((s) => s.name !== payload);
     },
+    updateSequence(state, { payload }) {
+      state.seqs = state.seqs.map((s) => {
+        if (s.id === payload.id) {
+          return payload;
+        }
+        return s;
+      });
+    },
   },
 });
 
-export const { startLoad, endLoad, addSeq, removeSeq } = listSlice.actions;
+export const {
+  startLoad,
+  endLoad,
+  addSeq,
+  removeSeq,
+  updateSequence,
+} = listSlice.actions;
 
 export default listSlice.reducer;
 

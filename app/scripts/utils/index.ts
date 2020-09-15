@@ -153,6 +153,14 @@ export enum OutputType {
 
 export function getSequenceOutputPath(
   seqname: string,
+  type: OutputType,
+  basepath: string
+): string {
+  return path.resolve(getSequenceBasePath(seqname, basepath), type);
+}
+
+export function getSequenceOutputFilePath(
+  seqname: string,
   filename: string,
   type: OutputType,
   basepath: string
@@ -245,13 +253,17 @@ export function discardPointsBySeconds(
   return newpoints;
 }
 
-export const errorHandler = (mainWindow: BrowserWindow | null, err: any) => {
+export const errorHandler = (
+  mainWindow: BrowserWindow | null,
+  err: any,
+  channelName = 'error'
+) => {
   if (typeof err === 'string') {
-    sendToClient(mainWindow, 'error', err);
+    sendToClient(mainWindow, channelName, err);
   } else if (err.message) {
-    sendToClient(mainWindow, 'error', err.message);
+    sendToClient(mainWindow, channelName, err.message);
   } else {
-    sendToClient(mainWindow, 'error', JSON.stringify(err));
+    sendToClient(mainWindow, channelName, JSON.stringify(err));
   }
 };
 

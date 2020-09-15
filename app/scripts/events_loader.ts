@@ -16,6 +16,7 @@ import { Result, Summary, ExportPhoto } from '../types/Result';
 import {
   loadMapillarySessionData,
   findSequences,
+  uploadImage,
 } from './integrations/mapillary';
 import { postSequence, updateSequence } from './integrations/mtpw';
 
@@ -34,6 +35,8 @@ import {
   errorHandler,
   resetSequence,
   removeTempFiles,
+  getSequenceOutputPath,
+  OutputType,
 } from './utils';
 
 import { readGPX } from './utils/gpx';
@@ -41,6 +44,8 @@ import { readGPX } from './utils/gpx';
 import loadCameras from './camera';
 import loadIntegrations from './integration';
 import loadDefaultNadir from './nadir';
+import { IGeoPoint } from '../types/IGeoPoint';
+import axiosErrorHandler from './utils/axios';
 
 if (process.env.NODE_ENV === 'development') {
   tokenStore.set('mapillary', null);
@@ -428,6 +433,110 @@ export default (mainWindow: BrowserWindow, app: App) => {
       app.quit();
     }
   });
+
+  ipcMain.on(
+    'update_destination',
+    async (
+      _event,
+      sequence: Summary,
+      integrations: { [key: string]: boolean }
+    ) => {
+      const { mapillary, mtp } = integrations;
+
+      const { name, points } = sequence;
+
+      const mtpwToken = tokenStore.getValue('mtp');
+
+      const mapillaryToken = tokenStore.getValue('mapillary');
+
+      const resultjson: Result = fs.readFileSync(
+        getSequenceLogPath(name, basepath)
+      );
+
+      if (mapillary && mapillaryToken) {
+        const sessionData: Session = await loadMapillarySessionData(
+          mapillaryToken
+        );
+        if (sessionData.error) {
+          return errorHandler(mainWindow, sessionData.error, 'update_error');
+        }
+        if (sessionData.data) {
+          let directoryPath = getSequenceOutputPath(
+            name,
+            OutputType.raw,
+            basepath
+          );
+
+          const nadirPath = getSequenceOutputPath(
+            name,
+            OutputType.nadir,
+            basepath
+          );
+
+          if (fs.existsSync(nadirPath)) {
+            directoryPath = nadirPath;
+          }
+          try {
+            const res = await Promise.all(
+              points.map(async (item: IGeoPoint) => {
+                const filepath = path.join(directoryPath, item.Image);
+                await uploadImage(filepath, item.Image, sessionData.data);
+              })
+            );
+            resultjson.sequence.destination.mapillary = sessionData.data.key;
+            resultjson.sequence.destination = {
+              ...resultjson.sequence.destination,
+              mapillary: sessionData.data.key,
+            };
+          } catch (e) {
+            return errorHandler(
+              mainWindow,
+              axiosErrorHandler(e, 'MapillaryUploadingImage'),
+              'update_error'
+            );
+          }
+        }
+      }
+
+      if (mtp && mtpwToken) {
+        const { mtpwSequence, mtpwError } = await postSequence(
+          sequence,
+          mtpwToken
+        );
+
+        if (mtpwError) {
+          return errorHandler(mainWindow, mtpwError);
+        }
+
+        if (mapillaryToken && mapillary) {
+          const { seqError } = await updateSequence(
+            mtpwSequence.unique_id,
+            mtpwToken,
+            sequence.id,
+            mapillaryToken
+          );
+
+          if (seqError) {
+            return errorHandler(mainWindow, mtpwError, 'update_error');
+          }
+        }
+        resultjson.sequence.destination = {
+          ...resultjson.sequence.destination,
+          mtp: true,
+        };
+      }
+
+      fs.writeFileSync(
+        getSequenceLogPath(name, basepath),
+        JSON.stringify(resultjson)
+      );
+      sendToClient(
+        mainWindow,
+        'update_sequence_finish',
+        createdData2List(resultjson)
+      );
+    }
+  );
 };
 
 export const sendTokenFromUrl = async (

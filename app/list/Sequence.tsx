@@ -3,6 +3,7 @@ import React from 'react';
 import IconButton from '@material-ui/core/IconButton';
 
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
+import EditIcon from '@material-ui/icons/Edit';
 
 import {
   Box,
@@ -46,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
   map: {
     height: '200px',
   },
-  removeButton: {
+  buttonWrapper: {
     position: 'absolute',
     right: 0,
     top: 0,
@@ -59,14 +60,15 @@ const useStyles = makeStyles((theme) => ({
 interface Props {
   data: Summary;
   onDelete: CallableFunction;
+  onSelect: CallableFunction;
 }
 
-export default function Sequence({ data, onDelete }: Props) {
+export default function Sequence({ data, onDelete, onSelect }: Props) {
   const classes = useStyles();
 
   const basepath = useSelector(selBasePath);
 
-  const { type, method, points } = data;
+  const { type, method, points, destination } = data;
 
   const methodIcons = transportType[type].children.reduce(
     (obj: any, item: any) => {
@@ -78,16 +80,19 @@ export default function Sequence({ data, onDelete }: Props) {
 
   const integrations = useSelector(selIntegrations);
 
-  const destinationIcons = Object.keys(data.destination).map((key: string) => {
+  const destinationIcons = Object.keys(destination).map((key: string) => {
     let icon = <DoneIcon color="primary" fontSize="small" />;
     let message = 'Published';
     if (
-      typeof data.destination[key] === 'string' &&
-      data.destination[key].startsWith('Error')
+      typeof destination[key] === 'string' &&
+      destination[key].startsWith('Error')
     ) {
       icon = <ErrorIcon color="error" fontSize="small" />;
-      message = data.destination[key].replace('Error:', '');
-    } else if (data.destination[key] !== '') {
+      message = destination[key].replace('Error:', '');
+    } else if (
+      typeof destination[key] === 'string' &&
+      destination[key] !== ''
+    ) {
       icon = <PublishIcon color="action" fontSize="small" />;
       message = 'Uploading';
     }
@@ -113,12 +118,18 @@ export default function Sequence({ data, onDelete }: Props) {
 
   return (
     <Grid xs={12} item className={classes.container}>
-      <IconButton
-        className={classes.removeButton}
-        onClick={() => onDelete(data.name)}
-      >
-        <DeleteOutlineIcon />
-      </IconButton>
+      <div className={classes.buttonWrapper}>
+        {Object.keys(destination).length === 0 && (
+          <IconButton onClick={() => onSelect(data)} color="primary">
+            <EditIcon />
+          </IconButton>
+        )}
+
+        <IconButton onClick={() => onDelete(data.name)} color="secondary">
+          <DeleteOutlineIcon />
+        </IconButton>
+      </div>
+
       <Grid container alignItems="center" spacing={3}>
         <Grid xs={4} item>
           <Map points={points} height={200} showPopup={false} id={data.name} />

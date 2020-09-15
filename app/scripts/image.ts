@@ -20,7 +20,7 @@ import {
 import {
   getSequenceImagePath,
   OutputType,
-  getSequenceOutputPath,
+  getSequenceOutputFilePath,
   discardPointsBySeconds,
   parseExifDateTime,
 } from './utils';
@@ -481,7 +481,7 @@ export function writeNadirImages(
         filename,
         basepath
       );
-      const outputfile = getSequenceOutputPath(
+      const outputfile = getSequenceOutputFilePath(
         settings.name,
         filename,
         OutputType.nadir,
@@ -536,7 +536,7 @@ export function writeBlurredImage(
   return new Promise((resolve, reject) => {
     const filename = item.Image || '';
     const inputfile = getSequenceImagePath(settings.name, filename, basepath);
-    const outputfile = getSequenceOutputPath(
+    const outputfile = getSequenceOutputFilePath(
       settings.name,
       filename,
       OutputType.blur,
@@ -744,7 +744,7 @@ export function updateImages(
                 filename,
                 basepath
               );
-              const outputfile = getSequenceOutputPath(
+              const outputfile = getSequenceOutputFilePath(
                 settings.name,
                 filename,
                 OutputType.raw,
@@ -783,7 +783,7 @@ export function updateImages(
               } else {
                 outputType = OutputType.raw;
               }
-              const filepath = getSequenceOutputPath(
+              const filepath = getSequenceOutputFilePath(
                 settings.name,
                 item.Image,
                 outputType,

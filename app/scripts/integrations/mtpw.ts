@@ -1,6 +1,6 @@
 import axios from 'axios';
 import qs from 'qs';
-import { Sequence } from '../../types/Result';
+import { Sequence, Summary } from '../../types/Result';
 import axiosErrorHandler from '../utils/axios';
 
 axios.interceptors.response.use(
@@ -10,13 +10,23 @@ axios.interceptors.response.use(
   }
 );
 
-export const postSequence = async (sequence: Sequence, token: string) => {
-  const data = {
-    name: sequence.uploader_sequence_name,
-    description: sequence.uploader_sequence_description,
-    transport_type: sequence.uploader_transport_method,
-    tag: sequence.uploader_tags.join(','),
-  };
+export const postSequence = async (
+  sequence: Sequence | Summary,
+  token: string
+) => {
+  const data = sequence.uploader_sequence_name
+    ? {
+        name: sequence.uploader_sequence_name,
+        description: sequence.uploader_sequence_description,
+        transport_type: sequence.uploader_transport_method,
+        tag: sequence.uploader_tags.join(','),
+      }
+    : {
+        name: sequence.name,
+        description: sequence.description,
+        transport_type: sequence.method,
+        tag: sequence.tags.join(','),
+      };
 
   const config = {
     method: 'post',
