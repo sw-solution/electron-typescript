@@ -51,10 +51,10 @@ export default function RequireModify() {
     <>
       <Grid item xs={12}>
         <Typography variant="h6" align="center" color="textSecondary">
-          Confirmation Page
+          Your temporary sequence
         </Typography>
         <Typography paragraph>
-          Your all images or video are geotagged.
+          Here's what your sequence looks like. You can make changes to the GPS positioning or add a nadir by clicking Advance settings. Alternatively you can skip all these steps if you're ready to upload.
         </Typography>
       </Grid>
       <Grid item xs={12}>
@@ -68,7 +68,7 @@ export default function RequireModify() {
             onClick={requireModify}
             variant="contained"
           >
-            Make Changes
+            Advanced settings
           </Button>
           <Button
             endIcon={<ThumbUpIcon />}
@@ -76,7 +76,7 @@ export default function RequireModify() {
             onClick={confirmMode}
             variant="contained"
           >
-            Looks good!
+            Skip advanced settings
           </Button>
         </Box>
       </Grid>

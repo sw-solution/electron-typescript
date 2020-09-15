@@ -78,11 +78,10 @@ export default function Login() {
         <Logo />
       </div>
       <Typography variant="h6">
-        <span>You are not logged in</span>
+        <span>You need to sign in to Map the Paths Web to continue. Please login by clicking the sign in button below. You can get a free account</span>
         <Button onClick={() => gotoExternal(websiteUrl)} color="primary">
-          MTP Trekview.
+          here
         </Button>
-        <span>Please login with above.</span>
       </Typography>
       <div className={classes.buttonWrapper}>
         <Button
