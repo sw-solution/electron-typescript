@@ -32,7 +32,7 @@ const listSlice = createSlice({
     updateSequence(state, { payload }) {
       state.seqs = state.seqs.map((s) => {
         if (s.id === payload.id) {
-          return payload;
+          return { ...payload };
         }
         return s;
       });

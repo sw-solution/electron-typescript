@@ -6,7 +6,7 @@ import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 
-import { setSequenceName, selSequenceName } from './slice';
+import { setSequenceName, selSequenceName, setError } from './slice';
 
 import { selSeqNames } from '../list/slice';
 

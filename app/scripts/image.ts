@@ -811,13 +811,17 @@ export function updateImages(
 
               // eslint-disable-next-line promise/no-promise-in-callback
               uploadImage(filepath, item.Image, mapillarySession)
-                .then(() => next())
-                .catch((err: any) => {
+                .then(() => {
                   sendToClient(
                     win,
                     'loaded_message',
                     `End uploading file: ${item.Image}`
                   );
+                  // eslint-disable-next-line promise/no-callback-in-promise
+                  return next();
+                })
+                .catch((err: any) => {
+                  // eslint-disable-next-line promise/no-callback-in-promise
                   next(err);
                 });
             } else {

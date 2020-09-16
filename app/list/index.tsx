@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IpcRendererEvent } from 'electron';
 import { Alert, AlertTitle } from '@material-ui/lab';
 
@@ -16,7 +16,6 @@ import {
   TextField,
   Grid,
   Button,
-  LinearProgress,
 } from '@material-ui/core';
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -104,22 +103,31 @@ export default function ListPageWrapper() {
     capturedEndDate: '',
     deleteModalOpen: false,
     deleteSequenceName: '',
-    selected: null,
   });
 
   if (!loaded) {
     ipcRenderer.send('sequences');
   }
 
-  ipcRenderer.once(
-    'loaded_sequences',
-    (_event: IpcRendererEvent, sequences: Summary[]) => {
-      dispatch(setEndLoad(sequences));
-    }
-  );
+  useEffect(() => {
+    ipcRenderer.once(
+      'loaded_sequences',
+      (_event: IpcRendererEvent, sequences: Summary[]) => {
+        dispatch(setEndLoad(sequences));
+      }
+    );
 
-  ipcRenderer.on('update_sequence_finish', (_event, sequence: Summary) => {
-    dispatch(updateSequence(sequence));
+    ipcRenderer.on('update_sequence_finish', (_event, sequence: Summary) => {
+      dispatch(updateSequence(sequence));
+      setState({
+        ...state,
+        selected: undefined,
+      });
+    });
+    return () => {
+      ipcRenderer.removeAllListeners('loaded_sequences');
+      ipcRenderer.removeAllListeners('update_sequence_finish');
+    };
   });
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -164,10 +172,10 @@ export default function ListPageWrapper() {
     });
   };
 
-  const unselectSeq = (data: Summary) => {
+  const unselectSeq = () => {
     setState({
       ...state,
-      selected: null,
+      selected: undefined,
     });
   };
 
@@ -325,32 +333,27 @@ export default function ListPageWrapper() {
       </Drawer>
       <Wrapper title="Browse Sequences">
         <Grid container className={classes.gridContainer}>
-          {loaded && (
-            <>
-              <Grid item xs={12}>
-                <Box style={{ textAlign: 'right', marginBottom: '20px' }}>
-                  <Button
-                    onClick={() => {
-                      dispatch(push(routes.CREATE));
-                    }}
-                    color="primary"
-                    startIcon={<AddIcon />}
-                  >
-                    Create
-                  </Button>
-                </Box>
-              </Grid>
-              {items.length ? (
-                items
-              ) : (
-                <Typography>
-                  No sequences exist that match the search criteria. Why not
-                  create one? As if you needed an excuse for an adventure!
-                </Typography>
-              )}
-            </>
+          <Grid item xs={12}>
+            <Box style={{ textAlign: 'right', marginBottom: '20px' }}>
+              <Button
+                onClick={() => {
+                  dispatch(push(routes.CREATE));
+                }}
+                color="primary"
+                startIcon={<AddIcon />}
+              >
+                Create
+              </Button>
+            </Box>
+          </Grid>
+          {items.length ? (
+            items
+          ) : (
+            <Typography>
+              No sequences exist that match the search criteria. Why not create
+              one? As if you needed an excuse for an adventure!
+            </Typography>
           )}
-          {!loaded && <LinearProgress />}
         </Grid>
         <Modal open={state.deleteModalOpen} onClose={onDeleteModalClose}>
           {modalBody}

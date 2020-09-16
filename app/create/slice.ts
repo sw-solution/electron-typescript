@@ -70,9 +70,9 @@ const createSequenceSlice = createSlice({
         current: payload,
         passed,
       };
-      if (state.step.current === 'processPage') {
-        state.error = null;
-      }
+
+      state.error = null;
+
       state.passedPoints = {
         ...state.passedPoints,
         [payload]: [...state.points],
@@ -185,6 +185,7 @@ const createSequenceSlice = createSlice({
           state.step.current,
         ],
       };
+      state.error = null;
     },
     setPoints: (state, { payload }) => {
       state.points = [...payload];
@@ -457,10 +458,10 @@ export const setSequenceInit = (): AppThunk => {
 export const setSequenceError = (error: any): AppThunk => {
   return (dispatch, getState) => {
     const state = getState();
-    dispatch(setError(error));
     if (state.create.step.current === 'processPage') {
       dispatch(goToPrevStep());
     }
+    dispatch(setError(error));
   };
 };
 

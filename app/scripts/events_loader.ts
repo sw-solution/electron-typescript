@@ -16,7 +16,7 @@ import { Result, Summary, ExportPhoto } from '../types/Result';
 import {
   loadMapillarySessionData,
   findSequences,
-  uploadImage,
+  uploadImagesMapillary,
 } from './integrations/mapillary';
 import { postSequence, updateSequence } from './integrations/mtpw';
 
@@ -44,15 +44,18 @@ import { readGPX } from './utils/gpx';
 import loadCameras from './camera';
 import loadIntegrations from './integration';
 import loadDefaultNadir from './nadir';
-import { IGeoPoint } from '../types/IGeoPoint';
 import axiosErrorHandler from './utils/axios';
 
 if (process.env.NODE_ENV === 'development') {
-  tokenStore.set('mapillary', null);
+  tokenStore.set('mapillary', {
+    waiting: false,
+    value:
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJtcHkiLCJzdWIiOiJ6dkhRTlZNNGtCcG5nNldIRlhwSWR6IiwiYXVkIjoiZW5aSVVVNVdUVFJyUW5CdVp6WlhTRVpZY0Vsa2VqcGxZVFl3TlRCbU1UUXdNVEExTXpReSIsImlhdCI6MTU5OTQ3NjU5NjM4NiwianRpIjoiYmFmYTQyNjI3ZGNiZTFlNzgzY2FiZWU1MzRjM2QzNDQiLCJzY28iOlsidXNlcjplbWFpbCIsInByaXZhdGU6dXBsb2FkIl0sInZlciI6MX0.K_4Y-4dyL3Xu9uc55XZ0u7XVKRG_sNl4m3_ETgbTkb4',
+  });
   // tokenStore.set('mapillary', null);
   tokenStore.set('mtp', {
     waiting: false,
-    value: '8rJqBLV6hkDatnv23XJ9BZDzYNNVTA',
+    value: 'g4Et0keHTY28pwfK9uIIYTmAtBJcSg',
   });
 } else {
   tokenStore.set('mtp', null);
@@ -368,47 +371,51 @@ export default (mainWindow: BrowserWindow, app: App) => {
         rimraf.sync(getSequenceBasePath(d, basepath));
       });
 
-    const sequences: Result[] = sequencesDirectories.map((name: string) => {
-      return JSON.parse(
-        fs.readFileSync(getSequenceLogPath(name, basepath)).toString()
-      );
-    });
-
-    const summaries: Summary[] = await Promise.all(
-      sequences
-        .map(async (s: Result) => {
-          const summary = createdData2List(s);
-          if (
-            s.sequence.destination &&
-            s.sequence.destination.mapillary &&
-            s.sequence.destination.mapillary !== '' &&
-            !s.sequence.destination.mapillary.startsWith('Error') &&
-            tokenStore.getValue('mapillary')
-          ) {
-            const { error, data } = await findSequences(
-              tokenStore.getValue('mapillary'),
-              s.sequence.destination.mapillary,
-              s.photo
-            );
-            if (data) {
-              summary.destination.mapillary = '';
-              s.sequence.destination.mapillary = '';
-            } else if (error) {
-              summary.destination.mapillary = `Error: ${error}`;
-              s.sequence.destination.mapillary = `Error: ${error}`;
-            }
-
-            fs.writeFileSync(
-              getSequenceLogPath(s.sequence.uploader_sequence_name, basepath),
-              JSON.stringify(s)
-            );
-          }
-          return summary;
-        })
-        .sort((a: any, b: any) => {
-          return dayjs(a.created).isBefore(dayjs(b.created)) ? 1 : -1;
-        })
+    const sequences: Result[] = await Promise.all(
+      sequencesDirectories.map(async (name: string) => {
+        return JSON.parse(
+          fs.readFileSync(getSequenceLogPath(name, basepath)).toString()
+        );
+      })
     );
+    const mapillaryToken = tokenStore.getValue('mapillary');
+    const summaries: Summary[] = await Promise.all(
+      sequences.map(async (s: Result) => {
+        const summary = createdData2List(s);
+
+        if (
+          s.sequence.destination &&
+          typeof s.sequence.destination.mapillary === 'string' &&
+          s.sequence.destination.mapillary &&
+          s.sequence.destination.mapillary !== '' &&
+          !s.sequence.destination.mapillary.startsWith('Error') &&
+          mapillaryToken
+        ) {
+          const { error, data } = await findSequences(
+            mapillaryToken,
+            s.sequence.destination.mapillary,
+            s.photo
+          );
+          if (data) {
+            summary.destination.mapillary = '';
+            s.sequence.destination.mapillary = '';
+          } else if (error) {
+            summary.destination.mapillary = `Error: ${error}`;
+            s.sequence.destination.mapillary = `Error: ${error}`;
+          }
+
+          fs.writeFileSync(
+            getSequenceLogPath(s.sequence.uploader_sequence_name, basepath),
+            JSON.stringify(s)
+          );
+        }
+        return summary;
+      })
+    );
+
+    summaries.sort((a: any, b: any) => {
+      return dayjs(a.created).isBefore(dayjs(b.created)) ? 1 : -1;
+    });
 
     sendToClient(mainWindow, 'loaded_sequences', summaries);
   });
@@ -442,6 +449,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
       sequence: Summary,
       integrations: { [key: string]: boolean }
     ) => {
+      console.log('update_destination');
       const { mapillary, mtp } = integrations;
 
       const { name, points } = sequence;
@@ -450,102 +458,98 @@ export default (mainWindow: BrowserWindow, app: App) => {
 
       const mapillaryToken = tokenStore.getValue('mapillary');
 
-      const resultjson: Result = fs.readFileSync(
-        getSequenceLogPath(name, basepath)
+      const resultjson: Result = JSON.parse(
+        fs.readFileSync(getSequenceLogPath(name, basepath)).toString()
       );
-
-      if (mapillary && mapillaryToken) {
-        const sessionData: Session = await loadMapillarySessionData(
-          mapillaryToken
-        );
-        if (sessionData.error) {
-          return errorHandler(mainWindow, sessionData.error, 'update_error');
-        }
-        if (sessionData.data) {
-          let directoryPath = getSequenceOutputPath(
-            name,
-            OutputType.raw,
-            basepath
-          );
-
-          const nadirPath = getSequenceOutputPath(
-            name,
-            OutputType.nadir,
-            basepath
-          );
-
-          if (fs.existsSync(nadirPath)) {
-            directoryPath = nadirPath;
-          }
-          try {
-            const res = await Promise.all(
-              points.map(async (item: IGeoPoint) => {
-                const filepath = path.join(directoryPath, item.Image);
-                sendToClient(
-                  mainWindow,
-                  'update_loaded_message',
-                  `Start uploading: ${item.Image}`
-                );
-                await uploadImage(filepath, item.Image, sessionData.data);
-                sendToClient(
-                  mainWindow,
-                  'update_loaded_message',
-                  `End uploading: ${item.Image}`
-                );
-              })
-            );
-            resultjson.sequence.destination.mapillary = sessionData.data.key;
-            resultjson.sequence.destination = {
-              ...resultjson.sequence.destination,
-              mapillary: sessionData.data.key,
-            };
-          } catch (e) {
-            return errorHandler(
-              mainWindow,
-              axiosErrorHandler(e, 'MapillaryUploadingImage'),
-              'update_error'
-            );
-          }
-        }
-      }
-
-      if (mtp && mtpwToken) {
-        const { mtpwSequence, mtpwError } = await postSequence(
-          sequence,
-          mtpwToken
-        );
-
-        if (mtpwError) {
-          return errorHandler(mainWindow, mtpwError);
-        }
-
-        if (mapillaryToken && mapillary) {
-          const { seqError } = await updateSequence(
-            mtpwSequence.unique_id,
-            mtpwToken,
-            sequence.id,
+      try {
+        if (mapillary && mapillaryToken) {
+          const sessionData: Session = await loadMapillarySessionData(
             mapillaryToken
           );
+          if (sessionData.error) {
+            return errorHandler(mainWindow, sessionData.error, 'update_error');
+          }
 
-          if (seqError) {
-            return errorHandler(mainWindow, mtpwError, 'update_error');
+          if (sessionData.data) {
+            let directoryPath = getSequenceOutputPath(
+              name,
+              OutputType.raw,
+              basepath
+            );
+
+            const nadirPath = getSequenceOutputPath(
+              name,
+              OutputType.nadir,
+              basepath
+            );
+
+            if (fs.existsSync(nadirPath)) {
+              directoryPath = nadirPath;
+            }
+
+            try {
+              await uploadImagesMapillary(
+                mainWindow,
+                points,
+                directoryPath,
+                sessionData.data
+              );
+            } catch (e) {
+              return errorHandler(
+                mainWindow,
+                axiosErrorHandler(e, 'MapillaryUploadingImage'),
+                'update_error'
+              );
+            }
+
+            console.log(resultjson);
+
+            resultjson.sequence.destination = {
+              mapillary: sessionData.data.key,
+            };
           }
         }
-        resultjson.sequence.destination = {
-          ...resultjson.sequence.destination,
-          mtp: true,
-        };
-      }
 
-      fs.writeFileSync(
-        getSequenceLogPath(name, basepath),
-        JSON.stringify(resultjson)
-      );
-      sendToClient(
-        mainWindow,
-        'update_sequence_finish',
-        createdData2List(resultjson)
-      );
+        if (mtp && mtpwToken) {
+          const { mtpwSequence, mtpwError } = await postSequence(
+            resultjson.sequence,
+            mtpwToken
+          );
+
+          if (mtpwError) {
+            return errorHandler(mainWindow, mtpwError, 'update_error');
+          }
+
+          if (mapillaryToken && mapillary) {
+            const { seqError } = await updateSequence(
+              mtpwSequence.unique_id,
+              mtpwToken,
+              sequence.id,
+              mapillaryToken
+            );
+
+            if (seqError) {
+              return errorHandler(mainWindow, mtpwError, 'update_error');
+            }
+          }
+          resultjson.sequence.destination = {
+            ...resultjson.sequence.destination,
+            mtp: true,
+          };
+        }
+
+        fs.writeFileSync(
+          getSequenceLogPath(name, basepath),
+          JSON.stringify(resultjson)
+        );
+        sendToClient(
+          mainWindow,
+          'update_sequence_finish',
+          createdData2List(resultjson)
+        );
+      } catch (e) {
+        return errorHandler(mainWindow, JSON.stringify(e), 'update_error');
+      }
     }
   );
 };

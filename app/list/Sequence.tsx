@@ -44,6 +44,9 @@ const useStyles = makeStyles((theme) => ({
       margin: theme.spacing(0.5),
     },
   },
+  contentWrapper: {
+    paddingTop: '40px',
+  },
   map: {
     height: '200px',
   },
@@ -135,7 +138,7 @@ export default function Sequence({ data, onDelete, onSelect }: Props) {
           <Map points={points} height={200} showPopup={false} id={data.name} />
         </Grid>
         <Grid xs={8} item>
-          <Grid container>
+          <Grid container className={classes.contentWrapper}>
             <Grid xs={7} item>
               <Typography variant="h5" color="primary" align="left">
                 {data.name}

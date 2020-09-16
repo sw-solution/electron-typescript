@@ -39,16 +39,7 @@ const baseSlice = createSlice({
       state.nadirs = [...payload.nadirs];
       state.integrations = { ...payload.integrations };
       state.basepath = payload.basepath;
-      state.tokens = Object.keys(payload.tokens).reduce(
-        (obj: any, key: string) => {
-          obj[key] = {
-            waiting: false,
-            value: payload.tokens[key],
-          };
-          return obj;
-        },
-        {}
-      );
+      state.tokens = { ...payload.tokens };
       state.loaded = true;
     },
     setToken(state, { payload }) {

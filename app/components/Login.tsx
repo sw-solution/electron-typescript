@@ -38,6 +38,9 @@ const useStyles = makeStyles((theme) => ({
     width: '100%',
     textAlign: 'center',
   },
+  title: {
+    padding: 30,
+  },
 }));
 
 const tokenKey = 'mtp';
@@ -79,7 +82,7 @@ export default function Login() {
       <div className={classes.logoWrapper}>
         <Logo />
       </div>
-      <Typography variant="h6">
+      <Typography variant="h6" className={classes.title}>
         <span>
           You need to sign in to Map the Paths Web to continue. Please login by
           clicking the sign in button below. You can get a free account

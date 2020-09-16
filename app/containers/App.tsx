@@ -65,13 +65,6 @@ export default function App(props: Props) {
     aboutPage: false,
   });
 
-  ipcRenderer.on(
-    'loaded_token',
-    (_event: IpcRendererEvent, storedTokens: any) => {
-      dispatch(setTokens(storedTokens));
-    }
-  );
-
   useEffect(() => {
     if (
       !mtpToken &&
@@ -116,10 +109,19 @@ export default function App(props: Props) {
         ipcRenderer.send('closed_app', null);
       }
     });
+
+    ipcRenderer.on(
+      'loaded_token',
+      (_event: IpcRendererEvent, storedTokens: any) => {
+        dispatch(setTokens(storedTokens));
+      }
+    );
+
     return () => {
       ipcRenderer.removeAllListeners('close_app');
       ipcRenderer.removeAllListeners('about_page');
       ipcRenderer.removeAllListeners('loaded_config');
+      ipcRenderer.removeAllListeners('loaded_token');
     };
   });
 

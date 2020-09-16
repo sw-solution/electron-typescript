@@ -52,7 +52,6 @@ interface Props {
 
 interface State {
   openModal: boolean;
-  step: number;
   message: string | null;
   dest: {
     [key: string]: boolean | string;
@@ -66,55 +65,65 @@ export default function EditSequence({ data, onClose }: Props) {
 
   const [state, setState] = useState<State>({
     openModal: true,
-    step: 0,
     dest: destination,
     error: null,
+    message: null,
   });
+
+  const [step, setStep] = useState<number>(0);
 
   const integrations = useSelector(selIntegrations);
   const tokens = useSelector(selTokens);
 
-  const { openModal, step, dest, error } = state;
+  const { openModal, dest, error } = state;
 
   useEffect(() => {
-    if (step === 1) {
-      if (
-        Object.keys(dest).filter((key: string) => !tokens[key].value).length ===
+    if (
+      step === 1 &&
+      data &&
+      Object.keys(dest).length &&
+      Object.keys(dest)
+        .filter((key) => dest[key])
+        .filter((key: string) => !(tokens[key] && tokens[key].value)).length ===
         0
-      ) {
-        setState({
-          ...state,
-          step: 2,
-        });
-
-        ipcRenderer.send('update_destination', data, dest);
-      }
+    ) {
+      setStep(2);
+      ipcRenderer.send('update_destination', data, dest);
     }
-  }, [data, dest, state, step, tokens]);
+  }, [data, dest, step, tokens]);
 
-  ipcRenderer.on('update_error', (_event, err) => {
-    setState({
-      ...state,
-      error: err,
-      step: 0,
+  useEffect(() => {
+    ipcRenderer.on('update_loaded_message', (_event, msg) => {
+      setState({
+        ...state,
+        message: msg,
+      });
     });
+    ipcRenderer.on('update_error', (_event, err) => {
+      setState({
+        ...state,
+        error: err,
+      });
+      setStep(0);
+    });
+    return () => {
+      ipcRenderer.removeAllListeners('update_loaded_message');
+      ipcRenderer.removeAllListeners('update_error');
+    };
   });
 
-  ipcRenderer.on('update_loaded_message', (_event, msg) => {
-    setState({
-      ...state,
-      message: msg,
-    });
-  });
-
-  const handleChange = (key: string) => (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setState({
       ...state,
       dest: {
         ...state.dest,
-        [key]: event.target.checked,
+        ...Object.keys(integrations).reduce(
+          (obj: { [key: string]: boolean }, integration: string) => {
+            obj[integration] = event.target.checked;
+            return obj;
+          },
+          {}
+        ),
       },
     });
   };
@@ -123,7 +132,7 @@ export default function EditSequence({ data, onClose }: Props) {
     const checkNode = (
       <Checkbox
         checked={!!dest[key]}
-        onChange={handleChange(key)}
+        onChange={handleChange}
         name={key}
         color="primary"
       />
@@ -159,6 +168,7 @@ export default function EditSequence({ data, onClose }: Props) {
   };
 
   const loginItems = Object.keys(dest)
+    .filter((k: string) => dest[k])
     .filter((integration: string) => dest[integration] && integration !== 'mtp')
     .map((integration: string) => {
       const integrationLogo = (
@@ -178,7 +188,9 @@ export default function EditSequence({ data, onClose }: Props) {
           variant="contained"
           key={integration}
         >
-          {tokens[integration].waiting ? 'Logining to' : 'Login to'}
+          {tokens[integration] && tokens[integration].waiting
+            ? 'Logining to'
+            : 'Login to'}
         </Button>
       );
     });
@@ -194,11 +206,7 @@ export default function EditSequence({ data, onClose }: Props) {
   };
 
   const nextStep = () => {
-    setState({
-      ...state,
-      step: step + 1,
-      error: null,
-    });
+    setStep(step + 1);
   };
 
   const modalBody = (

@@ -2,10 +2,15 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import FormData from 'form-data';
 import fs from 'fs';
+import path from 'path';
+import Async from 'async';
+import { BrowserWindow } from 'electron';
 
 import { Session } from '../../types/Session';
 import { Photos } from '../../types/Result';
+import { IGeoPoint } from '../../types/IGeoPoint';
 import axiosErrorHandler from '../utils/axios';
+import { sendToClient, errorHandler } from '../utils';
 
 axios.interceptors.response.use(
   (res) => res,
@@ -190,4 +195,48 @@ export const findSequences = async (
       error: axiosErrorHandler(e, 'MapillaryFindSequences'),
     };
   }
+};
+
+export const uploadImagesMapillary = (
+  mainWindow: BrowserWindow,
+  points: IGeoPoint[],
+  directoryPath: string,
+  sessionData: any
+) => {
+  return new Promise((resolve, reject) => {
+    Async.eachOfLimit(
+      points,
+      1,
+      (item: IGeoPoint, key: any, next: CallableFunction) => {
+        sendToClient(
+          mainWindow,
+          'update_loaded_message',
+          `Start uploading: ${item.Image}`
+        );
+        const filepath = path.join(directoryPath, item.Image);
+
+        uploadImage(filepath, item.Image, sessionData)
+          .then(() => {
+            sendToClient(
+              mainWindow,
+              'update_loaded_message',
+              `End uploading: ${item.Image}`
+            );
+            // eslint-disable-next-line promise/no-callback-in-promise
+            return next();
+          })
+          .catch((e) => {
+            console.log('UploadImage issue: ', e);
+            // eslint-disable-next-line promise/no-callback-in-promise
+            next(e);
+          });
+      },
+      (err) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve();
+      }
+    );
+  });
 };

@@ -19,10 +19,12 @@ export default function DestinationLogin() {
 
   useEffect(() => {
     if (
-      Object.keys(destination).filter(
-        (integration: string) =>
-          !(tokens[integration] && tokens[integration].value)
-      ).length === 0 &&
+      Object.keys(destination)
+        .filter((key: string) => destination[key])
+        .filter(
+          (integration: string) =>
+            !(tokens[integration] && tokens[integration].value)
+        ).length === 0 &&
       !error
     ) {
       dispatch(setProcessStep('name'));
@@ -41,6 +43,7 @@ export default function DestinationLogin() {
   };
 
   const items = Object.keys(destination)
+    .filter((integration: string) => destination[integration])
     .filter(
       (integration: string) => destination[integration] && integration !== 'mtp'
     )

@@ -19,7 +19,7 @@ import {
   setCurrentStep,
 } from './slice';
 
-import { selIntegrations, selTokens } from '../base/slice';
+import { selIntegrations } from '../base/slice';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -32,8 +32,6 @@ export default function Destination() {
   const integrations = useSelector(selIntegrations);
   const sequence = useSelector(selSequence);
   const [state, setState] = useState<State>({});
-
-  const tokens = useSelector(selTokens);
 
   const confirmMode = () => {
     const checked = Object.keys(state).filter(
@@ -51,12 +49,16 @@ export default function Destination() {
     }
   };
 
-  const handleChange = (key: string) => (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setState({
       ...state,
-      [key]: event.target.checked,
+      ...Object.keys(integrations).reduce(
+        (obj: { [key: string]: boolean }, integration: string) => {
+          obj[integration] = event.target.checked;
+          return obj;
+        },
+        {}
+      ),
     });
   };
 
@@ -64,7 +66,7 @@ export default function Destination() {
     const checkNode = (
       <Checkbox
         checked={!!state[key]}
-        onChange={handleChange(key)}
+        onChange={handleChange}
         name={key}
         color="primary"
       />

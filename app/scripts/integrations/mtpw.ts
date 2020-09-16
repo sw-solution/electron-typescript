@@ -10,24 +10,13 @@ axios.interceptors.response.use(
   }
 );
 
-export const postSequence = async (
-  sequence: Sequence | Summary,
-  token: string
-) => {
-  const data = sequence.uploader_sequence_name
-    ? {
-        name: sequence.uploader_sequence_name,
-        description: sequence.uploader_sequence_description,
-        transport_type: sequence.uploader_transport_method,
-        tag: sequence.uploader_tags.join(','),
-      }
-    : {
-        name: sequence.name,
-        description: sequence.description,
-        transport_type: sequence.method,
-        tag: sequence.tags.join(','),
-      };
-
+export const postSequence = async (sequence: Sequence, token: string) => {
+  const data = {
+    name: sequence.uploader_sequence_name,
+    description: sequence.uploader_sequence_description,
+    transport_type: sequence.uploader_transport_method,
+    tag: sequence.uploader_tags.join(','),
+  };
   const config = {
     method: 'post',
     url: `${process.env.MTP_WEB_URL}/api/v1/sequence/create/`,

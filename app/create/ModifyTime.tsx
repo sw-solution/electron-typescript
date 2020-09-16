@@ -27,10 +27,6 @@ export default function SequenceStartTime() {
   const propModifyTime = useSelector(selModifyTime);
   const gpxStartTime = useSelector(selGPXStartTime);
 
-  const photoStartTime = dayjs(startTime)
-    .add(propModifyTime * -1, 'second')
-    .format('YYYY-MM-DDTHH:mm:ss');
-
   const [state, setState] = React.useState<State>({
     modifyTime: propModifyTime.toString(),
   });
@@ -68,7 +64,7 @@ export default function SequenceStartTime() {
         </Typography>
         <Typography paragraph>
           The time in the first photo in the sequence is:
-          {photoStartTime}
+          {startTime}
         </Typography>
         <Typography paragraph>
           Add the following time offset to all photos (in seconds, can be + or
