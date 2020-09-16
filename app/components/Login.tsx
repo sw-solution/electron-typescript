@@ -20,20 +20,27 @@ const { ipcRenderer } = window.require('electron');
 
 const useStyles = makeStyles((theme) => ({
   content: {
-    width: 'calc(100% + 16px)',
-    height: 'calc(100% + 16px)',
+    width: '100%',
+    height: '100%',
     display: 'flex',
     position: 'absolute',
     alignItems: 'baseline',
     justifyContent: 'center',
     flexWrap: 'wrap',
     padding: '30',
-    left: '-8px',
-    top: '-8px',
+    left: '0',
+    top: '0',
   },
   logoWrapper: {
     width: '100%',
     textAlign: 'center',
+  },
+  contentWrapper: {
+    width: '70%',
+    textAlign: 'center',
+    '& > *': {
+      marginBottom: 30,
+    },
   },
   buttonWrapper: {
     width: '100%',
@@ -83,16 +90,18 @@ export default function Login() {
       <div className={classes.logoWrapper}>
         <Logo />
       </div>
-      <Typography variant="h6" align="center" color="textSecondary">
-        Please login
-      </Typography>
-      <Typography paragraph>
-        You need to sign in to Map the Paths Web to continue. Please login by
-        clicking the sign in button below. You can get a free account.
-        <Button onClick={() => gotoExternal(websiteUrl)} color="primary">
-          here
-        </Button>
-      </Typography>
+      <div className={classes.contentWrapper}>
+        <Typography variant="h6" align="center" color="textSecondary">
+          Please login
+        </Typography>
+        <Typography paragraph>
+          You need to sign in to Map the Paths Web to continue. Please login by
+          clicking the sign in button below. You can get a free account.
+          <Button onClick={() => gotoExternal(websiteUrl)} color="primary">
+            here
+          </Button>
+        </Typography>
+      </div>
 
       <div className={classes.buttonWrapper}>
         <Button
