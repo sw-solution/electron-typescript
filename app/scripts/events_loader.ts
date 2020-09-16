@@ -47,16 +47,6 @@ import loadDefaultNadir from './nadir';
 import axiosErrorHandler from './utils/axios';
 
 if (process.env.NODE_ENV === 'development') {
-  // tokenStore.set('mapillary', {
-  //   waiting: false,
-  //   value:
-  //     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJtcHkiLCJzdWIiOiJ6dkhRTlZNNGtCcG5nNldIRlhwSWR6IiwiYXVkIjoiZW5aSVVVNVdUVFJyUW5CdVp6WlhTRVpZY0Vsa2VqcGxZVFl3TlRCbU1UUXdNVEExTXpReSIsImlhdCI6MTU5OTQ3NjU5NjM4NiwianRpIjoiYmFmYTQyNjI3ZGNiZTFlNzgzY2FiZWU1MzRjM2QzNDQiLCJzY28iOlsidXNlcjplbWFpbCIsInByaXZhdGU6dXBsb2FkIl0sInZlciI6MX0.K_4Y-4dyL3Xu9uc55XZ0u7XVKRG_sNl4m3_ETgbTkb4',
-  // });
-  // // tokenStore.set('mapillary', null);
-  // tokenStore.set('mtp', {
-  //   waiting: false,
-  //   value: 'g4Et0keHTY28pwfK9uIIYTmAtBJcSg',
-  // });
 } else {
   tokenStore.set('mtp', null);
   tokenStore.set('mapillary', null);
