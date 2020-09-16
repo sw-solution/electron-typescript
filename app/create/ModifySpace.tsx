@@ -171,7 +171,7 @@ export default function SequenceModifySpace() {
   return (
     <>
       <Grid item xs={12}>
-        <Typography variant="h5" align="center" color="textSecondary">
+        <Typography variant="h6" align="center" color="textSecondary">
           Set image spacing
         </Typography>
         <Typography paragraph>
