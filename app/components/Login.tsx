@@ -79,15 +79,19 @@ export default function Login() {
       <div className={classes.logoWrapper}>
         <Logo />
       </div>
-      <Typography variant="h6">
+      <Typography variant="h6" align="center" color="textSecondary">
+          Please login
+        </Typography>
+      <Typography paragraph>
+          You nedd to sign in to Map the Paths Web to continue. Please login by
+          clicking the sign in button below. You can get a free account.
         <span>
-          You need to sign in to Map the Paths Web to continue. Please login by
-          clicking the sign in button below. You can get a free account
-        </span>
-        <Button onClick={() => gotoExternal(websiteUrl)} color="primary">
+          <Button onClick={() => gotoExternal(websiteUrl)} color="primary">
           here
-        </Button>
+          </Button>
+        </span>
       </Typography>
+      
       <div className={classes.buttonWrapper}>
         <Button
           onClick={login}
