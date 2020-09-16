@@ -83,13 +83,11 @@ export default function Login() {
           Please login
         </Typography>
       <Typography paragraph>
-          You nedd to sign in to Map the Paths Web to continue. Please login by
+          You need to sign in to Map the Paths Web to continue. Please login by
           clicking the sign in button below. You can get a free account.
-        <span>
           <Button onClick={() => gotoExternal(websiteUrl)} color="primary">
           here
           </Button>
-        </span>
       </Typography>
       
       <div className={classes.buttonWrapper}>
