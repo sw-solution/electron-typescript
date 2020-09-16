@@ -47,16 +47,16 @@ import loadDefaultNadir from './nadir';
 import axiosErrorHandler from './utils/axios';
 
 if (process.env.NODE_ENV === 'development') {
-  tokenStore.set('mapillary', {
-    waiting: false,
-    value:
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJtcHkiLCJzdWIiOiJ6dkhRTlZNNGtCcG5nNldIRlhwSWR6IiwiYXVkIjoiZW5aSVVVNVdUVFJyUW5CdVp6WlhTRVpZY0Vsa2VqcGxZVFl3TlRCbU1UUXdNVEExTXpReSIsImlhdCI6MTU5OTQ3NjU5NjM4NiwianRpIjoiYmFmYTQyNjI3ZGNiZTFlNzgzY2FiZWU1MzRjM2QzNDQiLCJzY28iOlsidXNlcjplbWFpbCIsInByaXZhdGU6dXBsb2FkIl0sInZlciI6MX0.K_4Y-4dyL3Xu9uc55XZ0u7XVKRG_sNl4m3_ETgbTkb4',
-  });
-  // tokenStore.set('mapillary', null);
-  tokenStore.set('mtp', {
-    waiting: false,
-    value: 'g4Et0keHTY28pwfK9uIIYTmAtBJcSg',
-  });
+  // tokenStore.set('mapillary', {
+  //   waiting: false,
+  //   value:
+  //     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJtcHkiLCJzdWIiOiJ6dkhRTlZNNGtCcG5nNldIRlhwSWR6IiwiYXVkIjoiZW5aSVVVNVdUVFJyUW5CdVp6WlhTRVpZY0Vsa2VqcGxZVFl3TlRCbU1UUXdNVEExTXpReSIsImlhdCI6MTU5OTQ3NjU5NjM4NiwianRpIjoiYmFmYTQyNjI3ZGNiZTFlNzgzY2FiZWU1MzRjM2QzNDQiLCJzY28iOlsidXNlcjplbWFpbCIsInByaXZhdGU6dXBsb2FkIl0sInZlciI6MX0.K_4Y-4dyL3Xu9uc55XZ0u7XVKRG_sNl4m3_ETgbTkb4',
+  // });
+  // // tokenStore.set('mapillary', null);
+  // tokenStore.set('mtp', {
+  //   waiting: false,
+  //   value: 'g4Et0keHTY28pwfK9uIIYTmAtBJcSg',
+  // });
 } else {
   tokenStore.set('mtp', null);
   tokenStore.set('mapillary', null);
@@ -272,8 +272,9 @@ export default (mainWindow: BrowserWindow, app: App) => {
     const mapillaryToken = tokenStore.getValue('mapillary');
 
     const { mapillary, mtp } = sequence.steps.destination;
+    const mtpwToken = tokenStore.getValue('mtp');
 
-    if (mapillary) {
+    if ((mtp || mapillary) && mapillaryToken && mtpwToken) {
       const sessionData: Session = await loadMapillarySessionData(
         mapillaryToken
       );
@@ -298,8 +299,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
       resultjson.sequence.destination.mapillary = mapillarySessionKey;
     }
 
-    const mtpwToken = tokenStore.getValue('mtp');
-    if (mtpwToken && mtp) {
+    if ((mtp || mapillary) && mapillaryToken && mtpwToken) {
       const { mtpwSequence, mtpwError } = await postSequence(
         resultjson.sequence,
         mtpwToken
@@ -309,18 +309,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
         return errorHandler(mainWindow, mtpwError);
       }
 
-      if (mapillaryToken && mapillary) {
-        const { seqError } = await updateSequence(
-          mtpwSequence.unique_id,
-          mtpwToken,
-          resultjson.sequence.id,
-          mapillaryToken
-        );
-
-        if (seqError) {
-          return errorHandler(mainWindow, mtpwError);
-        }
-      }
+      resultjson.sequence.destination.mtp = mtpwSequence.unique_id;
     }
 
     fs.writeFileSync(
@@ -379,6 +368,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
       })
     );
     const mapillaryToken = tokenStore.getValue('mapillary');
+    const mtpwToken = tokenStore.getValue('mtp');
     const summaries: Summary[] = await Promise.all(
       sequences.map(async (s: Result) => {
         const summary = createdData2List(s);
@@ -396,9 +386,27 @@ export default (mainWindow: BrowserWindow, app: App) => {
             s.sequence.destination.mapillary,
             s.photo
           );
-          if (data) {
-            summary.destination.mapillary = '';
-            s.sequence.destination.mapillary = '';
+          if (
+            data &&
+            s.sequence.destination.mtp &&
+            typeof s.sequence.destination.mtp === 'string'
+          ) {
+            const { seqError } = await updateSequence(
+              s.sequence.destination.mtp,
+              mtpwToken,
+              data,
+              mapillaryToken
+            );
+
+            if (seqError) {
+              summary.destination.mtp = `Error: ${seqError}`;
+              s.sequence.destination.mtp = `Error: ${seqError}`;
+            } else {
+              s.sequence.destination.mtp = true;
+              summary.destination.mapillary = '';
+              summary.destination.mtp = true;
+              s.sequence.destination.mapillary = '';
+            }
           } else if (error) {
             summary.destination.mapillary = `Error: ${error}`;
             s.sequence.destination.mapillary = `Error: ${error}`;
@@ -449,7 +457,6 @@ export default (mainWindow: BrowserWindow, app: App) => {
       sequence: Summary,
       integrations: { [key: string]: boolean }
     ) => {
-      console.log('update_destination');
       const { mapillary, mtp } = integrations;
 
       const { name, points } = sequence;
@@ -502,8 +509,6 @@ export default (mainWindow: BrowserWindow, app: App) => {
               );
             }
 
-            console.log(resultjson);
-
             resultjson.sequence.destination = {
               mapillary: sessionData.data.key,
             };
@@ -520,21 +525,9 @@ export default (mainWindow: BrowserWindow, app: App) => {
             return errorHandler(mainWindow, mtpwError, 'update_error');
           }
 
-          if (mapillaryToken && mapillary) {
-            const { seqError } = await updateSequence(
-              mtpwSequence.unique_id,
-              mtpwToken,
-              sequence.id,
-              mapillaryToken
-            );
-
-            if (seqError) {
-              return errorHandler(mainWindow, mtpwError, 'update_error');
-            }
-          }
           resultjson.sequence.destination = {
             ...resultjson.sequence.destination,
-            mtp: true,
+            mtp: mtpwSequence.unique_id,
           };
         }
 

@@ -186,7 +186,7 @@ export const findSequences = async (
 
     if (mapillarySequenceRes.data.features.length) {
       return {
-        data: true,
+        data: mapillarySequenceRes.data.features[0].key,
       };
     }
     return {};

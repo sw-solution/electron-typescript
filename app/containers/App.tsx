@@ -73,7 +73,7 @@ export default function App(props: Props) {
       process.env.MTP_WEB_APP_ID &&
       process.env.MTP_WEB_APP_SECRET &&
       integrations[mtpTokenKey] &&
-      process.env.NODE_ENV !== 'development' &&
+      // process.env.NODE_ENV !== 'development' &&
       process.env.MTP_WEB_URL
     ) {
       dispatch(push(routes.LOGIN));

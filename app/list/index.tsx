@@ -16,6 +16,7 @@ import {
   TextField,
   Grid,
   Button,
+  LinearProgress,
 } from '@material-ui/core';
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -333,27 +334,32 @@ export default function ListPageWrapper() {
       </Drawer>
       <Wrapper title="Browse Sequences">
         <Grid container className={classes.gridContainer}>
-          <Grid item xs={12}>
-            <Box style={{ textAlign: 'right', marginBottom: '20px' }}>
-              <Button
-                onClick={() => {
-                  dispatch(push(routes.CREATE));
-                }}
-                color="primary"
-                startIcon={<AddIcon />}
-              >
-                Create
-              </Button>
-            </Box>
-          </Grid>
-          {items.length ? (
-            items
-          ) : (
-            <Typography>
-              No sequences exist that match the search criteria. Why not create
-              one? As if you needed an excuse for an adventure!
-            </Typography>
+          {loaded && (
+            <>
+              <Grid item xs={12}>
+                <Box style={{ textAlign: 'right', marginBottom: '20px' }}>
+                  <Button
+                    onClick={() => {
+                      dispatch(push(routes.CREATE));
+                    }}
+                    color="primary"
+                    startIcon={<AddIcon />}
+                  >
+                    Create
+                  </Button>
+                </Box>
+              </Grid>
+              {items.length ? (
+                items
+              ) : (
+                <Typography>
+                  No sequences exist that match the search criteria. Why not
+                  create one? As if you needed an excuse for an adventure!
+                </Typography>
+              )}
+            </>
           )}
+          {!loaded && <LinearProgress />}
         </Grid>
         <Modal open={state.deleteModalOpen} onClose={onDeleteModalClose}>
           {modalBody}

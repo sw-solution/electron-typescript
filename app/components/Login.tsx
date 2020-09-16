@@ -20,13 +20,14 @@ const { ipcRenderer } = window.require('electron');
 
 const useStyles = makeStyles((theme) => ({
   content: {
-    width: '100%',
-    height: '100%',
+    width: 'calc(100% + 16px)',
+    height: 'calc(100% + 16px)',
     display: 'flex',
     position: 'absolute',
     alignItems: 'baseline',
     justifyContent: 'center',
     flexWrap: 'wrap',
+    padding: '30',
     left: '-8px',
     top: '-8px',
   },
