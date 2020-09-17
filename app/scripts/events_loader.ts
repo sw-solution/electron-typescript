@@ -17,6 +17,7 @@ import {
   loadMapillarySessionData,
   findSequences,
   uploadImagesMapillary,
+  publishSession,
 } from './integrations/mapillary';
 import { postSequence, updateSequence } from './integrations/mtpw';
 
@@ -286,6 +287,14 @@ export default (mainWindow: BrowserWindow, app: App) => {
 
     if (mapillarySessionData) {
       const mapillarySessionKey = mapillarySessionData.key;
+
+      const publishSessionData = await publishSession(
+        mapillaryToken,
+        mapillarySessionData.key
+      );
+      if (publishSessionData.error) {
+        return errorHandler(mainWindow, publishSessionData.error);
+      }
       resultjson.sequence.destination.mapillary = mapillarySessionKey;
     }
 
@@ -495,6 +504,18 @@ export default (mainWindow: BrowserWindow, app: App) => {
               return errorHandler(
                 mainWindow,
                 axiosErrorHandler(e, 'MapillaryUploadingImage'),
+                'update_error'
+              );
+            }
+
+            const publishSessionData = await publishSession(
+              mapillaryToken,
+              sessionData.data.key
+            );
+            if (publishSessionData.error) {
+              return errorHandler(
+                mainWindow,
+                publishSessionData.error,
                 'update_error'
               );
             }

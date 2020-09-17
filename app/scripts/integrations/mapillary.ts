@@ -10,7 +10,9 @@ import { Session } from '../../types/Session';
 import { Photos } from '../../types/Result';
 import { IGeoPoint } from '../../types/IGeoPoint';
 import axiosErrorHandler from '../utils/axios';
-import { sendToClient, errorHandler } from '../utils';
+import { sendToClient } from '../utils';
+
+axios.defaults.timeout = 600000;
 
 axios.interceptors.response.use(
   (res) => res,
@@ -181,6 +183,7 @@ export const findSequences = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        timeout: 600000,
       }
     );
 
