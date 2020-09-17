@@ -38,9 +38,10 @@ export default function SequenceModifyAzimuth() {
     if (event.target.value) {
       const newazimuth = parseFloat(event.target.value);
       const newpoints = proppoints.map((p: IGeoPoint) => {
+        const updatedazimuth = ((p.Azimuth || 0) + newazimuth) % 360;
         return new IGeoPoint({
           ...p,
-          Azimuth: (p.Azimuth || 0) + newazimuth,
+          Azimuth: updatedazimuth,
         });
       });
       setState({
