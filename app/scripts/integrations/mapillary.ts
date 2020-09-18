@@ -65,7 +65,7 @@ export const publishSession = async (
         Authorization: `Bearer ${token}`,
       },
     };
-    await axios(publishConfig);
+    const res = await axios(publishConfig);
     return {};
   } catch (error) {
     return {
@@ -189,7 +189,7 @@ export const findSequences = async (
 
     if (mapillarySequenceRes.data.features.length) {
       return {
-        data: mapillarySequenceRes.data.features[0].key,
+        data: mapillarySequenceRes.data.features[0].properties.key,
       };
     }
     return {};
