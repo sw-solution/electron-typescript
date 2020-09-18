@@ -6,6 +6,7 @@ import path from 'path';
 import Async from 'async';
 import { BrowserWindow } from 'electron';
 
+import dayjs from 'dayjs';
 import { Session } from '../../types/Session';
 import { Photos } from '../../types/Result';
 import { IGeoPoint } from '../../types/IGeoPoint';
@@ -166,7 +167,15 @@ export const findSequences = async (
 ) => {
   try {
     const points = Object.values(photos);
+    points.sort((a, b) => {
+      return dayjs(a.modified.GPSDateTime).isBefore(
+        dayjs(b.modified.GPSDateTime)
+      )
+        ? -1
+        : 1;
+    });
     const user = await getUser(token);
+
     const uploadeSessions = await getUploadedSessions(token, sessionKey);
 
     if (uploadeSessions) {
@@ -177,15 +186,10 @@ export const findSequences = async (
 
     const startPoint = points[0];
     const endPoint = points[points.length - 1];
-    const mapillarySequenceRes = await axios.get(
-      `https://a.mapillary.com/v3/sequences?userkeys=${user.key}&client_id=${process.env.MAPILLARY_APP_ID}&start_time=${startPoint.modified.GPSDateTime}&end_time=${endPoint.modified.GPSDateTime}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        timeout: 600000,
-      }
-    );
+    const url = `https://a.mapillary.com/v3/sequences?userkeys=${user.key}&client_id=${process.env.MAPILLARY_APP_ID}&start_time=${startPoint.modified.GPSDateTime}&end_time=${endPoint.modified.GPSDateTime}`;
+    const mapillarySequenceRes = await axios.get(url, {
+      timeout: 600000,
+    });
 
     if (mapillarySequenceRes.data.features.length) {
       return {
