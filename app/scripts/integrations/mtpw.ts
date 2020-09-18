@@ -50,8 +50,8 @@ export const updateSequence = async (
   mapillaryToken: string
 ) => {
   const data = {
-    token: mapillaryToken,
-    seq_key: seqKey,
+    mapillary_user_token: mapillaryToken,
+    mapillary_sequence_key: seqKey,
   };
 
   const config = {
