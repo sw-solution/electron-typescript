@@ -1,6 +1,6 @@
 import axios from 'axios';
 import qs from 'qs';
-import { Sequence, Summary } from '../../types/Result';
+import { Sequence } from '../../types/Result';
 import axiosErrorHandler from '../utils/axios';
 
 axios.interceptors.response.use(
@@ -16,6 +16,7 @@ export const postSequence = async (sequence: Sequence, token: string) => {
     description: sequence.uploader_sequence_description,
     transport_type: sequence.uploader_transport_method,
     tag: sequence.uploader_tags.join(','),
+    source: 'mtpdu',
   };
   const config = {
     method: 'post',
@@ -64,7 +65,13 @@ export const updateSequence = async (
   };
 
   try {
-    await axios(config);
+    const res = await axios(config);
+    console.log('res.data: ', res.data);
+    if (res.data.error) {
+      return {
+        seqError: `MTPWImportSequence: ${res.data.error}`,
+      };
+    }
     return {};
   } catch (error) {
     return {
