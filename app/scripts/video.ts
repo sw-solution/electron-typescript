@@ -263,7 +263,7 @@ export async function writeTags2Image(
           if (err) return cb(err);
           const [red, green, blue] = color;
           const averageColor = (red + green + blue) / 3;
-          if (averageColor > 200 || averageColor < 55) {
+          if (averageColor < 200 && averageColor > 55) {
             result.push(item);
           }
           cb(null);
