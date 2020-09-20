@@ -296,6 +296,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
         return errorHandler(mainWindow, publishSessionData.error);
       }
       resultjson.sequence.destination.mapillary = mapillarySessionKey;
+      resultjson.sequence.destination.mapillary_user_token = mapillaryToken;
     }
 
     if ((mtp || mapillary) && mapillaryToken && mtpwToken) {
@@ -309,6 +310,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
       }
 
       resultjson.sequence.destination.mtp = mtpwSequence.unique_id;
+      resultjson.sequence.destination.mtpw_user_token = mtpwToken;
     }
 
     fs.writeFileSync(
