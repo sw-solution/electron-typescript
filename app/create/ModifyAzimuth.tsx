@@ -12,7 +12,6 @@ import {
   selPoints,
   setSequencePoints,
   resetPoints,
-  isRequiredNadir,
 } from './slice';
 import { IGeoPoint } from '../types/IGeoPoint';
 
@@ -25,7 +24,6 @@ export default function SequenceModifyAzimuth() {
   const dispatch = useDispatch();
   const propazimuth = useSelector(selSequenceAzimuth);
   const proppoints = useSelector(selPoints);
-  const isrequirednadir = useSelector(isRequiredNadir);
 
   const [state, setState] = React.useState<State>({
     points: proppoints,
@@ -67,11 +65,7 @@ export default function SequenceModifyAzimuth() {
 
   const confirmMode = () => {
     dispatch(setSequencePoints(points));
-    if (isrequirednadir) {
-      dispatch(setCurrentStep('nadir'));
-    } else {
-      dispatch(setCurrentStep('blur'));
-    }
+    dispatch(setCurrentStep('copyright'));
   };
 
   return (

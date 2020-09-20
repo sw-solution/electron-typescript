@@ -8,6 +8,8 @@ import Button from '@material-ui/core/Button';
 
 import { setSequenceName, selSequenceName, setError } from './slice';
 
+import { selTokens } from '../base/slice';
+
 import { selSeqNames } from '../list/slice';
 
 interface State {
@@ -24,6 +26,7 @@ export default function SequenceName() {
 
   const seqnames = useSelector(selSeqNames);
   const dispatch = useDispatch();
+  const tokens = useSelector(selTokens);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const regex = /^[A-Za-z\s0-9]*$/g;

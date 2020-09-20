@@ -12,7 +12,6 @@ import {
 
 import { makeStyles } from '@material-ui/core/styles';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import ThumbUpIcon from '@material-ui/icons/ThumbUp';
 
 import Map from '../components/Map';
 
