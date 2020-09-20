@@ -76,13 +76,14 @@ export function getPoint(
               const [red, green, blue] = color;
               const averageColor = (red + green + blue) / 3;
               console.log('Average Color: ', averageColor);
-              cb(null, averageColor > 200 || averageColor < 55);
+              cb(null, averageColor < 200 && averageColor > 55);
             });
           } else {
             cb(null, true);
           }
         },
         (valid: boolean, cb: CallableFunction) => {
+          console.log(valid);
           if (valid) {
             exiftool
               .read(filepath)
