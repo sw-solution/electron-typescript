@@ -60,13 +60,13 @@ export const updateSequence = async (
     url: `${process.env.MTP_WEB_URL}/api/v1/sequence/import/${seqId}/`,
     headers: {
       Authorization: `Bearer ${mtpwToken}`,
+      'Content-Type': 'application/json',
     },
-    data: qs.stringify(data),
+    data: JSON.stringify(data),
   };
 
   try {
     const res = await axios(config);
-    console.log('res.data: ', res.data);
     if (res.data.error) {
       return {
         seqError: `MTPWImportSequence: ${res.data.error}`,
