@@ -83,7 +83,6 @@ export function getPoint(
           }
         },
         (valid: boolean, cb: CallableFunction) => {
-          console.log(valid);
           if (valid) {
             exiftool
               .read(filepath)
@@ -635,7 +634,7 @@ export function updateImages(
         uploader_transport_type: settings.type,
         uploader_transport_method: settings.method,
         uploader_tags: settings.tags,
-        created: dayjs().format('YYYY-MM-DD'),
+        created: dayjs().format('YYYY-MM-DDTHH:mm:ss'),
         uploader_camera: settings.camera,
         destination: {},
       },

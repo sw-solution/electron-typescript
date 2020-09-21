@@ -15,11 +15,10 @@ import { Result, Summary, ExportPhoto } from '../types/Result';
 
 import {
   loadMapillarySessionData,
-  findSequences,
   uploadImagesMapillary,
   publishSession,
 } from './integrations/mapillary';
-import { postSequence, updateSequence } from './integrations/mtpw';
+import { postSequenceAPI, updateSequence } from './integrations/mtpw';
 
 import { loadImages, updateImages, addLogo, modifyLogo } from './image';
 import tokenStore from './tokens';
@@ -300,7 +299,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
     }
 
     if ((mtp || mapillary) && mapillaryToken && mtpwToken) {
-      const { mtpwSequence, mtpwError } = await postSequence(
+      const { mtpwSequence, mtpwError } = await postSequenceAPI(
         resultjson.sequence,
         mtpwToken
       );
@@ -368,56 +367,10 @@ export default (mainWindow: BrowserWindow, app: App) => {
         );
       })
     );
-    const mapillaryToken = tokenStore.getValue('mapillary');
-    const mtpwToken = tokenStore.getValue('mtp');
+
     const summaries: Summary[] = await Promise.all(
       sequences.map(async (s: Result) => {
-        const summary = createdData2List(s);
-
-        if (
-          s.sequence.destination &&
-          typeof s.sequence.destination.mapillary === 'string' &&
-          s.sequence.destination.mapillary &&
-          s.sequence.destination.mapillary !== '' &&
-          !s.sequence.destination.mapillary.startsWith('Error') &&
-          mapillaryToken
-        ) {
-          const { error, data } = await findSequences(
-            mapillaryToken,
-            s.sequence.destination.mapillary,
-            s.photo
-          );
-          if (
-            data &&
-            s.sequence.destination.mtp &&
-            typeof s.sequence.destination.mtp === 'string'
-          ) {
-            const { seqError } = await updateSequence(
-              s.sequence.destination.mtp,
-              mtpwToken,
-              data,
-              mapillaryToken
-            );
-
-            if (seqError) {
-              summary.destination.mtp = `Error: ${seqError}`;
-              s.sequence.destination.mtp = `Error: ${seqError}`;
-            } else {
-              s.sequence.destination.mtp = true;
-              summary.destination.mapillary = '';
-              summary.destination.mtp = true;
-              s.sequence.destination.mapillary = '';
-            }
-          } else if (error) {
-            summary.destination.mapillary = `Error: ${error}`;
-            s.sequence.destination.mapillary = `Error: ${error}`;
-          }
-
-          fs.writeFileSync(
-            getSequenceLogPath(s.sequence.uploader_sequence_name, basepath),
-            JSON.stringify(s)
-          );
-        }
+        const summary = await updateSequence(s, basepath);
         return summary;
       })
     );
@@ -428,6 +381,35 @@ export default (mainWindow: BrowserWindow, app: App) => {
 
     sendToClient(mainWindow, 'loaded_sequences', summaries);
   });
+
+  ipcMain.on(
+    'check_sequences',
+    async (_event: IpcMainEvent, names: string[]) => {
+      const sequences: Result[] = await Promise.all(
+        names.map(async (name: string) => {
+          return JSON.parse(
+            fs.readFileSync(getSequenceLogPath(name, basepath)).toString()
+          );
+        })
+      );
+
+      const summaries: Summary[] = await Promise.all(
+        sequences.map(async (s: Result) => {
+          const summary = await updateSequence(s, basepath);
+          return summary;
+        })
+      );
+
+      const result: {
+        [key: string]: Summary;
+      } = summaries.reduce((obj: any, s: Summary) => {
+        obj[s.id] = s;
+        return obj;
+      }, {});
+
+      sendToClient(mainWindow, 'updated_sequences', result);
+    }
+  );
 
   ipcMain.on('remove_sequence', async (_event: IpcMainEvent, name: string) => {
     if (fs.existsSync(getSequenceBasePath(name, basepath))) {
@@ -529,7 +511,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
         }
 
         if (mtp && mtpwToken) {
-          const { mtpwSequence, mtpwError } = await postSequence(
+          const { mtpwSequence, mtpwError } = await postSequenceAPI(
             resultjson.sequence,
             mtpwToken
           );

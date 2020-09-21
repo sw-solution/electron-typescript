@@ -23,6 +23,16 @@ const listSlice = createSlice({
       state.seqs = [...payload];
       state.loaded = true;
     },
+    updateSeqs(state, { payload }) {
+      state.seqs = state.seqs.map((s: Summary) => {
+        if (s.id in payload) {
+          return {
+            ...payload[s.id],
+          };
+        }
+        return s;
+      });
+    },
     addSeq(state, { payload }) {
       state.seqs = [payload, ...state.seqs];
     },
@@ -46,6 +56,7 @@ export const {
   addSeq,
   removeSeq,
   updateSequence,
+  updateSeqs,
 } = listSlice.actions;
 
 export default listSlice.reducer;

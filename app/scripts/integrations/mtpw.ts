@@ -1,7 +1,11 @@
 import axios from 'axios';
 import qs from 'qs';
-import { Sequence } from '../../types/Result';
+import fs from 'fs';
+import { Sequence, Result, Summary } from '../../types/Result';
 import axiosErrorHandler from '../utils/axios';
+import { createdData2List, getSequenceLogPath } from '../utils';
+import { findSequences } from './mapillary';
+import tokenStore from '../tokens';
 
 axios.interceptors.response.use(
   (res) => res,
@@ -10,7 +14,7 @@ axios.interceptors.response.use(
   }
 );
 
-export const postSequence = async (sequence: Sequence, token: string) => {
+export const postSequenceAPI = async (sequence: Sequence, token: string) => {
   const data = {
     name: sequence.uploader_sequence_name,
     description: sequence.uploader_sequence_description,
@@ -44,7 +48,7 @@ export const postSequence = async (sequence: Sequence, token: string) => {
   }
 };
 
-export const updateSequence = async (
+export const updateMapillaryDataAPI = async (
   seqId: string,
   mtpwToken: string,
   seqKey: string,
@@ -80,4 +84,60 @@ export const updateSequence = async (
   }
 };
 
-export default postSequence;
+export const updateSequence = async (
+  s: Result,
+  basepath: string
+): Promise<Summary> => {
+  const mapillaryToken = tokenStore.getValue('mapillary');
+  const mtpwToken = tokenStore.getValue('mtp');
+  const summary = createdData2List(s);
+  const { destination } = s.sequence;
+  let updated = false;
+
+  if (
+    destination &&
+    typeof destination.mapillary === 'string' &&
+    destination.mapillary !== '' &&
+    !destination.mapillary.startsWith('Error') &&
+    mapillaryToken
+  ) {
+    updated = true;
+    const { error, data } = await findSequences(
+      mapillaryToken,
+      destination.mapillary,
+      s.photo
+    );
+    if (data && destination.mtp && typeof destination.mtp === 'string') {
+      const { seqError } = await updateMapillaryDataAPI(
+        destination.mtp,
+        mtpwToken,
+        data,
+        mapillaryToken
+      );
+
+      if (seqError) {
+        summary.destination.mtp = `Error: ${seqError}`;
+        s.sequence.destination.mtp = `Error: ${seqError}`;
+      } else {
+        s.sequence.destination.mtp = true;
+        summary.destination.mapillary = '';
+        summary.destination.mtp = true;
+        s.sequence.destination.mapillary = '';
+      }
+    } else if (error) {
+      summary.destination.mapillary = `Error: ${error}`;
+      s.sequence.destination.mapillary = `Error: ${error}`;
+    }
+  }
+
+  if (updated) {
+    fs.writeFileSync(
+      getSequenceLogPath(s.sequence.uploader_sequence_name, basepath),
+      JSON.stringify(s)
+    );
+  }
+
+  return summary;
+};
+
+export default postSequenceAPI;

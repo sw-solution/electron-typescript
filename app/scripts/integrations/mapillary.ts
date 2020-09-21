@@ -186,7 +186,10 @@ export const findSequences = async (
 
     const startPoint = points[0];
     const endPoint = points[points.length - 1];
+    console.log('StartPoint:', startPoint.modified.GPSDateTime);
+    console.log('EndPoint:', endPoint.modified.GPSDateTime);
     const url = `https://a.mapillary.com/v3/sequences?userkeys=${user.key}&client_id=${process.env.MAPILLARY_APP_ID}&start_time=${startPoint.modified.GPSDateTime}&end_time=${endPoint.modified.GPSDateTime}`;
+    console.log('URL: ', url);
     const mapillarySequenceRes = await axios.get(url, {
       timeout: 600000,
     });

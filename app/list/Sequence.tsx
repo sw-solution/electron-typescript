@@ -25,7 +25,7 @@ import Map from '../components/Map';
 import transportType from '../../transports/transport-methods.json';
 
 import { selIntegrations, selBasePath } from '../base/slice';
-import { getSequenceLogPath } from '../scripts/utils';
+import { getSequenceBasePath } from '../scripts/utils';
 
 import { Summary } from '../types/Result';
 
@@ -56,7 +56,9 @@ const useStyles = makeStyles((theme) => ({
     top: 0,
   },
   destinationWrapper: {
-    textAlign: 'left',
+    display: 'flex',
+    alignItems: 'center',
+    flexWrap: 'wrap',
   },
 }));
 
@@ -135,7 +137,7 @@ export default function Sequence({ data, onDelete, onSelect }: Props) {
 
       <Grid container alignItems="center" spacing={3}>
         <Grid xs={4} item>
-          <Map points={points} height={200} showPopup={false} id={data.name} />
+          <Map points={points} height={220} id={data.name} />
         </Grid>
         <Grid xs={8} item>
           <Grid container className={classes.contentWrapper}>
@@ -197,7 +199,7 @@ export default function Sequence({ data, onDelete, onSelect }: Props) {
           <Grid container alignItems="center" spacing={3}>
             <Grid xs={12} item>
               <Typography variant="caption" color="secondary">
-                {basepath ? getSequenceLogPath(data.name, basepath) : ''}
+                {basepath ? getSequenceBasePath(data.name, basepath) : ''}
               </Typography>
             </Grid>
           </Grid>

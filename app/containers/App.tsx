@@ -16,7 +16,11 @@ import {
   selIntegrations,
   setTokens,
 } from '../base/slice';
+
+import { selSeqs, updateSeqs } from '../list/slice';
+
 import routes from '../constants/routes.json';
+import { Summary } from '../types/Result';
 
 const { ipcRenderer } = window.require('electron');
 const useStyles = makeStyles((theme) => ({
@@ -49,6 +53,7 @@ export default function App(props: Props) {
   const sequence = useSelector(selSequence);
   const name = useSelector(selSequenceName);
   const configLoaded = useSelector(selConfigLoaded);
+  const loadedSequences = useSelector(selSeqs);
 
   const integrations = useSelector(selIntegrations);
 
@@ -64,6 +69,30 @@ export default function App(props: Props) {
     showModal: false,
     aboutPage: false,
   });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const checkNeeded = loadedSequences
+        .filter(
+          (s: Summary) =>
+            Object.keys(integrations).filter((key: string) => {
+              return (
+                integrations[key] &&
+                typeof s.destination[key] === 'string' &&
+                s.destination[key] !== '' &&
+                !s.destination[key].startsWith('Error')
+              );
+            }).length > 0
+        )
+        .map((s: Summary) => s.name);
+
+      if (checkNeeded.length) {
+        console.log(checkNeeded);
+        ipcRenderer.send('check_sequences', checkNeeded);
+      }
+    }, 300000);
+    return () => clearInterval(interval);
+  }, [integrations, loadedSequences]);
 
   useEffect(() => {
     if (
@@ -117,11 +146,19 @@ export default function App(props: Props) {
       }
     );
 
+    ipcRenderer.on(
+      'updated_sequences',
+      (_event: IpcRendererEvent, seqs: { [key: string]: Summary }) => {
+        dispatch(updateSeqs(seqs));
+      }
+    );
+
     return () => {
       ipcRenderer.removeAllListeners('close_app');
       ipcRenderer.removeAllListeners('about_page');
       ipcRenderer.removeAllListeners('loaded_config');
       ipcRenderer.removeAllListeners('loaded_token');
+      ipcRenderer.removeAllListeners('updated_sequences');
     };
   });
 
