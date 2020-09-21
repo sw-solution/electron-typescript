@@ -46,6 +46,7 @@ import ProcessPage from './ProcessPage';
 import BlurPage from './Blur';
 import DestinationPage from './Destination';
 import DestinationLoginPage from './DestinationLogin';
+import Copyright from './Copyright';
 
 import routes from '../constants/routes.json';
 import {
@@ -264,6 +265,7 @@ export default function CreatePageWrapper() {
           {currentStep === 'modifySpace' && <ModifySpace />}
           {currentStep === 'outlier' && <ModifyOutlier />}
           {currentStep === 'azimuth' && <ModifyAzimuth />}
+          {currentStep === 'copyright' && <Copyright />}
           {currentStep === 'tags' && <Tags />}
           {currentStep === 'nadir' && <Nadir />}
           {currentStep === 'nadirPath' && <UploadNadir />}

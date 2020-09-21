@@ -35,6 +35,11 @@ const initialState = {
     },
     processPage: '',
     azimuth: 0,
+    copyright: {
+      artist: '',
+      copyright: '',
+      comment: '',
+    },
     tags: [],
     nadirPath: '',
     previewnadir: {
@@ -243,6 +248,11 @@ const createSequenceSlice = createSlice({
     setBlur: (state, { payload }) => {
       state.steps.blur = payload;
     },
+    setCopyright: (state, { payload }) => {
+      state.steps.copyright = {
+        ...payload,
+      };
+    },
     updateDestination: (state, { payload }) => {
       state.steps.destination = {
         ...state.steps.destination,
@@ -317,6 +327,7 @@ export const {
   setBlur,
   updateDestination,
   setDestination,
+  setCopyright,
 
   resetPoints,
 } = createSequenceSlice.actions;
@@ -573,6 +584,15 @@ export const selBlur = (state: RootState) => state.create.steps.blur;
 
 export const selDestination = (state: RootState) =>
   state.create.steps.destination;
+
+export const selCopyright = (state: RootState) =>
+  state.create.steps.copyright.copyright;
+
+export const selArtist = (state: RootState) =>
+  state.create.steps.copyright.artist;
+
+export const selComment = (state: RootState) =>
+  state.create.steps.copyright.comment;
 
 export const isRequiredNadir = (state: RootState) =>
   state.create.points.filter((point: IGeoPoint) => !point.equirectangular)
