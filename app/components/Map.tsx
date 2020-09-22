@@ -65,10 +65,8 @@ mapboxgl.accessToken = process.env.MAPBOX_TOKEN;
 export default function MapBox(props: Props) {
   const { points, height, showPopup, onDelete, id } = props;
   const seqname = useSelector(selSequenceName);
-  const name = seqname !== '' ? seqname : id;
-  const mapId = id
-    ? `map_${id.replace(/\s/g, '_')}`
-    : `map_${name.replace(/\s/g, '_')}`;
+  const name = id || seqname;
+  const mapId = `map_${name.replace(/\s/g, '_')}`;
   const [state, setState] = useState<State>({
     isopen: false,
     selected: -1,
@@ -324,21 +322,19 @@ export default function MapBox(props: Props) {
             'icon-rotate': ['get', 'rotate'],
           },
         });
-        if (showPopup && name) {
-          map.on('click', markerSymoblId, (e) => {
-            const bbox = [
-              [e.point.x - 5, e.point.y - 5],
-              [e.point.x + 5, e.point.y + 5],
-            ];
+        map.on('click', markerSymoblId, (e) => {
+          const bbox = [
+            [e.point.x - 5, e.point.y - 5],
+            [e.point.x + 5, e.point.y + 5],
+          ];
 
-            const features = map.queryRenderedFeatures(bbox, {
-              layers: [markerSymoblId],
-            });
-            if (features.length) {
-              showPhoto(features[0].properties.index);
-            }
+          const features = map.queryRenderedFeatures(bbox, {
+            layers: [markerSymoblId],
           });
-        }
+          if (features.length) {
+            showPhoto(features[0].properties.index);
+          }
+        });
       }
     }
   }, [filteredpoints, map, name, showPopup]);
@@ -381,7 +377,7 @@ export default function MapBox(props: Props) {
 }
 
 MapBox.defaultProps = {
-  height: 500,
+  height: 350,
   showPopup: true,
   onDelete: null,
   id: null,

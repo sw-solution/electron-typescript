@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { Alert, AlertTitle } from '@material-ui/lab';
 
 import {
-  Modal,
   Typography,
   FormControlLabel,
   Checkbox,
@@ -14,8 +13,9 @@ import { makeStyles } from '@material-ui/core/styles';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { shell } from 'electron';
 
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { selIntegrations, selTokens } from '../base/slice';
+import { selStep, setStep } from './slice';
 
 import { Summary } from '../types/Result';
 
@@ -23,20 +23,14 @@ const { ipcRenderer } = window.require('electron');
 
 const useStyles = makeStyles((theme) => ({
   paper: {
-    position: 'absolute',
-    width: 600,
-    height: 600,
+    width: 'calc(100% - 60px)',
+    height: 'calc(100% - 60px)',
     backgroundColor: theme.palette.background.paper,
-    border: '2px solid #000',
-    boxShadow: theme.shadows[5],
-    padding: theme.spacing(2, 4, 3),
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     flexWrap: 'wrap',
+    position: 'absolute',
 
     '& > *': {
       width: '100%',
@@ -47,11 +41,9 @@ const useStyles = makeStyles((theme) => ({
 
 interface Props {
   data: Summary;
-  onClose: CallableFunction;
 }
 
 interface State {
-  openModal: boolean;
   message: string | null;
   dest: {
     [key: string]: boolean | string;
@@ -59,23 +51,22 @@ interface State {
   error: string | null;
 }
 
-export default function EditSequence({ data, onClose }: Props) {
+export default function EditSequence({ data }: Props) {
   const { destination, name } = data;
   const classes = useStyles();
+  const step = useSelector(selStep);
+  const dispatch = useDispatch();
 
   const [state, setState] = useState<State>({
-    openModal: true,
     dest: destination,
     error: null,
     message: null,
   });
 
-  const [step, setStep] = useState<number>(0);
-
   const integrations = useSelector(selIntegrations);
   const tokens = useSelector(selTokens);
 
-  const { openModal, dest, error } = state;
+  const { dest, error } = state;
 
   useEffect(() => {
     if (
@@ -87,10 +78,10 @@ export default function EditSequence({ data, onClose }: Props) {
         .filter((key: string) => !(tokens[key] && tokens[key].value)).length ===
         0
     ) {
-      setStep(2);
+      dispatch(setStep(2));
       ipcRenderer.send('update_destination', data, dest);
     }
-  }, [data, dest, step, tokens]);
+  }, [data, dest, dispatch, step, tokens]);
 
   useEffect(() => {
     ipcRenderer.on('update_loaded_message', (_event, msg) => {
@@ -104,7 +95,7 @@ export default function EditSequence({ data, onClose }: Props) {
         ...state,
         error: err,
       });
-      setStep(0);
+      dispatch(setStep(0));
     });
     return () => {
       ipcRenderer.removeAllListeners('update_loaded_message');
@@ -112,19 +103,22 @@ export default function EditSequence({ data, onClose }: Props) {
     };
   });
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (key: string) => (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newState = {
+      ...state.dest,
+      [key]: event.target.checked,
+    };
+
+    if (key === 'mtp' || key === 'mapillary') {
+      newState.mtp = event.target.checked;
+      newState.mapillary = event.target.checked;
+    }
+
     setState({
       ...state,
-      dest: {
-        ...state.dest,
-        ...Object.keys(integrations).reduce(
-          (obj: { [key: string]: boolean }, integration: string) => {
-            obj[integration] = event.target.checked;
-            return obj;
-          },
-          {}
-        ),
-      },
+      dest: newState,
     });
   };
 
@@ -132,7 +126,7 @@ export default function EditSequence({ data, onClose }: Props) {
     const checkNode = (
       <Checkbox
         checked={!!dest[key]}
-        onChange={handleChange}
+        onChange={handleChange(key)}
         name={key}
         color="primary"
       />
@@ -195,21 +189,11 @@ export default function EditSequence({ data, onClose }: Props) {
       );
     });
 
-  const handleClose = () => {
-    if (step !== 2) {
-      setState({
-        ...state,
-        openModal: false,
-      });
-      onClose();
-    }
-  };
-
   const nextStep = () => {
-    setStep(step + 1);
+    dispatch(setStep(step + 1));
   };
 
-  const modalBody = (
+  return (
     <div className={classes.paper}>
       <Typography variant="h5">{name}</Typography>
 
@@ -252,11 +236,5 @@ export default function EditSequence({ data, onClose }: Props) {
         </>
       )}
     </div>
-  );
-
-  return (
-    <Modal open={openModal} onClose={handleClose}>
-      {modalBody}
-    </Modal>
   );
 }

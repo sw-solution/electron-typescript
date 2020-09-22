@@ -275,6 +275,8 @@ export default (mainWindow: BrowserWindow, app: App) => {
         mapillarySessionData = sessionData.data;
       }
     }
+
+    console.log('sequence.steps.copyright:', sequence.steps.copyright);
     const resultjson: Result = await updateImages(
       mainWindow,
       sequence.points,

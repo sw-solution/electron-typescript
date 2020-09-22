@@ -78,6 +78,7 @@ export default function App(props: Props) {
             Object.keys(integrations).filter((key: string) => {
               return (
                 integrations[key] &&
+                s.destination[key] &&
                 typeof s.destination[key] === 'string' &&
                 s.destination[key] !== '' &&
                 !s.destination[key].startsWith('Error')

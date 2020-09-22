@@ -6,9 +6,7 @@ import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 
-import { setSequenceName, selSequenceName, setError } from './slice';
-
-import { selTokens } from '../base/slice';
+import { setSequenceName, selSequenceName } from './slice';
 
 import { selSeqNames } from '../list/slice';
 
@@ -26,7 +24,6 @@ export default function SequenceName() {
 
   const seqnames = useSelector(selSeqNames);
   const dispatch = useDispatch();
-  const tokens = useSelector(selTokens);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const regex = /^[A-Za-z\s0-9]*$/g;

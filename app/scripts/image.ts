@@ -595,7 +595,15 @@ export function updateImages(
           typeof p.MAPLongitude !== 'undefined'
       )
       .map((p) => {
-        const newP = new IGeoPoint(p);
+        const newP = new IGeoPoint({
+          ...p,
+          tags: {
+            ...p.tags,
+            artist: settings.copyright.artist,
+            copyright: settings.copyright.copyright,
+            UserComment: settings.copyright.comment,
+          },
+        });
         return newP;
       });
 

@@ -125,7 +125,7 @@ export default function Sequence({ data, onDelete, onSelect }: Props) {
     <Grid xs={12} item className={classes.container}>
       <div className={classes.buttonWrapper}>
         {Object.keys(destination).length === 0 && (
-          <IconButton onClick={() => onSelect(data)} color="primary">
+          <IconButton onClick={() => onSelect(data.id)} color="primary">
             <EditIcon />
           </IconButton>
         )}
@@ -175,6 +175,12 @@ export default function Sequence({ data, onDelete, onSelect }: Props) {
                   <span className="far fa-images" />
                   <Typography color="primary" variant="caption" display="block">
                     {points.length}
+                  </Typography>
+                </div>
+                <div>
+                  <span className="fas fa-stopwatch" />
+                  <Typography color="primary" variant="caption" display="block">
+                    {data.time}
                   </Typography>
                 </div>
               </Box>

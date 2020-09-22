@@ -49,24 +49,27 @@ export default function Destination() {
     }
   };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setState({
+  const handleChange = (key: string) => (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newState = {
       ...state,
-      ...Object.keys(integrations).reduce(
-        (obj: { [key: string]: boolean }, integration: string) => {
-          obj[integration] = event.target.checked;
-          return obj;
-        },
-        {}
-      ),
-    });
+      [key]: event.target.checked,
+    };
+
+    if (key === 'mtp' || key === 'mapillary') {
+      newState.mtp = event.target.checked;
+      newState.mapillary = event.target.checked;
+    }
+
+    setState(newState);
   };
 
   const items = Object.keys(integrations).map((key) => {
     const checkNode = (
       <Checkbox
         checked={!!state[key]}
-        onChange={handleChange}
+        onChange={handleChange(key)}
         name={key}
         color="primary"
       />

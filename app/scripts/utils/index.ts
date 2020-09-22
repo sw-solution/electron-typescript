@@ -78,6 +78,7 @@ export function createdData2List(data: Result): Summary {
     description: sequence.uploader_sequence_description,
     type: sequence.uploader_transport_type,
     method: sequence.uploader_transport_method,
+    time: sequence.durationsec,
     points: Object.keys(photo).map((id) => {
       const p = photo[id];
       return new IGeoPoint({

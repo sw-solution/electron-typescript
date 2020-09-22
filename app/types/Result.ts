@@ -112,6 +112,7 @@ export interface Summary {
   description: string;
   type: TransportType;
   method: string;
+  time: number;
   points: IGeoPoint[];
   created: string;
   captured: string;
