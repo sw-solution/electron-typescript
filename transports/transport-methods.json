@@ -101,7 +101,7 @@
       },
       {
         "type": "Scooter",
-        "icon": "fas fa-ship",
+        "icon": "fas fa-mountain",
         "description": "",
         "secondary_parent": "",
         "mtp_api": "Scooter",
@@ -109,7 +109,7 @@
       },
       {
         "type": "Skateboard",
-        "icon": "fas fa-skiing-nordic",
+        "icon": "fas fa-mountain",
         "description": "",
         "secondary_parent": "",
         "mtp_api": "Skateboard",
@@ -117,7 +117,7 @@
       },
       {
         "type": "Rollerskate",
-        "icon": "fas fa-skating",
+        "icon": "fas fa-mountain",
         "description": "",
         "secondary_parent": "",
         "mtp_api": "Rollerskate",
@@ -148,7 +148,7 @@
       },
       {
         "type": "Snowboard",
-        "icon": "fas fa-skiing",
+        "icon": "fas fa-snowflake",
         "description": "",
         "secondary_parent": "",
         "mtp_api": "Snowboard",
@@ -156,7 +156,7 @@
       },
       {
         "type": "Snowshoe",
-        "icon": "fas fa-skating",
+        "icon": "fas fa-snowflake",
         "description": "",
         "secondary_parent": "",
         "mtp_api": "Snowshoe",
@@ -164,7 +164,7 @@
       },
       {
         "type": "Ice Skating",
-        "icon": "fas fa-skating",
+        "icon": "fas fa-snowflake",
         "description": "",
         "secondary_parent": "",
         "mtp_api": "Ice Skating",
