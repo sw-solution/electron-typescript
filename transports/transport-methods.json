@@ -9,63 +9,72 @@
         "icon": "fas fa-car",
         "description": "",
         "secondary_parent": "Land",
-        "mtp_api": "Car"
+        "mtp_api": "Car",
+        "strava_activity": "FALSE"
       },
       {
         "type": "Electric Car",
         "icon": "fas fa-charging-station",
         "description": "",
         "secondary_parent": "Land",
-        "mtp_api": "Electric Car"
+        "mtp_api": "Electric Car",
+        "strava_activity": "FALSE"
       },
       {
         "type": "Electric Bicycle",
         "icon": "fas fa-bicycle",
         "description": "",
         "secondary_parent": "Land",
-        "mtp_api": "Electric Bicycle"
+        "mtp_api": "Electric Bicycle",
+        "strava_activity": "EBikeRide"
       },
       {
         "type": "Plane",
         "icon": "fas fa-plane",
         "description": "",
         "secondary_parent": "Air",
-        "mtp_api": "Plane"
+        "mtp_api": "Plane",
+        "strava_activity": "FALSE"
       },
       {
         "type": "Helicopter",
         "icon": "fas fa-helicopter",
         "description": "",
         "secondary_parent": "Air",
-        "mtp_api": "Helicopter"
+        "mtp_api": "Helicopter",
+        "strava_activity": "FALSE"
       },
       {
         "type": "Drone",
         "icon": "fas fa-car-battery",
         "description": "",
         "secondary_parent": "Air",
-        "mtp_api": "Drone"
+        "mtp_api": "Drone",
+        "strava_activity": "FALSE"
       },
       {
         "type": "Electric Scooter",
         "icon": "fas fa-car-battery",
         "description": "",
         "secondary_parent": "Land",
-        "mtp_api": "Electric Scooter"
+        "mtp_api": "Electric Scooter",
+        "strava_activity": "FALSE"
       },
       {
         "type": "Boat",
         "icon": "fas fa-car-battery",
         "description": "",
         "secondary_parent": "Water",
-        "mtp_api": "Boat"
+        "mtp_api": "Boat",
+        "strava_activity": "FALSE"
       },
       {
         "type": "Snowmobile",
         "icon": "fas fa-car-battery",
         "description": "",
         "secondary_parent": "Snow",
-        "mtp_api": "Snowmobile"
+        "mtp_api": "Snowmobile",
+        "strava_activity": "FALSE"
       }
     ]
   },
@@ -79,35 +88,48 @@
         "icon": "fas fa-bicycle",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Bicycle"
+        "mtp_api": "Bicycle",
+        "strava_activity": "Ride"
       },
       {
         "type": "Walk",
         "icon": "fas fa-walking",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Walk"
+        "mtp_api": "Walk",
+        "strava_activity": "Walk"
       },
       {
         "type": "Scooter",
         "icon": "fas fa-ship",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Scooter"
+        "mtp_api": "Scooter",
+        "strava_activity": "Workout"
       },
       {
         "type": "Skateboard",
         "icon": "fas fa-skiing-nordic",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Skateboard"
+        "mtp_api": "Skateboard",
+        "strava_activity": "Skateboard"
       },
       {
         "type": "Rollerskate",
         "icon": "fas fa-skating",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Rollerskate"
+        "mtp_api": "Rollerskate",
+        "strava_activity": "InlineSkate"
+      },
+      {
+        "type": "Rock Climbing",
+        "icon": "fas fa-skating",
+        "description": "",
+        "secondary_parent": "",
+        "mtp_api": "Rock Climbing",
+        "strava_activity": "RockClimbing"
       }
     ]
   },
@@ -121,21 +143,32 @@
         "icon": "fas fa-skiing-nordic",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Ski"
+        "mtp_api": "Ski",
+        "strava_activity": "NordicSki"
       },
       {
         "type": "Snowboard",
         "icon": "fas fa-skiing",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Snowboard"
+        "mtp_api": "Snowboard",
+        "strava_activity": "Snowboard"
       },
       {
         "type": "Snowshoe",
         "icon": "fas fa-skating",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Snowshoe"
+        "mtp_api": "Snowshoe",
+        "strava_activity": "Snowshoe"
+      },
+      {
+        "type": "Ice Skating",
+        "icon": "fas fa-skating",
+        "description": "",
+        "secondary_parent": "",
+        "mtp_api": "Ice Skating",
+        "strava_activity": "IceSkate"
       }
     ]
   },
@@ -149,63 +182,88 @@
         "icon": "fas fa-swimmer",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Swim"
+        "mtp_api": "Swim",
+        "strava_activity": "Swim"
       },
       {
         "type": "Paddleboard",
         "icon": "fas fa-water",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Paddleboard"
+        "mtp_api": "Paddleboard",
+        "strava_activity": "StandUpPaddling"
       },
       {
         "type": "Scuba Dive",
         "icon": "fas fa-water",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Scuba Dive"
+        "mtp_api": "Scuba Dive",
+        "strava_activity": "Workout"
       },
       {
         "type": "Surf",
         "icon": "fas fa-water",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Surf"
+        "mtp_api": "Surf",
+        "strava_activity": "Surfing"
       },
       {
         "type": "Windsurf",
         "icon": "fas fa-water",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Windsurf"
+        "mtp_api": "Windsurf",
+        "strava_activity": "Windsurf"
       },
       {
         "type": "Kiteboard",
         "icon": "fas fa-water",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Kiteboard"
+        "mtp_api": "Kiteboard",
+        "strava_activity": "Kitesurf"
       },
       {
         "type": "Canoe",
         "icon": "fas fa-water",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Canoe"
+        "mtp_api": "Canoe",
+        "strava_activity": "Canoeing"
       },
       {
         "type": "Freedive",
         "icon": "fas fa-water",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Freedive"
+        "mtp_api": "Freedive",
+        "strava_activity": "Workout"
       },
       {
         "type": "Kayak",
         "icon": "fas fa-water",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Kayak"
+        "mtp_api": "Kayak",
+        "strava_activity": "Kayaking"
+      },
+      {
+        "type": "Row",
+        "icon": "fas fa-water",
+        "description": "",
+        "secondary_parent": "",
+        "mtp_api": "Row",
+        "strava_activity": "Rowing"
+      },
+      {
+        "type": "Sail",
+        "icon": "fas fa-water",
+        "description": "",
+        "secondary_parent": "",
+        "mtp_api": "Sail",
+        "strava_activity": "Sail"
       }
     ]
   },
@@ -219,42 +277,48 @@
         "icon": "fas fa-cloud",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Parachute"
+        "mtp_api": "Parachute",
+        "strava_activity": "FALSE"
       },
       {
         "type": "Paraglide",
         "icon": "fas fa-cloud",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Paraglide"
+        "mtp_api": "Paraglide",
+        "strava_activity": "FALSE"
       },
       {
         "type": "Hang Glide",
         "icon": "fas fa-cloud",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Hang Glide"
+        "mtp_api": "Hang Glide",
+        "strava_activity": "FALSE"
       },
       {
         "type": "Wingsuit",
         "icon": "fas fa-cloud",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Wingsuit"
+        "mtp_api": "Wingsuit",
+        "strava_activity": "FALSE"
       },
       {
         "type": "BASE Jump",
         "icon": "fas fa-cloud",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "BASE Jump"
+        "mtp_api": "BASE Jump",
+        "strava_activity": "FALSE"
       },
       {
         "type": "Glider",
         "icon": "fas fa-cloud",
         "description": "",
         "secondary_parent": "",
-        "mtp_api": "Glider"
+        "mtp_api": "Glider",
+        "strava_activity": "FALSE"
       }
     ]
   }
