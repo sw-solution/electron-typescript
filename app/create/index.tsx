@@ -68,6 +68,7 @@ import { setAddSeq } from '../list/slice';
 import Logo from '../components/Logo';
 import Wrapper from '../components/Wrapper';
 import RequireModify from './RequireModify';
+import GooglePlace from './GooglePlace';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -274,6 +275,7 @@ export default function CreatePageWrapper() {
           {currentStep === 'blur' && <BlurPage />}
           {currentStep === 'destination' && <DestinationPage />}
           {currentStep === 'destination_login' && <DestinationLoginPage />}
+          {currentStep === 'google_place' && <GooglePlace />}
         </Grid>
         <Modal open={state.showModal} onClose={handleClose}>
           {modalBody}

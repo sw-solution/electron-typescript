@@ -9,10 +9,18 @@
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  */
 import { app, BrowserWindow, shell, Menu } from 'electron';
+import http, { IncomingMessage } from 'http';
+import url from 'url';
+import axios from 'axios';
+import FormData from 'form-data';
 
-import eventsLoader, { sendTokenFromUrl } from './scripts/events_loader';
+import eventsLoader, {
+  sendTokenFromUrl,
+  sendToken,
+} from './scripts/events_loader';
 
 import { sendToClient } from './scripts/utils';
+import axiosErrorHandler from './scripts/utils/axios';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -119,6 +127,40 @@ const createWindow = async () => {
 
   eventsLoader(mainWindow, app);
 
+  const server = http.createServer(async (req: IncomingMessage, res) => {
+    if (req.url) {
+      const { code } = url.parse(req.url, true).query;
+      if (code) {
+        const data = new FormData();
+        data.append('client_id', process.env.GOOGLE_CLIENT_ID);
+        data.append('client_secret', process.env.GOOGLE_CLIENT_SECRET);
+        data.append('code', code);
+        data.append('grant_type', 'authorization_code');
+        data.append('redirect_uri', 'http://localhost:8000');
+
+        const config = {
+          method: 'post',
+          headers: {
+            ...data.getHeaders(),
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          url: 'https://oauth2.googleapis.com/token',
+          data,
+        };
+
+        try {
+          const tokenData = await axios(config);
+          sendToken(mainWindow, tokenData.data.access_token);
+        } catch (error) {
+          console.log(axiosErrorHandler(error, 'GOOGLE AUTH'));
+        }
+      }
+    }
+
+    res.end('hello');
+  });
+  server.listen(8000);
+
   // const menuBuilder = new MenuBuilder(mainWindow);
   // menuBuilder.buildMenu();
 };
@@ -154,8 +196,6 @@ if (!gotTheLock) {
       commandLine.forEach((l: string) => {
         if (l.indexOf('app.mtp.desktop:') >= 0) sendTokenFromUrl(mainWindow, l);
       });
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.focus();
     }
   });
 

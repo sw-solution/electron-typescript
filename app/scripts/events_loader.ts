@@ -8,17 +8,14 @@ import Async from 'async';
 import url from 'url';
 
 import { App, ipcMain, BrowserWindow, IpcMainEvent } from 'electron';
-import { Session } from '../types/Session';
+
 import { processVideo } from './video';
 
 import { Result, Summary, ExportPhoto } from '../types/Result';
+import { IGeoPoint } from '../types/IGeoPoint';
 
-import {
-  loadMapillarySessionData,
-  uploadImagesMapillary,
-  publishSession,
-} from './integrations/mapillary';
-import { postSequenceAPI, updateSequence } from './integrations/mtpw';
+import { updateSequence } from './integrations/mtpw';
+import integrateSequence from './integrations';
 
 import { loadImages, updateImages, addLogo, modifyLogo } from './image';
 import tokenStore from './tokens';
@@ -44,10 +41,11 @@ import { readGPX } from './utils/gpx';
 import loadCameras from './camera';
 import loadIntegrations from './integration';
 import loadDefaultNadir from './nadir';
-import axiosErrorHandler from './utils/axios';
 
 if (process.env.NODE_ENV === 'development') {
 } else {
+  tokenStore.set('strava', null);
+  tokenStore.set('google', null);
   tokenStore.set('mtp', null);
   tokenStore.set('mapillary', null);
 }
@@ -248,9 +246,11 @@ export default (mainWindow: BrowserWindow, app: App) => {
     // eslint-disable-next-line global-require
     const { buildGPX, GarminBuilder } = require('gpx-builder');
     const { Point } = GarminBuilder.MODELS;
+    const settings = sequence.steps;
 
     const { logofile, percentage } = sequence.steps.previewnadir;
     const logo = logofile !== '' ? await jimp.read(logofile) : null;
+
     if (logofile !== '' && logo) {
       logo.resize(
         sequence.points[0].width,
@@ -258,86 +258,83 @@ export default (mainWindow: BrowserWindow, app: App) => {
       );
     }
 
-    let mapillarySessionData = null;
-    const mapillaryToken = tokenStore.getValue('mapillary');
+    const points = sequence.points
+      .filter(
+        (p) =>
+          typeof p.MAPAltitude !== 'undefined' &&
+          typeof p.MAPLatitude !== 'undefined' &&
+          typeof p.MAPLongitude !== 'undefined'
+      )
+      .map((p) => {
+        const newP = new IGeoPoint({
+          ...p,
+          tags: {
+            ...p.tags,
+            artist: settings.copyright.artist,
+            copyright: settings.copyright.copyright,
+            UserComment: settings.copyright.comment,
+          },
+        });
+        return newP;
+      });
 
-    const { mapillary, mtp } = sequence.steps.destination;
-    const mtpwToken = tokenStore.getValue('mtp');
-
-    if ((mtp || mapillary) && mapillaryToken && mtpwToken) {
-      const sessionData: Session = await loadMapillarySessionData(
-        mapillaryToken
-      );
-      if (sessionData.error) {
-        return errorHandler(mainWindow, sessionData.error);
-      }
-      if (sessionData.data) {
-        mapillarySessionData = sessionData.data;
-      }
-    }
-
-    console.log('sequence.steps.copyright:', sequence.steps.copyright);
     const resultjson: Result = await updateImages(
       mainWindow,
-      sequence.points,
-      sequence.steps,
+      points,
+      settings,
       logo,
-      basepath,
-      mapillarySessionData
+      basepath
     );
-
-    if (mapillarySessionData) {
-      const mapillarySessionKey = mapillarySessionData.key;
-
-      const publishSessionData = await publishSession(
-        mapillaryToken,
-        mapillarySessionData.key
-      );
-      if (publishSessionData.error) {
-        return errorHandler(mainWindow, publishSessionData.error);
-      }
-      resultjson.sequence.destination.mapillary = mapillarySessionKey;
-      resultjson.sequence.destination.mapillary_user_token = mapillaryToken;
+    let outputType = OutputType.raw;
+    if (settings.nadirPath !== '') {
+      outputType = OutputType.nadir;
     }
 
-    if ((mtp || mapillary) && mapillaryToken && mtpwToken) {
-      const { mtpwSequence, mtpwError } = await postSequenceAPI(
-        resultjson.sequence,
-        mtpwToken
-      );
-
-      if (mtpwError) {
-        return errorHandler(mainWindow, mtpwError);
-      }
-
-      resultjson.sequence.destination.mtp = mtpwSequence.unique_id;
-      resultjson.sequence.destination.mtpw_user_token = mtpwToken;
-    }
-
-    fs.writeFileSync(
-      getSequenceLogPath(sequence.steps.name, basepath),
-      JSON.stringify(resultjson)
+    const baseDirectory = getSequenceOutputPath(
+      settings.name,
+      outputType,
+      basepath
+    );
+    const { result, error } = await integrateSequence(
+      mainWindow,
+      settings.destination,
+      resultjson,
+      points,
+      baseDirectory,
+      'loaded_message',
+      settings.googlePlace
     );
 
-    await removeTempFiles(app);
+    if (result) {
+      fs.writeFileSync(
+        getSequenceLogPath(settings.name, basepath),
+        JSON.stringify(result)
+      );
 
-    const gpxData = new GarminBuilder();
+      await removeTempFiles(app);
 
-    const points = Object.values(resultjson.photo).map((p: ExportPhoto) => {
-      return new Point(p.modified.latitude, p.modified.longitude, {
-        ele: p.modified.altitude,
-        time: dayjs(p.modified.GPSDateTime).toDate(),
+      const gpxData = new GarminBuilder();
+
+      const gpxPoints = Object.values(result.photo).map((p: ExportPhoto) => {
+        return new Point(p.modified.latitude, p.modified.longitude, {
+          ele: p.modified.altitude,
+          time: dayjs(p.modified.GPSDateTime).toDate(),
+        });
       });
-    });
 
-    gpxData.setSegmentPoints(points);
+      gpxData.setSegmentPoints(gpxPoints);
 
-    fs.writeFileSync(
-      getSequenceGpxPath(sequence.steps.name, basepath),
-      buildGPX(gpxData.toObject())
-    );
+      fs.writeFileSync(
+        getSequenceGpxPath(settings.name, basepath),
+        buildGPX(gpxData.toObject())
+      );
 
-    return sendToClient(mainWindow, 'add-seq', createdData2List(resultjson));
+      return sendToClient(mainWindow, 'add-seq', createdData2List(result));
+    }
+    if (error) {
+      return errorHandler(mainWindow, error);
+    }
+    return errorHandler(mainWindow, 'Error');
   });
 
   ipcMain.on('sequences', async (_event: IpcMainEvent) => {
@@ -440,117 +437,53 @@ export default (mainWindow: BrowserWindow, app: App) => {
     async (
       _event,
       sequence: Summary,
-      integrations: { [key: string]: boolean }
+      integrations: { [key: string]: boolean },
+      googlePlace?: string
     ) => {
-      const { mapillary, mtp } = integrations;
-
       const { name, points } = sequence;
-
-      const mtpwToken = tokenStore.getValue('mtp');
-
-      const mapillaryToken = tokenStore.getValue('mapillary');
 
       const resultjson: Result = JSON.parse(
         fs.readFileSync(getSequenceLogPath(name, basepath)).toString()
       );
-      try {
-        if (mapillary && mapillaryToken) {
-          const sessionData: Session = await loadMapillarySessionData(
-            mapillaryToken
-          );
-          if (sessionData.error) {
-            return errorHandler(mainWindow, sessionData.error, 'update_error');
-          }
 
-          if (sessionData.data) {
-            let directoryPath = getSequenceOutputPath(
-              name,
-              OutputType.raw,
-              basepath
-            );
+      let directoryPath = getSequenceOutputPath(name, OutputType.raw, basepath);
 
-            const nadirPath = getSequenceOutputPath(
-              name,
-              OutputType.nadir,
-              basepath
-            );
+      const nadirPath = getSequenceOutputPath(name, OutputType.nadir, basepath);
 
-            if (fs.existsSync(nadirPath)) {
-              directoryPath = nadirPath;
-            }
+      if (fs.existsSync(nadirPath)) {
+        directoryPath = nadirPath;
+      }
 
-            try {
-              await uploadImagesMapillary(
-                mainWindow,
-                points,
-                directoryPath,
-                sessionData.data
-              );
-            } catch (e) {
-              return errorHandler(
-                mainWindow,
-                axiosErrorHandler(e, 'MapillaryUploadingImage'),
-                'update_error'
-              );
-            }
+      const { result, error } = await integrateSequence(
+        mainWindow,
+        integrations,
+        resultjson,
+        points,
+        directoryPath,
+        'update_loaded_message',
+        googlePlace
+      );
 
-            const publishSessionData = await publishSession(
-              mapillaryToken,
-              sessionData.data.key
-            );
-            if (publishSessionData.error) {
-              return errorHandler(
-                mainWindow,
-                publishSessionData.error,
-                'update_error'
-              );
-            }
-
-            resultjson.sequence.destination = {
-              mapillary: sessionData.data.key,
-            };
-          }
-        }
-
-        if (mtp && mtpwToken) {
-          const { mtpwSequence, mtpwError } = await postSequenceAPI(
-            resultjson.sequence,
-            mtpwToken
-          );
-
-          if (mtpwError) {
-            return errorHandler(mainWindow, mtpwError, 'update_error');
-          }
-
-          resultjson.sequence.destination = {
-            ...resultjson.sequence.destination,
-            mtp: mtpwSequence.unique_id,
-          };
-        }
-
+      if (result) {
         fs.writeFileSync(
           getSequenceLogPath(name, basepath),
-          JSON.stringify(resultjson)
+          JSON.stringify(result)
         );
-        sendToClient(
+        return sendToClient(
           mainWindow,
           'update_sequence_finish',
-          createdData2List(resultjson)
+          createdData2List(result)
         );
-      } catch (e) {
-        return errorHandler(mainWindow, JSON.stringify(e), 'update_error');
       }
+      if (!error) {
+        return errorHandler(mainWindow, 'ERROR', 'update_error');
+      }
+      return errorHandler(mainWindow, error, 'update_error');
     }
   );
 };
 
-export const sendTokenFromUrl = async (
-  mainWindow: BrowserWindow,
-  protocolLink: string
-) => {
-  const token = url.parse(protocolLink.replace('#', '?'), true).query
-    .access_token;
-
+export const sendToken = (mainWindow: BrowserWindow, token: string) => {
   if (token) {
     const tokens = tokenStore.getAll();
 
@@ -570,5 +503,17 @@ export const sendTokenFromUrl = async (
       }
     });
     sendToClient(mainWindow, 'loaded_token', tokens);
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
   }
+};
+
+export const sendTokenFromUrl = async (
+  mainWindow: BrowserWindow,
+  protocolLink: string
+) => {
+  const token = url.parse(protocolLink.replace('#', '?'), true).query
+    .access_token;
+
+  sendToken(mainWindow, token);
 };

@@ -27,8 +27,6 @@ import {
   sendToClient,
 } from './utils';
 
-import { uploadImage } from './integrations/mapillary';
-
 const average = require('image-average-color');
 
 const { Tags, exiftool } = require('exiftool-vendored');
@@ -455,7 +453,6 @@ export function writeExifTags(
             .write(inputFile, tags, options)
             .then(() => cb())
             .catch((error: any) => {
-              console.log('Writing Exif tags issue: ', error);
               cb();
             });
         },
@@ -580,33 +577,12 @@ export function writeBlurredImage(
 
 export function updateImages(
   win: BrowserWindow,
-  points: IGeoPoint[],
+  updatedPoints: IGeoPoint[],
   settings: any,
   logo: any,
-  basepath: string,
-  mapillarySession: any
+  basepath: string
 ): Promise<Result> {
   return new Promise((resolve, reject) => {
-    const updatedPoints = points
-      .filter(
-        (p) =>
-          typeof p.MAPAltitude !== 'undefined' &&
-          typeof p.MAPLatitude !== 'undefined' &&
-          typeof p.MAPLongitude !== 'undefined'
-      )
-      .map((p) => {
-        const newP = new IGeoPoint({
-          ...p,
-          tags: {
-            ...p.tags,
-            artist: settings.copyright.artist,
-            copyright: settings.copyright.copyright,
-            UserComment: settings.copyright.comment,
-          },
-        });
-        return newP;
-      });
-
     const sequenceId = uuidv4();
 
     const totaldistance = updatedPoints.reduce(
@@ -793,45 +769,6 @@ export function updateImages(
           (err) => {
             if (err) {
               next(err);
-            } else if (mapillarySession) {
-              sendToClient(
-                win,
-                'loaded_message',
-                `End updating file: ${item.Image}`
-              );
-              let outputType = '';
-              if (settings.nadirPath !== '') {
-                outputType = OutputType.nadir;
-              } else {
-                outputType = OutputType.raw;
-              }
-              const filepath = getSequenceOutputFilePath(
-                settings.name,
-                item.Image,
-                outputType,
-                basepath
-              );
-              sendToClient(
-                win,
-                'loaded_message',
-                `Start uploading file: ${item.Image}`
-              );
-
-              // eslint-disable-next-line promise/no-promise-in-callback
-              uploadImage(filepath, item.Image, mapillarySession)
-                .then(() => {
-                  sendToClient(
-                    win,
-                    'loaded_message',
-                    `End uploading file: ${item.Image}`
-                  );
-                  // eslint-disable-next-line promise/no-callback-in-promise
-                  return next();
-                })
-                .catch((err: any) => {
-                  // eslint-disable-next-line promise/no-callback-in-promise
-                  next(err);
-                });
             } else {
               sendToClient(
                 win,

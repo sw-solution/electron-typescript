@@ -1,3 +1,5 @@
 {
-  "name": "MTP Web"
+  "name": "MTP Web",
+  "order": 1,
+  "envs": ["MTP_WEB_APP_ID", "MTP_WEB_APP_SECRET"]
 }

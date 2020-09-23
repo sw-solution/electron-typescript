@@ -48,17 +48,8 @@ export const postSequenceAPI = async (sequence: Sequence, token: string) => {
   }
 };
 
-export const updateMapillaryDataAPI = async (
-  seqId: string,
-  mtpwToken: string,
-  seqKey: string,
-  mapillaryToken: string
-) => {
-  const data = {
-    mapillary_user_token: mapillaryToken,
-    mapillary_sequence_key: seqKey,
-  };
-
+export const updateSequenceDataAPI = async (seqId: string, data: any) => {
+  const mtpwToken = tokenStore.getValue('mtp');
   const config = {
     method: 'put',
     url: `${process.env.MTP_WEB_URL}/api/v1/sequence/import/${seqId}/`,
@@ -89,7 +80,6 @@ export const updateSequence = async (
   basepath: string
 ): Promise<Summary> => {
   const mapillaryToken = tokenStore.getValue('mapillary');
-  const mtpwToken = tokenStore.getValue('mtp');
   const summary = createdData2List(s);
   const { destination } = s.sequence;
   let updated = false;
@@ -108,12 +98,10 @@ export const updateSequence = async (
       s.photo
     );
     if (data && destination.mtp && typeof destination.mtp === 'string') {
-      const { seqError } = await updateMapillaryDataAPI(
-        destination.mtp,
-        mtpwToken,
-        data,
-        mapillaryToken
-      );
+      const { seqError } = await updateSequenceDataAPI(destination.mtp, {
+        mapillary_user_token: mapillaryToken,
+        mapillary_sequence_key: data,
+      });
 
       if (seqError) {
         summary.destination.mtp = `Error: ${seqError}`;

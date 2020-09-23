@@ -6,7 +6,7 @@ import { IGeoPoint } from '../types/IGeoPoint';
 
 const initialState = {
   step: {
-    current: 'name',
+    current: 'google_place',
     passed: [],
   },
   steps: {
@@ -49,6 +49,7 @@ const initialState = {
     },
     blur: false,
     destination: {},
+    googlePlace: null,
   },
   points: [],
   passedPoints: {},
@@ -288,6 +289,9 @@ const createSequenceSlice = createSlice({
       if (!state.error && payload) state.error = payload;
       else if (!payload) state.error = null;
     },
+    setGooglePlace: (state, { payload }) => {
+      state.steps.googlePlace = payload;
+    },
   },
 });
 
@@ -328,6 +332,7 @@ export const {
   updateDestination,
   setDestination,
   setCopyright,
+  setGooglePlace,
 
   resetPoints,
 } = createSequenceSlice.actions;
@@ -597,3 +602,6 @@ export const selComment = (state: RootState) =>
 export const isRequiredNadir = (state: RootState) =>
   state.create.points.filter((point: IGeoPoint) => !point.equirectangular)
     .length === 0 && state.create.points.length;
+
+export const selGooglePlace = (state: RootState) =>
+  state.create.steps.googlePlace;

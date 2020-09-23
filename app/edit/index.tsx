@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Logo from '../components/Logo';
 import Wrapper from '../components/Wrapper';
 import { updateSequence } from '../list/slice';
-import { selEditSeq, setEdit } from './slice';
+import { selEditSeq, setEdit, selStep, setStep } from './slice';
 
 import routes from '../constants/routes.json';
 import { Summary } from '../types/Result';
@@ -54,11 +54,13 @@ export default function EditWrapper() {
   const dispatch = useDispatch();
 
   const sequence = useSelector(selEditSeq);
+  const step = useSelector(selStep);
 
   useEffect(() => {
     ipcRenderer.on('update_sequence_finish', (_event, seq: Summary) => {
       dispatch(updateSequence(seq));
       dispatch(setEdit(undefined));
+      dispatch(setStep(0));
     });
     return () => {
       ipcRenderer.removeAllListeners('update_sequence_finish');
@@ -88,13 +90,21 @@ export default function EditWrapper() {
         <Logo />
         <div className={classes.filterWrap}>
           <List>
-            <ListItem button onClick={() => gotoPage(routes.CREATE)}>
+            <ListItem
+              button
+              onClick={() => gotoPage(routes.CREATE)}
+              disabled={step === 2}
+            >
               <ListItemIcon>
                 <CreateIcon />
               </ListItemIcon>
               <ListItemText>Create Sequence</ListItemText>
             </ListItem>
-            <ListItem button onClick={() => gotoPage(routes.LIST)}>
+            <ListItem
+              button
+              onClick={() => gotoPage(routes.LIST)}
+              disabled={step === 2}
+            >
               <ListItemIcon>
                 <ListIcon />
               </ListItemIcon>

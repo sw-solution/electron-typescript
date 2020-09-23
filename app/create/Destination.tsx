@@ -17,6 +17,7 @@ import {
   setError,
   setProcessStep,
   setCurrentStep,
+  isRequiredNadir,
 } from './slice';
 
 import { selIntegrations } from '../base/slice';
@@ -32,6 +33,7 @@ export default function Destination() {
   const integrations = useSelector(selIntegrations);
   const sequence = useSelector(selSequence);
   const [state, setState] = useState<State>({});
+  const isrequirednadir = useSelector(isRequiredNadir);
 
   const confirmMode = () => {
     const checked = Object.keys(state).filter(
@@ -57,7 +59,7 @@ export default function Destination() {
       [key]: event.target.checked,
     };
 
-    if (key === 'mtp' || key === 'mapillary') {
+    if (key === 'mtp' || key === 'mapillary' || event.target.checked) {
       newState.mtp = event.target.checked;
       newState.mapillary = event.target.checked;
     }
@@ -65,35 +67,42 @@ export default function Destination() {
     setState(newState);
   };
 
-  const items = Object.keys(integrations).map((key) => {
-    const checkNode = (
-      <Checkbox
-        checked={!!state[key]}
-        onChange={handleChange(key)}
-        name={key}
-        color="primary"
-      />
-    );
-    const integrationLogo = (
-      <>
-        <img
-          src={`data:image/png;base64, ${integrations[key].logo}`}
-          alt={integrations[key].name}
-          width="70"
-          height="70"
+  const items = Object.keys(integrations)
+    .filter(
+      (key: string) => key !== 'google' || (key === 'google' && isrequirednadir)
+    )
+    .sort((a: string, b: string) =>
+      integrations[a].order > integrations[b].order ? 1 : -1
+    )
+    .map((key) => {
+      const checkNode = (
+        <Checkbox
+          checked={!!state[key]}
+          onChange={handleChange(key)}
+          name={key}
+          color="primary"
         />
-      </>
-    );
+      );
+      const integrationLogo = (
+        <>
+          <img
+            src={`data:image/png;base64, ${integrations[key].logo}`}
+            alt={integrations[key].name}
+            width="70"
+            height="70"
+          />
+        </>
+      );
 
-    return (
-      <FormControlLabel
-        color="primary"
-        control={checkNode}
-        label={integrationLogo}
-        key={key}
-      />
-    );
-  });
+      return (
+        <FormControlLabel
+          color="primary"
+          control={checkNode}
+          label={integrationLogo}
+          key={key}
+        />
+      );
+    });
 
   return (
     <>

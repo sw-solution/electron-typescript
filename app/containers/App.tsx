@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { push } from 'connected-react-router';
 import { IpcRendererEvent } from 'electron';
 import { useLocation } from 'react-router-dom';
+import ScriptTag from 'react-script-tag';
 
 import { Modal, Button } from '@material-ui/core';
 import { Alert, AlertTitle } from '@material-ui/lab';
@@ -215,6 +216,11 @@ export default function App(props: Props) {
       <Modal open={state.showModal} onClose={handleClose}>
         {modalBody}
       </Modal>
+      <ScriptTag
+        isHydrating
+        type="text/javascript"
+        src={`https://maps.googleapis.com/maps/api/js?key=${process.env.GOOGLE_API_KEY}&libraries=places`}
+      />
     </>
   );
 }

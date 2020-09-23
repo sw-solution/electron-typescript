@@ -94,7 +94,6 @@ export const uploadImage = (
     });
 
     formData.getLength((err, length: number) => {
-      console.log(`getting length of ${filename}: ${length}`);
       if (err) return reject(err);
 
       const config = {
@@ -186,10 +185,8 @@ export const findSequences = async (
 
     const startPoint = points[0];
     const endPoint = points[points.length - 1];
-    console.log('StartPoint:', startPoint.modified.GPSDateTime);
-    console.log('EndPoint:', endPoint.modified.GPSDateTime);
     const url = `https://a.mapillary.com/v3/sequences?userkeys=${user.key}&client_id=${process.env.MAPILLARY_APP_ID}&start_time=${startPoint.modified.GPSDateTime}&end_time=${endPoint.modified.GPSDateTime}`;
-    console.log('URL: ', url);
+
     const mapillarySequenceRes = await axios.get(url, {
       timeout: 600000,
     });
@@ -211,7 +208,8 @@ export const uploadImagesMapillary = (
   mainWindow: BrowserWindow,
   points: IGeoPoint[],
   directoryPath: string,
-  sessionData: any
+  sessionData: any,
+  messageChannelName = 'update_loaded_message'
 ) => {
   return new Promise((resolve, reject) => {
     Async.eachOfLimit(
@@ -220,7 +218,7 @@ export const uploadImagesMapillary = (
       (item: IGeoPoint, key: any, next: CallableFunction) => {
         sendToClient(
           mainWindow,
-          'update_loaded_message',
+          messageChannelName,
           `Start uploading: ${item.Image}`
         );
         const filepath = path.join(directoryPath, item.Image);
@@ -229,7 +227,7 @@ export const uploadImagesMapillary = (
           .then(() => {
             sendToClient(
               mainWindow,
-              'update_loaded_message',
+              messageChannelName,
               `End uploading: ${item.Image}`
             );
             // eslint-disable-next-line promise/no-callback-in-promise

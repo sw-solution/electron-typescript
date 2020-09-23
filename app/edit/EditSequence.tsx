@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
 import { Alert, AlertTitle } from '@material-ui/lab';
+import { grey } from '@material-ui/core/colors';
+import Autocomplete from 'react-google-autocomplete';
 
 import {
   Typography,
@@ -37,6 +39,24 @@ const useStyles = makeStyles((theme) => ({
       textAlign: 'center',
     },
   },
+
+  loginButtonWrapper: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    '& > *': {
+      margin: theme.spacing(2),
+    },
+  },
+  placeWrapper: {
+    width: '90%',
+    borderRadius: 4,
+    borderColor: grey[500],
+    borderWidth: 1,
+    fontSize: '1rem',
+    padding: theme.spacing(2),
+  },
 }));
 
 interface Props {
@@ -49,10 +69,14 @@ interface State {
     [key: string]: boolean | string;
   };
   error: string | null;
+  googlePlace: string | null;
 }
 
 export default function EditSequence({ data }: Props) {
-  const { destination, name } = data;
+  const { destination, name, points } = data;
+
+  const isrequiregoogle =
+    points.filter((point: IGeoPoint) => !point.equirectangular).length === 0;
   const classes = useStyles();
   const step = useSelector(selStep);
   const dispatch = useDispatch();
@@ -61,6 +85,7 @@ export default function EditSequence({ data }: Props) {
     dest: destination,
     error: null,
     message: null,
+    googlePlace: null,
   });
 
   const integrations = useSelector(selIntegrations);
@@ -68,20 +93,13 @@ export default function EditSequence({ data }: Props) {
 
   const { dest, error } = state;
 
-  useEffect(() => {
-    if (
-      step === 1 &&
-      data &&
-      Object.keys(dest).length &&
-      Object.keys(dest)
-        .filter((key) => dest[key])
-        .filter((key: string) => !(tokens[key] && tokens[key].value)).length ===
-        0
-    ) {
-      dispatch(setStep(2));
-      ipcRenderer.send('update_destination', data, dest);
-    }
-  }, [data, dest, dispatch, step, tokens]);
+  const enabled =
+    data &&
+    Object.keys(dest).length &&
+    Object.keys(dest)
+      .filter((key) => dest[key])
+      .filter((key: string) => !(tokens[key] && tokens[key].value)).length ===
+      0;
 
   useEffect(() => {
     ipcRenderer.on('update_loaded_message', (_event, msg) => {
@@ -111,7 +129,7 @@ export default function EditSequence({ data }: Props) {
       [key]: event.target.checked,
     };
 
-    if (key === 'mtp' || key === 'mapillary') {
+    if (key === 'mtp' || key === 'mapillary' || event.target.checked) {
       newState.mtp = event.target.checked;
       newState.mapillary = event.target.checked;
     }
@@ -122,35 +140,65 @@ export default function EditSequence({ data }: Props) {
     });
   };
 
-  const items = Object.keys(integrations).map((key) => {
-    const checkNode = (
-      <Checkbox
-        checked={!!dest[key]}
-        onChange={handleChange(key)}
-        name={key}
-        color="primary"
-      />
-    );
-    const integrationLogo = (
-      <>
-        <img
-          src={`data:image/png;base64, ${integrations[key].logo}`}
-          alt={integrations[key].name}
-          width="70"
-          height="70"
-        />
-      </>
-    );
+  const setPlace = (place) => {
+    setState({
+      ...state,
+      googlePlace: place.place_id,
+    });
+  };
 
-    return (
-      <FormControlLabel
-        color="primary"
-        control={checkNode}
-        label={integrationLogo}
-        key={key}
-      />
-    );
-  });
+  const confirmStep1 = () => {
+    if (enabled) {
+      if (!dest.google) {
+        dispatch(setStep(2));
+        ipcRenderer.send('update_destination', data, dest);
+      } else {
+        dispatch(setStep(3));
+      }
+    }
+  };
+
+  const confirmStep3 = () => {
+    dispatch(setStep(2));
+    ipcRenderer.send('update_destination', data, dest, state.googlePlace);
+  };
+
+  const items = Object.keys(integrations)
+    .filter(
+      (key: string) => (key === 'google' && isrequiregoogle) || key !== 'google'
+    )
+    .sort((a: string, b: string) =>
+      integrations[a].order > integrations[b].order ? 1 : -1
+    )
+    .map((key) => {
+      const checkNode = (
+        <Checkbox
+          checked={!!dest[key]}
+          onChange={handleChange(key)}
+          name={key}
+          color="primary"
+        />
+      );
+      const integrationLogo = (
+        <>
+          <img
+            src={`data:image/png;base64, ${integrations[key].logo}`}
+            alt={integrations[key].name}
+            width="70"
+            height="70"
+          />
+        </>
+      );
+
+      return (
+        <FormControlLabel
+          color="primary"
+          control={checkNode}
+          label={integrationLogo}
+          key={key}
+        />
+      );
+    });
 
   const gotoExternal = (url: string) => {
     shell.openExternal(url);
@@ -169,22 +217,32 @@ export default function EditSequence({ data }: Props) {
         <img
           src={`data:image/png;base64, ${integrations[integration].logo}`}
           alt={integrations[integration].name}
-          width="70"
-          height="70"
+          width="35"
+          height="35"
         />
       );
+
+      let color = 'primary';
+
+      let buttonTitle =
+        tokens[integration] && tokens[integration].waiting
+          ? 'Logining to'
+          : 'Login to';
+
+      if (tokens[integration] && tokens[integration].value) {
+        buttonTitle = 'Logged In';
+        color = 'default';
+      }
       return (
         <Button
           onClick={() => login(integration)}
           endIcon={integrationLogo}
           size="large"
-          color="primary"
+          color={color}
           variant="contained"
           key={integration}
         >
-          {tokens[integration] && tokens[integration].waiting
-            ? 'Logining to'
-            : 'Login to'}
+          {buttonTitle}
         </Button>
       );
     });
@@ -224,7 +282,22 @@ export default function EditSequence({ data }: Props) {
           </div>
         </>
       )}
-      {step === 1 && <div>{loginItems}</div>}
+      {step === 1 && (
+        <>
+          <div className={classes.loginButtonWrapper}>{loginItems}</div>
+          <div>
+            <Button
+              onClick={confirmStep1}
+              endIcon={<ChevronRightIcon />}
+              color="primary"
+              variant="contained"
+              disabled={!enabled}
+            >
+              Confirm
+            </Button>
+          </div>
+        </>
+      )}
       {step === 2 && (
         <>
           {state.message && (
@@ -233,6 +306,28 @@ export default function EditSequence({ data }: Props) {
             </Typography>
           )}
           <LinearProgress />
+        </>
+      )}
+      {step === 3 && (
+        <>
+          <div>
+            <Autocomplete
+              className={classes.placeWrapper}
+              onPlaceSelected={setPlace}
+              types={['(regions)']}
+            />
+          </div>
+          <div>
+            <Button
+              onClick={confirmStep3}
+              endIcon={<ChevronRightIcon />}
+              color="primary"
+              variant="contained"
+              disabled={!enabled}
+            >
+              Confirm
+            </Button>
+          </div>
         </>
       )}
     </div>
