@@ -6,7 +6,7 @@ import { IGeoPoint } from '../types/IGeoPoint';
 
 const initialState = {
   step: {
-    current: 'google_place',
+    current: 'name',
     passed: [],
   },
   steps: {
