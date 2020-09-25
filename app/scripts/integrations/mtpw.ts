@@ -6,6 +6,7 @@ import axiosErrorHandler from '../utils/axios';
 import { createdData2List, getSequenceLogPath } from '../utils';
 import { findSequences } from './mapillary';
 import tokenStore from '../tokens';
+import { findActivityAPI, getStravaToken, updateActivityAPI } from './strava';
 
 axios.interceptors.response.use(
   (res) => res,
@@ -49,7 +50,7 @@ export const postSequenceAPI = async (sequence: Sequence, token: string) => {
 };
 
 export const updateSequenceDataAPI = async (seqId: string, data: any) => {
-  const mtpwToken = tokenStore.getValue('mtp');
+  const mtpwToken = tokenStore.getToken('mtp');
   const config = {
     method: 'put',
     url: `${process.env.MTP_WEB_URL}/api/v1/sequence/import/${seqId}/`,
@@ -79,7 +80,8 @@ export const updateSequence = async (
   s: Result,
   basepath: string
 ): Promise<Summary> => {
-  const mapillaryToken = tokenStore.getValue('mapillary');
+  const mapillaryToken = tokenStore.getToken('mapillary');
+  const stravaToken = tokenStore.getToken('strava');
   const summary = createdData2List(s);
   const { destination } = s.sequence;
   let updated = false;
@@ -107,15 +109,81 @@ export const updateSequence = async (
         summary.destination.mtp = `Error: ${seqError}`;
         s.sequence.destination.mtp = `Error: ${seqError}`;
       } else {
-        s.sequence.destination.mtp = true;
-        summary.destination.mapillary = '';
-        summary.destination.mtp = true;
-        s.sequence.destination.mapillary = '';
+        summary.destination.mapillary = true;
+        s.sequence.destination.mapillary = true;
       }
     } else if (error) {
       summary.destination.mapillary = `Error: ${error}`;
       s.sequence.destination.mapillary = `Error: ${error}`;
     }
+  }
+
+  if (
+    destination &&
+    typeof destination.strava === 'string' &&
+    destination.strava !== '' &&
+    !destination.strava.startsWith('Error') &&
+    stravaToken
+  ) {
+    updated = true;
+
+    const newStravaToken = await getStravaToken(
+      tokenStore.getRefreshToken('strava')
+    );
+
+    if (newStravaToken.error) {
+      summary.destination.strava = `Error: ${newStravaToken.error}`;
+      s.sequence.destination.strava = `Error: ${newStravaToken.error}`;
+    } else if (newStravaToken.data) {
+      tokenStore.set('strava', { waiting: false, token: newStravaToken.data });
+
+      const stravaActivity = await findActivityAPI(
+        destination.strava,
+        newStravaToken.data.access_token
+      );
+      if (stravaActivity.error) {
+        s.sequence.destination.strava = `Error: ${stravaActivity.error}`;
+      } else if (
+        stravaActivity.data &&
+        stravaActivity.data.activity_id &&
+        typeof destination.mtp === 'string' &&
+        destination.mtp !== ''
+      ) {
+        const updateActivity = await updateActivityAPI(
+          s.sequence.uploader_transport_type,
+          stravaActivity.data.activity_id,
+          stravaToken
+        );
+
+        if (updateActivity.error) {
+          summary.destination.strava = `Error: ${updateActivity.error}`;
+          s.sequence.destination.strava = `Error: ${updateActivity.error}`;
+        } else {
+          const { seqError } = await updateSequenceDataAPI(destination.mtp, {
+            strava: true,
+          });
+
+          if (seqError) {
+            summary.destination.mtp = `Error: ${seqError}`;
+            s.sequence.destination.mtp = `Error: ${seqError}`;
+          }
+
+          summary.destination.strava = true;
+          s.sequence.destination.strava = true;
+        }
+      }
+    }
+  }
+
+  if (
+    typeof summary.destination.strava === 'boolean' &&
+    typeof summary.destination.mapillary === 'boolean' &&
+    summary.destination.strava &&
+    summary.destination.strava
+  ) {
+    updated = true;
+    summary.destination.mtp = true;
+    s.sequence.destination.mtp = true;
   }
 
   if (updated) {

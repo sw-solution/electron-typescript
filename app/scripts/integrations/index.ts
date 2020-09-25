@@ -1,4 +1,8 @@
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, App } from 'electron';
+
+import path from 'path';
+import fs from 'fs';
+
 import { IGeoPoint } from '../../types/IGeoPoint';
 import { Result } from '../../types/Result';
 import { Session } from '../../types/Session';
@@ -12,6 +16,7 @@ import {
   uploadImagesMapillary,
 } from './mapillary';
 import { uploadImagesToGoogle } from './google';
+import { uploadGpx } from './strava';
 
 export const getError = (error: any) => {
   return {
@@ -25,14 +30,16 @@ export default async (
   resultjson: Result,
   points: IGeoPoint[],
   baseDirectory: string,
+  basepath: string,
   messageChannelName: string,
   googlePlace?: string
 ) => {
-  const mapillaryToken = tokenStore.getValue('mapillary');
-  const mtpwToken = tokenStore.getValue('mtp');
-  const googleToken = tokenStore.getValue('google');
+  const mapillaryToken = tokenStore.getToken('mapillary');
+  const mtpwToken = tokenStore.getToken('mtp');
+  const googleToken = tokenStore.getToken('google');
+  const stravaToken = tokenStore.getToken('strava');
 
-  const { mapillary, mtp, google } = settings;
+  const { mapillary, mtp, google, strava } = settings;
 
   if (!mtp || !mtpwToken) return { result: resultjson };
 
@@ -88,22 +95,46 @@ export default async (
     }
   }
 
-  if (Object.keys(resultjson.sequence.destination).length) {
+  if (
+    Object.keys(resultjson.sequence.destination).length > 0 ||
+    (strava && stravaToken)
+  ) {
     const { mtpwSequence, mtpwError } = await postSequenceAPI(
       resultjson.sequence,
       mtpwToken
     );
 
-    const mtpwId = mtpwSequence.unique_id;
-
     if (mtpwError) {
       return getError(mtpwError);
     }
+
+    const mtpwId = mtpwSequence.unique_id;
 
     const updateSequenceData: { [key: string]: boolean } = {};
 
     if (google && googleToken) {
       updateSequenceData.google_street_view = true;
+    }
+
+    if (strava && stravaToken) {
+      const stravaUpload = await uploadGpx(
+        stravaToken,
+        resultjson.sequence,
+        mtpwId,
+        basepath
+      );
+
+      if (stravaUpload.error) {
+        return getError(stravaUpload.error);
+      }
+      if (!stravaUpload.data) {
+        return getError('No response from Strava');
+      }
+
+      const activityId = stravaUpload.data;
+
+      resultjson.sequence.destination.strava = activityId;
+      updateSequenceData.strava = true;
     }
 
     if (Object.keys(updateSequenceData).length) {
@@ -122,3 +153,77 @@ export default async (
 
   return { result: resultjson };
 };
+
+export const loginUrls = {
+  mapillary: `https://www.mapillary.com/connect?client_id=${process.env.MAPILLARY_APP_ID}&response_type=token&scope=user:email%20private:upload&redirect_uri=${process.env.MAPILLARY_REDIRECT_URI}`,
+  mtp: `${process.env.MTP_WEB_AUTH_URL}?client_id=${process.env.MTP_WEB_APP_ID}&response_type=token`,
+  strava: `https://www.strava.com/oauth/authorize?client_id=${process.env.STRAVA_CLIENT_ID}&redirect_uri=${process.env.MTP_WEB_URL}/accounts/check-mtpu-strava-oauth&response_type=code&approval_prompt=auto&scope=activity:write,read`,
+  google: `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.MTP_WEB_URL}/accounts/check-mtpu-google-oauth&response_type=code&scope=https://www.googleapis.com/auth/streetviewpublish`,
+};
+
+export async function loadIntegrations(app: App | null) {
+  if (
+    !(
+      process.env.MTP_WEB_APP_ID &&
+      process.env.MTP_WEB_APP_SECRET &&
+      process.env.MTP_WEB_URL &&
+      process.env.MTP_WEB_AUTH_URL
+    )
+  )
+    return {};
+
+  const integrationsRootPath = path.resolve(
+    app?.getAppPath(),
+    '../integrations'
+  );
+
+  const moduleIconPath = 'module-icon.png';
+  const moduleConfigPath = 'module.json';
+
+  const modules = await Promise.all(
+    fs
+      .readdirSync(integrationsRootPath)
+      .filter(
+        (name) =>
+          fs.lstatSync(path.join(integrationsRootPath, name)).isDirectory() &&
+          fs.existsSync(
+            path.join(integrationsRootPath, name, 'static', moduleIconPath)
+          ) &&
+          path.join(integrationsRootPath, name, moduleConfigPath)
+      )
+      .map(async (m: string) => {
+        const config = JSON.parse(
+          fs
+            .readFileSync(path.join(integrationsRootPath, m, moduleConfigPath))
+            .toString()
+        );
+
+        const settings = {
+          name: config.name,
+          loginUrl: loginUrls[m],
+          order: config.order,
+          // envs: config.envs,
+        };
+
+        return {
+          [m]: {
+            logo: fs
+              .readFileSync(
+                path.resolve(integrationsRootPath, m, 'static', moduleIconPath)
+              )
+              .toString('base64'),
+            ...settings,
+          },
+        };
+      })
+  );
+
+  return modules.reduce((obj, module: any) => {
+    const key = Object.keys(module)[0];
+    // if (module[key].envs.filter((v: string) => !process.env[v]).length === 0) {
+    //   obj[key] = module[key];
+    // }
+    obj[key] = module[key];
+    return obj;
+  }, {});
+}

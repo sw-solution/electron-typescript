@@ -14,7 +14,9 @@ interface State {
   tokens: {
     [key: string]: {
       waiting: boolean;
-      value: string;
+      token: {
+        [k1: string]: string;
+      };
     };
   };
   boardId: string;
@@ -47,7 +49,7 @@ const baseSlice = createSlice({
         ...state.tokens,
         [payload.key]: {
           waiting: false,
-          value: payload.token,
+          token: payload.token,
         },
       };
     },
@@ -95,7 +97,7 @@ export const selTokens = (state: RootState) => state.base.tokens;
 
 export const selToken = (state: RootState) => (tokenKey: string) => {
   if (state.base.tokens[tokenKey]) {
-    return state.base.tokens[tokenKey].value;
+    return state.base.tokens[tokenKey].token;
   }
   return null;
 };

@@ -15,7 +15,7 @@ import {
   setConfigLoadEnd,
   selToken,
   selIntegrations,
-  setTokens,
+  setToken,
 } from '../base/slice';
 
 import { selSeqs, updateSeqs } from '../list/slice';
@@ -143,8 +143,8 @@ export default function App(props: Props) {
 
     ipcRenderer.on(
       'loaded_token',
-      (_event: IpcRendererEvent, storedTokens: any) => {
-        dispatch(setTokens(storedTokens));
+      (_event: IpcRendererEvent, key: string, token: any) => {
+        dispatch(setToken({ key, token }));
       }
     );
 

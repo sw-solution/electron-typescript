@@ -10,7 +10,7 @@
         "description": "",
         "secondary_parent": "Land",
         "mtp_api": "Car",
-        "strava_activity": "FALSE"
+        "strava_activity": false
       },
       {
         "type": "Electric Car",
@@ -18,7 +18,7 @@
         "description": "",
         "secondary_parent": "Land",
         "mtp_api": "Electric Car",
-        "strava_activity": "FALSE"
+        "strava_activity": false
       },
       {
         "type": "Electric Bicycle",
@@ -34,7 +34,7 @@
         "description": "",
         "secondary_parent": "Air",
         "mtp_api": "Plane",
-        "strava_activity": "FALSE"
+        "strava_activity": false
       },
       {
         "type": "Helicopter",
@@ -42,7 +42,7 @@
         "description": "",
         "secondary_parent": "Air",
         "mtp_api": "Helicopter",
-        "strava_activity": "FALSE"
+        "strava_activity": false
       },
       {
         "type": "Drone",
@@ -50,7 +50,7 @@
         "description": "",
         "secondary_parent": "Air",
         "mtp_api": "Drone",
-        "strava_activity": "FALSE"
+        "strava_activity": false
       },
       {
         "type": "Electric Scooter",
@@ -58,7 +58,7 @@
         "description": "",
         "secondary_parent": "Land",
         "mtp_api": "Electric Scooter",
-        "strava_activity": "FALSE"
+        "strava_activity": false
       },
       {
         "type": "Boat",
@@ -66,7 +66,7 @@
         "description": "",
         "secondary_parent": "Water",
         "mtp_api": "Boat",
-        "strava_activity": "FALSE"
+        "strava_activity": false
       },
       {
         "type": "Snowmobile",
@@ -74,7 +74,7 @@
         "description": "",
         "secondary_parent": "Snow",
         "mtp_api": "Snowmobile",
-        "strava_activity": "FALSE"
+        "strava_activity": false
       }
     ]
   },
@@ -278,7 +278,7 @@
         "description": "",
         "secondary_parent": "",
         "mtp_api": "Parachute",
-        "strava_activity": "FALSE"
+        "strava_activity": false
       },
       {
         "type": "Paraglide",
@@ -286,7 +286,7 @@
         "description": "",
         "secondary_parent": "",
         "mtp_api": "Paraglide",
-        "strava_activity": "FALSE"
+        "strava_activity": false
       },
       {
         "type": "Hang Glide",
@@ -294,7 +294,7 @@
         "description": "",
         "secondary_parent": "",
         "mtp_api": "Hang Glide",
-        "strava_activity": "FALSE"
+        "strava_activity": false
       },
       {
         "type": "Wingsuit",
@@ -302,7 +302,7 @@
         "description": "",
         "secondary_parent": "",
         "mtp_api": "Wingsuit",
-        "strava_activity": "FALSE"
+        "strava_activity": false
       },
       {
         "type": "BASE Jump",
@@ -310,7 +310,7 @@
         "description": "",
         "secondary_parent": "",
         "mtp_api": "BASE Jump",
-        "strava_activity": "FALSE"
+        "strava_activity": false
       },
       {
         "type": "Glider",
@@ -318,7 +318,7 @@
         "description": "",
         "secondary_parent": "",
         "mtp_api": "Glider",
-        "strava_activity": "FALSE"
+        "strava_activity": false
       }
     ]
   }

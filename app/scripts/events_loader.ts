@@ -6,16 +6,18 @@ import dayjs from 'dayjs';
 import jimp from 'jimp';
 import Async from 'async';
 import url from 'url';
+import axios from 'axios';
+import FormData from 'form-data';
 
-import { App, ipcMain, BrowserWindow, IpcMainEvent } from 'electron';
+import { App, ipcMain, BrowserWindow, IpcMainEvent, dialog } from 'electron';
 
 import { processVideo } from './video';
 
-import { Result, Summary, ExportPhoto } from '../types/Result';
+import { Result, Summary } from '../types/Result';
 import { IGeoPoint } from '../types/IGeoPoint';
 
 import { updateSequence } from './integrations/mtpw';
-import integrateSequence from './integrations';
+import integrateSequence, { loadIntegrations } from './integrations';
 
 import { loadImages, updateImages, addLogo, modifyLogo } from './image';
 import tokenStore from './tokens';
@@ -36,18 +38,16 @@ import {
   OutputType,
 } from './utils';
 
+import axiosErrorHandler from './utils/axios';
+
 import { readGPX } from './utils/gpx';
 
 import loadCameras from './camera';
-import loadIntegrations from './integration';
+
 import loadDefaultNadir from './nadir';
 
 if (process.env.NODE_ENV === 'development') {
-} else {
-  tokenStore.set('strava', null);
-  tokenStore.set('google', null);
-  tokenStore.set('mtp', null);
-  tokenStore.set('mapillary', null);
+  // tokenStore.set('mapillary', null);
 }
 
 export default (mainWindow: BrowserWindow, app: App) => {
@@ -295,12 +295,30 @@ export default (mainWindow: BrowserWindow, app: App) => {
       outputType,
       basepath
     );
+
+    const gpxData = new GarminBuilder();
+
+    const gpxPoints = points.map((p: IGeoPoint) => {
+      return new Point(p.MAPLatitude, p.MAPLongitude, {
+        ele: p.MAPAltitude,
+        time: dayjs(p.GPSDateTime).toDate(),
+      });
+    });
+
+    gpxData.setSegmentPoints(gpxPoints);
+
+    fs.writeFileSync(
+      getSequenceGpxPath(settings.name, basepath),
+      buildGPX(gpxData.toObject())
+    );
+
     const { result, error } = await integrateSequence(
       mainWindow,
       settings.destination,
       resultjson,
       points,
       baseDirectory,
+      basepath,
       'loaded_message',
       settings.googlePlace
     );
@@ -313,28 +331,12 @@ export default (mainWindow: BrowserWindow, app: App) => {
 
       await removeTempFiles(app);
 
-      const gpxData = new GarminBuilder();
-
-      const gpxPoints = Object.values(result.photo).map((p: ExportPhoto) => {
-        return new Point(p.modified.latitude, p.modified.longitude, {
-          ele: p.modified.altitude,
-          time: dayjs(p.modified.GPSDateTime).toDate(),
-        });
-      });
-
-      gpxData.setSegmentPoints(gpxPoints);
-
-      fs.writeFileSync(
-        getSequenceGpxPath(settings.name, basepath),
-        buildGPX(gpxData.toObject())
-      );
-
       return sendToClient(mainWindow, 'add-seq', createdData2List(result));
     }
     if (error) {
       return errorHandler(mainWindow, error);
     }
-    return errorHandler(mainWindow, 'Error');
+    // return errorHandler(mainWindow, 'Error');
   });
 
   ipcMain.on('sequences', async (_event: IpcMainEvent) => {
@@ -460,6 +462,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
         resultjson,
         points,
         directoryPath,
+        basepath,
         'update_loaded_message',
         googlePlace
       );
@@ -483,37 +486,101 @@ export default (mainWindow: BrowserWindow, app: App) => {
   );
 };
 
-export const sendToken = (mainWindow: BrowserWindow, token: string) => {
-  if (token) {
-    const tokens = tokenStore.getAll();
-
-    Object.keys(tokens).forEach((key: string) => {
-      if (tokens[key] && tokens[key].waiting && !tokens[key].value) {
-        tokens[key] = {
-          waiting: false,
-          value: token,
-        };
-        tokenStore.set(key, tokens[key]);
-      } else if (!tokens[key]) {
-        tokens[key] = {
-          waiting: false,
-          value: null,
-        };
-        tokenStore.set(key, tokens[key]);
-      }
-    });
-    sendToClient(mainWindow, 'loaded_token', tokens);
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.focus();
+export const sendToken = (
+  mainWindow: BrowserWindow,
+  key: string,
+  tokenObj: any
+) => {
+  let token = tokenStore.get(key);
+  if (!token) {
+    token = {
+      waiting: true,
+      token: null,
+    };
   }
+  if (token.waiting) {
+    tokenStore.set(key, {
+      ...token,
+      waiting: false,
+      token: {
+        ...tokenObj,
+      },
+    });
+    sendToClient(mainWindow, 'loaded_token', key, tokenObj);
+  }
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.focus();
 };
 
 export const sendTokenFromUrl = async (
   mainWindow: BrowserWindow,
   protocolLink: string
 ) => {
-  const token = url.parse(protocolLink.replace('#', '?'), true).query
-    .access_token;
+  const urlObj = url.parse(protocolLink.replace('#', '?'), true);
+  let key = urlObj.hostname || 'mtp';
 
-  sendToken(mainWindow, token);
+  let token;
+
+  if (['google', 'strava', 'mapillary'].indexOf(key) < 0) {
+    key = 'mtp';
+  }
+
+  if (key === 'google') {
+    const { code } = urlObj.query;
+    if (code) {
+      const data = new FormData();
+      data.append('client_id', process.env.GOOGLE_CLIENT_ID);
+      data.append('client_secret', process.env.GOOGLE_CLIENT_SECRET);
+      data.append('code', code);
+      data.append('grant_type', 'authorization_code');
+      data.append(
+        'redirect_uri',
+        `${process.env.MTP_WEB_URL}/accounts/check-mtpu-google-oauth`
+      );
+
+      try {
+        const tokenData = await axios({
+          method: 'post',
+          headers: {
+            ...data.getHeaders(),
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          url: 'https://oauth2.googleapis.com/token',
+          data,
+        });
+        token = tokenData.data;
+      } catch (error) {
+        errorHandler(mainWindow, axiosErrorHandler(error, 'Google'));
+      }
+    }
+  } else if (key === 'strava') {
+    const { code } = urlObj.query;
+    if (code) {
+      const data = new FormData();
+      data.append('client_id', process.env.STRAVA_CLIENT_ID);
+      data.append('client_secret', process.env.STRAVA_CLIENT_SECRET);
+      data.append('code', code);
+      data.append('grant_type', 'authorization_code');
+
+      try {
+        const tokenData = await axios({
+          method: 'post',
+          headers: {
+            ...data.getHeaders(),
+          },
+          url: 'https://www.strava.com/api/v3/oauth/token',
+          data,
+        });
+        token = tokenData.data;
+      } catch (error) {
+        errorHandler(mainWindow, axiosErrorHandler(error, 'Strava'));
+      }
+    }
+  } else {
+    token = urlObj.query;
+  }
+
+  if (key && token) {
+    sendToken(mainWindow, key, token);
+  }
 };

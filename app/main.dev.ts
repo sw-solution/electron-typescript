@@ -8,16 +8,12 @@
  * When running `yarn build` or `yarn build-main`, this file is compiled to
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  */
-import { app, BrowserWindow, shell, Menu } from 'electron';
-import http, { IncomingMessage } from 'http';
+import { app, BrowserWindow, shell, Menu, dialog } from 'electron';
 import url from 'url';
 import axios from 'axios';
 import FormData from 'form-data';
 
-import eventsLoader, {
-  sendTokenFromUrl,
-  sendToken,
-} from './scripts/events_loader';
+import eventsLoader, { sendTokenFromUrl } from './scripts/events_loader';
 
 import { sendToClient } from './scripts/utils';
 import axiosErrorHandler from './scripts/utils/axios';
@@ -127,49 +123,14 @@ const createWindow = async () => {
 
   eventsLoader(mainWindow, app);
 
-  const server = http.createServer(async (req: IncomingMessage, res) => {
-    if (req.url) {
-      const { code } = url.parse(req.url, true).query;
-      if (code) {
-        const data = new FormData();
-        data.append('client_id', process.env.GOOGLE_CLIENT_ID);
-        data.append('client_secret', process.env.GOOGLE_CLIENT_SECRET);
-        data.append('code', code);
-        data.append('grant_type', 'authorization_code');
-        data.append('redirect_uri', 'http://localhost:8000');
-
-        const config = {
-          method: 'post',
-          headers: {
-            ...data.getHeaders(),
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          url: 'https://oauth2.googleapis.com/token',
-          data,
-        };
-
-        try {
-          const tokenData = await axios(config);
-          sendToken(mainWindow, tokenData.data.access_token);
-        } catch (error) {
-          console.log(axiosErrorHandler(error, 'GOOGLE AUTH'));
-        }
-      }
-    }
-
-    res.end('hello');
-  });
-  server.listen(8000);
-
-  // const menuBuilder = new MenuBuilder(mainWindow);
-  // menuBuilder.buildMenu();
+  // await sendTokenFromUrl(mainWindow, 'app.mtp.desktop://test/#access_token=abc');
 };
 
 /**
  * Add event listeners...
  */
 
-app.on('open-url', function (event, protocolLink: string) {
+app.on('open-url', (event, protocolLink: string) => {
   event.preventDefault();
   sendTokenFromUrl(mainWindow, protocolLink);
 });
@@ -189,12 +150,14 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on('second-instance', (event, commandLine, workingDirectory) => {
+  app.on('second-instance', async (event, commandLine, workingDirectory) => {
     event.preventDefault();
     // Someone tried to run a second instance, we should focus our window.
     if (mainWindow) {
       commandLine.forEach((l: string) => {
-        if (l.indexOf('app.mtp.desktop:') >= 0) sendTokenFromUrl(mainWindow, l);
+        if (l.indexOf('app.mtp.desktop:') >= 0) {
+          sendTokenFromUrl(mainWindow, l);
+        }
       });
     }
   });

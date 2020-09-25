@@ -406,19 +406,25 @@ export function writeExifTags(
       [
         (cb: CallableFunction) => {
           if (outputfile) {
-            mkdirp(path.dirname(outputfile))
-              // eslint-disable-next-line consistent-return
-              // eslint-disable-next-line promise/always-return
-              .then(() => {
+            try {
+              mkdirp(path.dirname(outputfile))
+                // eslint-disable-next-line consistent-return
                 // eslint-disable-next-line promise/always-return
-                fs.copyFile(input_file, outputfile, (err2: any) => {
-                  if (err2) return cb(err2);
-                  return cb(null, outputfile);
+                .then(() => {
+                  // eslint-disable-next-line promise/always-return
+                  fs.copyFile(input_file, outputfile, (err2: any) => {
+                    if (err2) return cb(err2);
+                    return cb(null, outputfile);
+                  });
+                })
+                .catch((err: any) => {
+                  cb(err);
                 });
-              })
-              .catch((err: any) => {
-                cb(err);
-              });
+            } catch (e) {
+              console.log('Making directory Issue:', e);
+
+              cb(e);
+            }
           } else {
             cb(null, input_file);
           }
@@ -523,55 +529,6 @@ export function writeNadirImages(
     } else {
       return resolve();
     }
-  });
-}
-
-export function writeBlurredImage(
-  item: IGeoPoint,
-  settings: any,
-  description: Description,
-  basepath: string
-) {
-  return new Promise((resolve, reject) => {
-    const filename = item.Image || '';
-    const inputfile = getSequenceImagePath(settings.name, filename, basepath);
-    const outputfile = getSequenceOutputFilePath(
-      settings.name,
-      filename,
-      OutputType.blur,
-      basepath
-    );
-
-    console.log(`Start Updating Jimp: filename ${inputfile}`);
-    const jimpAsync = jimp
-      .read(inputfile)
-      .then((image) => {
-        return image.blur(10).writeAsync(outputfile);
-      })
-      .catch((err) => {
-        console.log(`Read Error in Jimp: ${filename} - `, err);
-        return reject(err);
-      });
-    const writeExifAsync = jimpAsync
-      .then(() =>
-        writeExifTags(outputfile, item, {
-          ...description.photo,
-          MTPImageCopy: 'final_blurred',
-        })
-      )
-      .catch((err) => {
-        console.log(`Write Error in Jimp: ${filename} - `, err);
-        return reject(err);
-      });
-    writeExifAsync
-      .then(() => resolve())
-      .catch((err) => {
-        console.log(
-          `Writing ExifTags for Blurred Image: ${outputfile} - `,
-          err
-        );
-        reject(err);
-      });
   });
 }
 
@@ -756,15 +713,6 @@ export function updateImages(
                   }
                 });
             },
-            (cb: CallableFunction) => {
-              if (settings.blur) {
-                writeBlurredImage(item, settings, desc, basepath)
-                  .then(() => cb())
-                  .catch((err) => cb(err));
-              } else {
-                cb();
-              }
-            },
           ],
           (err) => {
             if (err) {
@@ -782,6 +730,7 @@ export function updateImages(
       },
       (err: any) => {
         if (err) {
+          console.log('Error: ', err);
           return typeof err === 'string'
             ? reject(new Error(err))
             : reject(new Error(err.message));

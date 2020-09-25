@@ -18,7 +18,7 @@ export default function SequenceNadir() {
   };
 
   const processPage = () => {
-    dispatch(setCurrentStep('blur'));
+    dispatch(setCurrentStep('destination'));
   };
 
   return (

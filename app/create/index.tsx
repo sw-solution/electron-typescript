@@ -272,7 +272,6 @@ export default function CreatePageWrapper() {
           {currentStep === 'nadirPath' && <UploadNadir />}
           {currentStep === 'previewNadir' && <PreviewNadir />}
           {currentStep === 'processPage' && <ProcessPage />}
-          {currentStep === 'blur' && <BlurPage />}
           {currentStep === 'destination' && <DestinationPage />}
           {currentStep === 'destination_login' && <DestinationLoginPage />}
           {currentStep === 'google_place' && <GooglePlace />}

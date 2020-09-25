@@ -72,7 +72,7 @@ export default function Copyright() {
     if (isrequirednadir) {
       dispatch(setCurrentStep('nadir'));
     } else {
-      dispatch(setCurrentStep('blur'));
+      dispatch(setCurrentStep('destination'));
     }
   };
 

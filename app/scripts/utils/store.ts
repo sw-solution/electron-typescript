@@ -37,8 +37,15 @@ export default class Store {
     return this.data[key];
   }
 
-  getValue(key: string) {
-    if (this.data[key] && this.data[key].value) return this.data[key].value;
+  getToken(key: string) {
+    if (this.data[key] && this.data[key].token)
+      return this.data[key].token.access_token;
+    return null;
+  }
+
+  getRefreshToken(key: string) {
+    if (this.data[key] && this.data[key].token)
+      return this.data[key].token.refresh_token;
     return null;
   }
 

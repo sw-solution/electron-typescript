@@ -98,7 +98,7 @@ export default function EditSequence({ data }: Props) {
     Object.keys(dest).length &&
     Object.keys(dest)
       .filter((key) => dest[key])
-      .filter((key: string) => !(tokens[key] && tokens[key].value)).length ===
+      .filter((key: string) => !(tokens[key] && tokens[key].token)).length ===
       0;
 
   useEffect(() => {
@@ -205,7 +205,7 @@ export default function EditSequence({ data }: Props) {
   };
 
   const login = (integration: string) => {
-    ipcRenderer.send('set_token', integration, { value: null, waiting: true });
+    ipcRenderer.send('set_token', integration, { token: null, waiting: true });
     gotoExternal(integrations[integration].loginUrl);
   };
 

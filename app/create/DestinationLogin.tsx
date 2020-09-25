@@ -42,7 +42,7 @@ export default function DestinationLogin() {
 
   const login = (integration: string) => {
     dispatch(setTokenWaiting({ waiting: true, key: integration }));
-    ipcRenderer.send('set_token', integration, { value: null, waiting: true });
+    ipcRenderer.send('set_token', integration, { token: null, waiting: true });
     gotoExternal(integrations[integration].loginUrl);
   };
 
@@ -51,7 +51,7 @@ export default function DestinationLogin() {
       .filter((key: string) => destination[key])
       .filter(
         (integration: string) =>
-          !(tokens[integration] && tokens[integration].value)
+          !(tokens[integration] && tokens[integration].token)
       ).length === 0;
 
   const confirm = () => {
@@ -86,7 +86,7 @@ export default function DestinationLogin() {
           ? 'Logining to'
           : 'Login to';
 
-      if (tokens[integration] && tokens[integration].value) {
+      if (tokens[integration] && tokens[integration].token) {
         buttonTitle = 'Logged In';
         color = 'default';
       }
