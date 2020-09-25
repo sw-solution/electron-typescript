@@ -64,6 +64,12 @@ export default function Destination() {
       newState.mapillary = event.target.checked;
     }
 
+    if ((key === 'mtp' || key === 'mapillary') && !event.target.checked) {
+      Object.keys(newState).forEach((k: string) => {
+        newState[k] = event.target.checked;
+      });
+    }
+
     setState(newState);
   };
 

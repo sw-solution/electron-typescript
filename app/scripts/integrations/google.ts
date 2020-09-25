@@ -9,7 +9,6 @@ import Async from 'async';
 import tokenStore from '../tokens';
 import { IGeoPoint } from '../../types/IGeoPoint';
 import { sendToClient } from '../utils';
-import axiosErrorHandler from '../utils/axios';
 
 axios.interceptors.response.use(
   (res) => res,

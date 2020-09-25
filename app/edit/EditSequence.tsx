@@ -134,6 +134,12 @@ export default function EditSequence({ data }: Props) {
       newState.mapillary = event.target.checked;
     }
 
+    if ((key === 'mtp' || key === 'mapillary') && !event.target.checked) {
+      Object.keys(newState).forEach((k: string) => {
+        newState[k] = event.target.checked;
+      });
+    }
+
     setState({
       ...state,
       dest: newState,

@@ -332,7 +332,6 @@ export default (mainWindow: BrowserWindow, app: App) => {
     if (error) {
       return errorHandler(mainWindow, error);
     }
-    // return errorHandler(mainWindow, 'Error');
   });
 
   ipcMain.on('sequences', async (_event: IpcMainEvent) => {
