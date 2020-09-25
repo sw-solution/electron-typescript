@@ -16,7 +16,7 @@ import {
   uploadImagesMapillary,
 } from './mapillary';
 import { uploadImagesToGoogle } from './google';
-import { uploadGpx } from './strava';
+import { uploadGpx, getStravaToken } from './strava';
 
 export const getError = (error: any) => {
   return {
@@ -117,8 +117,18 @@ export default async (
     }
 
     if (strava && stravaToken) {
+      const newStravaToken = await getStravaToken(
+        tokenStore.getRefreshToken('strava')
+      );
+
+      if (newStravaToken.error) {
+        return getError(newStravaToken.error);
+      }
+
+      tokenStore.set('strava', newStravaToken.data);
+
       const stravaUpload = await uploadGpx(
-        stravaToken,
+        newStravaToken.data.access_token,
         resultjson.sequence,
         mtpwId,
         basepath

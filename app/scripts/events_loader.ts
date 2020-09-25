@@ -46,10 +46,6 @@ import loadCameras from './camera';
 
 import loadDefaultNadir from './nadir';
 
-if (process.env.NODE_ENV === 'development') {
-  // tokenStore.set('mapillary', null);
-}
-
 export default (mainWindow: BrowserWindow, app: App) => {
   const basepath = app.getAppPath();
 
@@ -486,13 +482,14 @@ export default (mainWindow: BrowserWindow, app: App) => {
   );
 };
 
-export const sendToken = (
+export const sendToken = async (
   mainWindow: BrowserWindow,
   key: string,
-  tokenObj: any
+  tokenObj: any,
+  basepath = null
 ) => {
   let token = tokenStore.get(key);
-  if (!token) {
+  if (!token || (token && !token.token)) {
     token = {
       waiting: true,
       token: null,
@@ -506,6 +503,13 @@ export const sendToken = (
         ...tokenObj,
       },
     });
+    if (basepath) {
+      fs.writeFileSync(
+        path.join(basepath, 'tokens.json'),
+        JSON.stringify(tokenStore.getAll())
+      );
+    }
+
     sendToClient(mainWindow, 'loaded_token', key, tokenObj);
   }
   if (mainWindow.isMinimized()) mainWindow.restore();
@@ -514,7 +518,8 @@ export const sendToken = (
 
 export const sendTokenFromUrl = async (
   mainWindow: BrowserWindow,
-  protocolLink: string
+  protocolLink: string,
+  basepath = null
 ) => {
   const urlObj = url.parse(protocolLink.replace('#', '?'), true);
   let key = urlObj.hostname || 'mtp';
@@ -581,6 +586,6 @@ export const sendTokenFromUrl = async (
   }
 
   if (key && token) {
-    sendToken(mainWindow, key, token);
+    sendToken(mainWindow, key, token, basepath);
   }
 };

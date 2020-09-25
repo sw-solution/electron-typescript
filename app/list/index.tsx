@@ -70,6 +70,9 @@ const useStyles = makeStyles((theme) => ({
     left: '50%',
     transform: 'translate(-50%, -50%)',
   },
+  alertWrapper: {
+    textAlign: 'left',
+  },
 }));
 
 interface State {
@@ -167,7 +170,7 @@ export default function ListPageWrapper() {
   const modalBody = (
     <div className={classes.modalWrapper}>
       <div>
-        <Alert severity="warning">
+        <Alert severity="warning" className={classes.alertWrapper}>
           <AlertTitle>WARNING!</AlertTitle>
           <span>
             All sequence data (including image files) will be deleted from your

@@ -9,14 +9,11 @@
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  */
 import { app, BrowserWindow, shell, Menu, dialog } from 'electron';
-import url from 'url';
-import axios from 'axios';
-import FormData from 'form-data';
 
+import path from 'path';
 import eventsLoader, { sendTokenFromUrl } from './scripts/events_loader';
 
 import { sendToClient } from './scripts/utils';
-import axiosErrorHandler from './scripts/utils/axios';
 
 let mainWindow: BrowserWindow | null = null;
 

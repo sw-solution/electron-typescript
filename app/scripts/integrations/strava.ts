@@ -44,6 +44,11 @@ export const uploadGpx = async (
       data: res.data.id_str,
     };
   } catch (e) {
+    if (e.response && e.response.data && e.response.data.id_str) {
+      return {
+        error: 'Uploading GPX to Strava: duplicated.',
+      };
+    }
     return {
       error: axiosErrorHandler(e, 'Uploading GPX to Strava'),
     };
