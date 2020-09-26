@@ -5,6 +5,7 @@ import { shell } from 'electron';
 import { Typography, Grid, Button } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import { Alert } from '@material-ui/lab';
 
 import {
   selSequence,
@@ -51,7 +52,11 @@ export default function DestinationLogin() {
       .filter((key: string) => destination[key])
       .filter(
         (integration: string) =>
-          !(tokens[integration] && tokens[integration].token)
+          !(
+            tokens[integration] &&
+            tokens[integration].token &&
+            tokens[integration].token.access_token
+          )
       ).length === 0;
 
   const confirm = () => {
@@ -59,7 +64,7 @@ export default function DestinationLogin() {
       if (destination.google) {
         dispatch(setCurrentStep('google_place'));
       } else {
-        dispatch(setProcessStep('name'));
+        dispatch(setProcessStep('final'));
         ipcRenderer.send('update_images', sequence);
       }
     }
@@ -105,10 +110,30 @@ export default function DestinationLogin() {
       );
     });
 
+  const errorItems = Object.keys(destination)
+    .filter((integration: string) => destination[integration])
+    .filter(
+      (integration: string) =>
+        tokens[integration] &&
+        tokens[integration].token &&
+        !tokens[integration].token.access_token
+    )
+    .map((integration: string) => {
+      return (
+        <Alert severity="error" key={integration}>
+          {JSON.stringify(tokens[integration].token)}
+        </Alert>
+      );
+    });
+
   return (
     <>
       <Grid item xs={12}>
         <Typography variant="h6">Authentications</Typography>
+      </Grid>
+
+      <Grid item xs={12}>
+        {errorItems}
       </Grid>
 
       <Grid item xs={12}>

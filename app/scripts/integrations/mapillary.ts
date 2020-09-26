@@ -219,22 +219,14 @@ export const uploadImagesMapillary = (
         sendToClient(
           mainWindow,
           messageChannelName,
-          `Start uploading: ${item.Image}`
+          `${item.Image} is uploading to Mapillary`
         );
         const filepath = path.join(directoryPath, item.Image);
 
         uploadImage(filepath, item.Image, sessionData)
-          .then(() => {
-            sendToClient(
-              mainWindow,
-              messageChannelName,
-              `End uploading: ${item.Image}`
-            );
-            // eslint-disable-next-line promise/no-callback-in-promise
-            return next();
-          })
+          .then(() => next())
           .catch((e) => {
-            console.log('UploadImage issue: ', e);
+            console.log('UploadImage issue to Mapillary: ', e);
             // eslint-disable-next-line promise/no-callback-in-promise
             next(e);
           });

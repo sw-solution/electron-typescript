@@ -1,5 +1,5 @@
 {
   "name": "Mapillary",
   "order": 2,
-  "envs": ["MAPILLARY_APP_ID", "MAPILLARY_SECRET", "MAPILLARY_REDIRECT_URI"]
+  "envs": ["MAPILLARY_APP_ID", "MAPILLARY_SECRET"]
 }

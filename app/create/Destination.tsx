@@ -44,7 +44,7 @@ export default function Destination() {
       dispatch(setCurrentStep('destination_login'));
     } else if (sequence.points.length) {
       dispatch(setDestination(state));
-      dispatch(setProcessStep('name'));
+      dispatch(setProcessStep('final'));
       ipcRenderer.send('update_images', sequence);
     } else {
       dispatch(setError('There is no photos.'));

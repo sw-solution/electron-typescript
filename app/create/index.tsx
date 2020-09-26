@@ -43,10 +43,10 @@ import Nadir from './Nadir';
 import UploadNadir from './UploadNadir';
 import PreviewNadir from './PreviewNadir';
 import ProcessPage from './ProcessPage';
-import BlurPage from './Blur';
 import DestinationPage from './Destination';
 import DestinationLoginPage from './DestinationLogin';
 import Copyright from './Copyright';
+import Final from './Final';
 
 import routes from '../constants/routes.json';
 import {
@@ -56,7 +56,7 @@ import {
   goToPrevStep,
   setSequencePoints,
   setSequenceGpxPoints,
-  setSequenceInit,
+  setCurrentStep,
   setSequenceError,
   selError,
   setError,
@@ -135,8 +135,7 @@ export default function CreatePageWrapper() {
 
     ipcRenderer.on('add-seq', (_event: IpcRendererEvent, seq) => {
       dispatch(setAddSeq(seq));
-      dispatch(setSequenceInit());
-      dispatch(push(routes.LIST));
+      dispatch(setCurrentStep('final'));
     });
 
     ipcRenderer.on('loaded_gpx', (_event: IpcRendererEvent, points) => {
@@ -275,6 +274,7 @@ export default function CreatePageWrapper() {
           {currentStep === 'destination' && <DestinationPage />}
           {currentStep === 'destination_login' && <DestinationLoginPage />}
           {currentStep === 'google_place' && <GooglePlace />}
+          {currentStep === 'final' && <Final />}
         </Grid>
         <Modal open={state.showModal} onClose={handleClose}>
           {modalBody}

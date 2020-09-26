@@ -104,7 +104,7 @@ export const uploadImagesToGoogle = (
   messageChannelName: string,
   googlePlace?: string
 ) => {
-  const token = tokenStore.getValue('google');
+  const token = tokenStore.getToken('google');
 
   return new Promise((resolve, reject) => {
     Async.eachOfLimit(

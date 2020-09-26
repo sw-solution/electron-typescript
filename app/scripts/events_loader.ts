@@ -60,12 +60,25 @@ export default (mainWindow: BrowserWindow, app: App) => {
       loadIntegrations(app),
     ]);
 
+    const tokens = tokenStore.getAll();
+
     sendToClient(mainWindow, 'loaded_config', {
       cameras,
       nadirs,
       integrations,
       basepath,
-      tokens: tokenStore.getAll(),
+      tokens: Object.keys(tokens).reduce((obj: any, key: string) => {
+        if (tokens[key] && tokens[key].token) {
+          obj[key] = tokens[key];
+        } else {
+          obj[key] = {
+            waiting: false,
+            token: null,
+          };
+          tokenStore.set(key, obj[key]);
+        }
+        return obj;
+      }, {}),
     });
   });
 
@@ -584,7 +597,15 @@ export const sendTokenFromUrl = async (
     token = urlObj.query;
   }
 
-  if (key && token) {
+  if (key && token && token.error) {
+    dialog.showMessageBoxSync(mainWindow, {
+      title: `MTP ${key}`,
+      message: token.error,
+    });
+    errorHandler(mainWindow, token.error);
+  }
+
+  if (key && token && token.access_token) {
     sendToken(mainWindow, key, token, basepath);
   }
 };

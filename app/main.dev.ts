@@ -129,7 +129,11 @@ const createWindow = async () => {
 
 app.on('open-url', (event, protocolLink: string) => {
   event.preventDefault();
-  sendTokenFromUrl(mainWindow, protocolLink);
+  sendTokenFromUrl(
+    mainWindow,
+    protocolLink,
+    path.join(app.getAppPath(), '../')
+  );
 });
 
 app.setAsDefaultProtocolClient('app.mtp.desktop');
