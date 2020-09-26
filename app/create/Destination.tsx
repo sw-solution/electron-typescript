@@ -14,6 +14,7 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import {
   setDestination,
   selSequence,
+  selSequenceMethodConfig,
   setError,
   setProcessStep,
   setCurrentStep,
@@ -34,6 +35,7 @@ export default function Destination() {
   const sequence = useSelector(selSequence);
   const [state, setState] = useState<State>({});
   const isrequirednadir = useSelector(isRequiredNadir);
+  const methodConfig = useSelector(selSequenceMethodConfig);
 
   const confirmMode = () => {
     const checked = Object.keys(state).filter(
@@ -76,6 +78,10 @@ export default function Destination() {
   const items = Object.keys(integrations)
     .filter(
       (key: string) => key !== 'google' || (key === 'google' && isrequirednadir)
+    )
+    .filter(
+      (key: string) =>
+        key !== 'strava' || (key === 'strava' && methodConfig.strava_activity)
     )
     .sort((a: string, b: string) =>
       integrations[a].order > integrations[b].order ? 1 : -1

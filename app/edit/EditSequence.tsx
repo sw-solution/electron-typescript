@@ -16,6 +16,8 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { shell } from 'electron';
 
 import { useSelector, useDispatch } from 'react-redux';
+import transportType from '../../transports/transport-methods.json';
+import { IGeoPoint } from '../types/IGeoPoint';
 import { selIntegrations, selTokens } from '../base/slice';
 import { selStep, setStep } from './slice';
 
@@ -73,10 +75,17 @@ interface State {
 }
 
 export default function EditSequence({ data }: Props) {
-  const { destination, name, points } = data;
+  const { destination, name, points, type, method } = data;
 
   const isrequiregoogle =
     points.filter((point: IGeoPoint) => !point.equirectangular).length === 0;
+  let methodConfig;
+  transportType[type].children.forEach((it: MethodModel) => {
+    if (it.type === method) {
+      methodConfig = it;
+    }
+  });
+
   const classes = useStyles();
   const step = useSelector(selStep);
   const dispatch = useDispatch();
@@ -157,7 +166,7 @@ export default function EditSequence({ data }: Props) {
     if (enabled) {
       if (!dest.google) {
         dispatch(setStep(2));
-        ipcRenderer.send('update_destination', data, dest);
+        ipcRenderer.send('update_integration', data, dest);
       } else {
         dispatch(setStep(3));
       }
@@ -166,12 +175,17 @@ export default function EditSequence({ data }: Props) {
 
   const confirmStep3 = () => {
     dispatch(setStep(2));
-    ipcRenderer.send('update_destination', data, dest, state.googlePlace);
+    ipcRenderer.send('update_integration', data, dest, state.googlePlace);
   };
 
   const items = Object.keys(integrations)
     .filter(
       (key: string) => (key === 'google' && isrequiregoogle) || key !== 'google'
+    )
+    .filter(
+      (key: string) =>
+        key !== 'strava' ||
+        (key === 'strava' && methodConfig && methodConfig.strava_activity)
     )
     .sort((a: string, b: string) =>
       integrations[a].order > integrations[b].order ? 1 : -1
@@ -235,7 +249,7 @@ export default function EditSequence({ data }: Props) {
           ? 'Logining to'
           : 'Login to';
 
-      if (tokens[integration] && tokens[integration].value) {
+      if (tokens[integration] && tokens[integration].token) {
         buttonTitle = 'Logged In';
         color = 'default';
       }

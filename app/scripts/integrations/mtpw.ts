@@ -49,7 +49,10 @@ export const postSequenceAPI = async (sequence: Sequence, token: string) => {
   }
 };
 
-export const updateSequenceDataAPI = async (seqId: string, data: any) => {
+export const updateIntegrationStatusDataAPI = async (
+  seqId: string,
+  data: any
+) => {
   const mtpwToken = tokenStore.getToken('mtp');
   const config = {
     method: 'put',
@@ -76,7 +79,7 @@ export const updateSequenceDataAPI = async (seqId: string, data: any) => {
   }
 };
 
-export const updateSequence = async (
+export const checkIntegrationStatus = async (
   s: Result,
   basepath: string
 ): Promise<Summary> => {
@@ -93,81 +96,67 @@ export const updateSequence = async (
     !destination.mapillary.startsWith('Error') &&
     mapillaryToken
   ) {
-    updated = true;
+    console.log('destination.mapillary: ', destination.mapillary);
     const { error, data } = await findSequences(
       mapillaryToken,
       destination.mapillary,
       s.photo
     );
-    if (data && destination.mtp && typeof destination.mtp === 'string') {
-      const { seqError } = await updateSequenceDataAPI(destination.mtp, {
-        mapillary_user_token: mapillaryToken,
-        mapillary_sequence_key: data,
-      });
 
-      if (seqError) {
-        summary.destination.mtp = `Error: ${seqError}`;
-        s.sequence.destination.mtp = `Error: ${seqError}`;
-      } else {
+    if (error) {
+      console.log('Mapillary findSequences Error: ', error);
+      updated = true;
+
+      summary.destination.mapillary = `Error: ${error}`;
+      s.sequence.destination.mapillary = `Error: ${error}`;
+    } else if (data && destination.mtp && typeof destination.mtp === 'string') {
+      const { seqError } = await updateIntegrationStatusDataAPI(
+        destination.mtp,
+        {
+          mapillary_user_token: mapillaryToken,
+          mapillary_sequence_key: data,
+        }
+      );
+      console.log('Mapillary updateIntegrationStatusDataAPI Error: ', error);
+
+      if (!seqError) {
+        updated = true;
+
         summary.destination.mapillary = true;
         s.sequence.destination.mapillary = true;
       }
-    } else if (error) {
-      summary.destination.mapillary = `Error: ${error}`;
-      s.sequence.destination.mapillary = `Error: ${error}`;
     }
   }
 
-  if (
-    destination &&
-    typeof destination.strava === 'string' &&
-    destination.strava !== '' &&
-    !destination.strava.startsWith('Error') &&
-    stravaToken
-  ) {
-    updated = true;
-
+  if (destination && typeof destination.strava === 'number' && stravaToken) {
     const newStravaToken = await getStravaToken(
       tokenStore.getRefreshToken('strava')
     );
 
-    if (newStravaToken.error) {
-      summary.destination.strava = `Error: ${newStravaToken.error}`;
-      s.sequence.destination.strava = `Error: ${newStravaToken.error}`;
-    } else if (newStravaToken.data) {
+    if (newStravaToken.data) {
       tokenStore.set('strava', { waiting: false, token: newStravaToken.data });
 
       const stravaActivity = await findActivityAPI(
         destination.strava,
         newStravaToken.data.access_token
       );
-      if (stravaActivity.error) {
-        s.sequence.destination.strava = `Error: ${stravaActivity.error}`;
-      } else if (
+
+      if (
         stravaActivity.data &&
         stravaActivity.data.activity_id &&
         typeof destination.mtp === 'string' &&
         destination.mtp !== ''
       ) {
-        const updateActivity = await updateActivityAPI(
-          s.sequence.uploader_transport_type,
-          stravaActivity.data.activity_id,
-          stravaToken
+        updated = true;
+
+        const { seqError } = await updateIntegrationStatusDataAPI(
+          destination.mtp,
+          {
+            strava: true,
+          }
         );
 
-        if (updateActivity.error) {
-          summary.destination.strava = `Error: ${updateActivity.error}`;
-          s.sequence.destination.strava = `Error: ${updateActivity.error}`;
-        } else {
-          const { seqError } = await updateSequenceDataAPI(destination.mtp, {
-            strava: true,
-          });
-
-          if (seqError) {
-            summary.destination.mtp = `Error: ${seqError}`;
-            s.sequence.destination.mtp = `Error: ${seqError}`;
-          }
-
+        if (!seqError) {
           summary.destination.strava = true;
           s.sequence.destination.strava = true;
         }
@@ -192,6 +181,8 @@ export const updateSequence = async (
       JSON.stringify(s)
     );
   }
+
+  console.log('----------- end checkIntegrationStatus: -----------------');
 
   return summary;
 };

@@ -148,13 +148,17 @@ export const getUploadedSessions = async (
     }
   );
 
+  let error;
+
   sessionsRes.data.forEach((s: any) => {
     if (s.key === sessionKey) {
       if (s.error) {
-        return s.error.reason;
+        error = s.error.reason;
       }
     }
   });
+
+  if (error) return error;
 
   return null;
 };
@@ -196,12 +200,10 @@ export const findSequences = async (
         data: mapillarySequenceRes.data.features[0].properties.key,
       };
     }
-    return {};
   } catch (e) {
-    return {
-      error: axiosErrorHandler(e, 'MapillaryFindSequences'),
-    };
+    console.log(axiosErrorHandler(e, 'MapillaryFindSequences'));
   }
+  return {};
 };
 
 export const uploadImagesMapillary = (

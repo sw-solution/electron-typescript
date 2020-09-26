@@ -17,7 +17,7 @@ export default function SequenceMethod() {
   const type: string = useSelector(selSequenceType);
   const dispatch = useDispatch();
 
-  const storeSequenceMethod = (newMethod: string) => {
+  const storeSequenceMethod = (newMethod: any) => {
     dispatch(setSequenceMethod(newMethod));
   };
 
@@ -31,7 +31,7 @@ export default function SequenceMethod() {
           size="medium"
           color={color}
           startIcon={<span className={it.icon} />}
-          onClick={() => storeSequenceMethod(it.type)}
+          onClick={() => storeSequenceMethod(it)}
         >
           {it.type}
         </Button>

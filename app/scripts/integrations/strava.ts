@@ -30,6 +30,7 @@ export const uploadGpx = async (
     data.append('description', sequence.uploader_sequence_description);
     data.append('data_type', 'gpx');
     data.append('external_id', sequenceId);
+    data.append('type', sequence.uploader_transport_type);
 
     const res = await axios({
       url: 'https://www.strava.com/api/v3/uploads',
@@ -40,11 +41,13 @@ export const uploadGpx = async (
       },
       data,
     });
+
+    console.log('Uploading Gpx To Strava:', res.data);
     return {
-      data: res.data.id_str,
+      data: res.data.id,
     };
   } catch (e) {
-    if (e.response && e.response.data && e.response.data.id_str) {
+    if (e.response && e.response.data && e.response.data.id) {
       return {
         error: 'Uploading GPX to Strava: duplicated',
       };
@@ -57,7 +60,7 @@ export const uploadGpx = async (
 
 export const updateActivityAPI = async (
   type: string,
-  id: string,
+  id: number,
   token: string
 ) => {
   try {
@@ -112,7 +115,7 @@ export const findActivityAPI = async (id: string, token: string) => {
     try {
       const res = await axios({
         method: 'get',
-        url: `https://www.strava.com/api/v3/activities/${id}`,
+        url: `https://www.strava.com/api/v3/uploads/${id}`,
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -14,6 +14,7 @@ const initialState = {
     description: '',
     type: '',
     method: '',
+    methodConfig: {},
     camera: '',
     attachType: '',
     imagePath: '',
@@ -115,7 +116,8 @@ const createSequenceSlice = createSlice({
       state.steps.type = payload;
     },
     setMethod: (state, { payload }) => {
-      state.steps.method = payload;
+      state.steps.method = payload.type;
+      state.steps.methodConfig = payload;
     },
     setCamera: (state, { payload }) => {
       state.steps.camera = payload;
@@ -358,7 +360,7 @@ export const setSequenceType = (type: string): AppThunk => {
   };
 };
 
-export const setSequenceMethod = (method: string): AppThunk => {
+export const setSequenceMethod = (method: any): AppThunk => {
   return (dispatch) => {
     dispatch(setMethod(method));
     dispatch(setCurrentStep('camera'));
@@ -498,6 +500,9 @@ export const selSequenceType = (state: RootState) => state.create.steps.type;
 
 export const selSequenceMethod = (state: RootState) =>
   state.create.steps.method;
+
+export const selSequenceMethodConfig = (state: RootState) =>
+  state.create.steps.methodConfig;
 
 export const selSequenceCamera = (state: RootState) =>
   state.create.steps.camera;

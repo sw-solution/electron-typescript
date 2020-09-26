@@ -16,7 +16,7 @@ import { processVideo } from './video';
 import { Result, Summary } from '../types/Result';
 import { IGeoPoint } from '../types/IGeoPoint';
 
-import { updateSequence } from './integrations/mtpw';
+import { checkIntegrationStatus } from './integrations/mtpw';
 import integrateSequence, { loadIntegrations } from './integrations';
 
 import { loadImages, updateImages, addLogo, modifyLogo } from './image';
@@ -379,7 +379,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
 
     const summaries: Summary[] = await Promise.all(
       sequences.map(async (s: Result) => {
-        const summary = await updateSequence(s, basepath);
+        const summary = await checkIntegrationStatus(s, basepath);
         return summary;
       })
     );
@@ -404,7 +404,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
 
       const summaries: Summary[] = await Promise.all(
         sequences.map(async (s: Result) => {
-          const summary = await updateSequence(s, basepath);
+          const summary = await checkIntegrationStatus(s, basepath);
           return summary;
         })
       );
@@ -443,7 +443,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
   });
 
   ipcMain.on(
-    'update_destination',
+    'update_integration',
     async (
       _event,
       sequence: Summary,

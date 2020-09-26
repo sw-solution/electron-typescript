@@ -9,7 +9,7 @@ import { Session } from '../../types/Session';
 import tokenStore from '../tokens';
 import axiosErrorHandler from '../utils/axios';
 import { sendToClient } from '../utils';
-import { updateSequenceDataAPI, postSequenceAPI } from './mtpw';
+import { updateIntegrationStatusDataAPI, postSequenceAPI } from './mtpw';
 
 import {
   loadMapillarySessionData,
@@ -111,10 +111,10 @@ export default async (
 
     const mtpwId = mtpwSequence.unique_id;
 
-    const updateSequenceData: { [key: string]: boolean } = {};
+    const updateIntegrationStatusData: { [key: string]: boolean } = {};
 
     if (google && googleToken) {
-      updateSequenceData.google_street_view = true;
+      updateIntegrationStatusData.google_street_view = true;
     }
 
     if (strava && stravaToken) {
@@ -149,11 +149,11 @@ export default async (
       const activityId = stravaUpload.data;
 
       resultjson.sequence.destination.strava = activityId;
-      updateSequenceData.strava = true;
+      updateIntegrationStatusData.strava = true;
     }
 
-    if (Object.keys(updateSequenceData).length) {
-      const { seqError } = await updateSequenceDataAPI(mtpwId, {
+    if (Object.keys(updateIntegrationStatusData).length) {
+      const { seqError } = await updateIntegrationStatusDataAPI(mtpwId, {
         google_street_view: true,
       });
 

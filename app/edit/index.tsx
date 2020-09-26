@@ -17,7 +17,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import Logo from '../components/Logo';
 import Wrapper from '../components/Wrapper';
-import { updateSequence } from '../list/slice';
+import { updateIntegrationStatus } from '../list/slice';
 import { selEditSeq, setEdit, selStep, setStep } from './slice';
 
 import routes from '../constants/routes.json';
@@ -58,7 +58,7 @@ export default function EditWrapper() {
 
   useEffect(() => {
     ipcRenderer.on('update_sequence_finish', (_event, seq: Summary) => {
-      dispatch(updateSequence(seq));
+      dispatch(updateIntegrationStatus(seq));
       dispatch(setEdit(undefined));
       dispatch(setStep(0));
     });

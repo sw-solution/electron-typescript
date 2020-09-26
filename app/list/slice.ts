@@ -39,7 +39,7 @@ const listSlice = createSlice({
     removeSeq(state, { payload }) {
       state.seqs = state.seqs.filter((s) => s.name !== payload);
     },
-    updateSequence(state, { payload }) {
+    updateIntegrationStatus(state, { payload }) {
       state.seqs = state.seqs.map((s) => {
         if (s.id === payload.id) {
           return { ...payload };
@@ -55,7 +55,7 @@ export const {
   endLoad,
   addSeq,
   removeSeq,
-  updateSequence,
+  updateIntegrationStatus,
   updateSeqs,
 } = listSlice.actions;
 
