@@ -107,10 +107,10 @@ export function createdData2List(data: Result): Summary {
 }
 
 export function getBearing(point1: IGeoPoint, point2: IGeoPoint) {
-  const lng1 = point1.MAPLongitude;
-  const lat1 = point1.MAPLatitude;
-  const lng2 = point2.MAPLongitude;
-  const lat2 = point2.MAPLatitude;
+  const lng1 = (point1.MAPLongitude * Math.PI) / 180;
+  const lat1 = (point1.MAPLatitude * Math.PI) / 180;
+  const lng2 = (point2.MAPLongitude * Math.PI) / 180;
+  const lat2 = (point2.MAPLatitude * Math.PI) / 180;
 
   const dLon = lng2 - lng1;
   const y = Math.sin(dLon) * Math.cos(lat2);
@@ -118,7 +118,7 @@ export function getBearing(point1: IGeoPoint, point2: IGeoPoint) {
     Math.cos(lat1) * Math.sin(lat2) -
     Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
   const brng = (Math.atan2(y, x) * 180) / Math.PI;
-  return brng;
+  return (brng + 360) % 360;
 }
 
 export function getPitch(point1: IGeoPoint, point2: IGeoPoint, distance = -1) {
@@ -208,11 +208,11 @@ export function discardPointsBySeconds(
       if (newpoints.length) {
         const prevPoint = newpoints[newpoints.length - 1];
 
-        if (!point.Azimuth && prevPoint.Azimuth) {
+        if (prevPoint.Azimuth) {
           point.setAzimuth(prevPoint.Azimuth);
         }
 
-        if (!point.Pitch && prevPoint.Pitch) {
+        if (prevPoint.Pitch) {
           point.setPitch(prevPoint.Pitch);
         }
         newpoints.push(point);
@@ -230,20 +230,14 @@ export function discardPointsBySeconds(
       nextPoint.getDate().diff(point.getDate(), 'millisecond') >=
       seconds * 1000
     ) {
-      let azimuth = point.Azimuth;
-      if (!azimuth || forceUpdate) {
-        azimuth = getBearing(point, nextPoint);
-        point.setAzimuth(azimuth);
-      }
+      const azimuth = getBearing(point, nextPoint);
+      point.setAzimuth(azimuth);
 
       const distance = getDistance(nextPoint, point);
       point.setDistance(distance);
 
-      let pitch = point.Pitch;
-      if (!pitch || forceUpdate) {
-        pitch = getPitch(point, nextPoint, distance);
-        point.setPitch(pitch);
-      }
+      const pitch = getPitch(point, nextPoint, distance);
+      point.setPitch(pitch);
       newpoints.push(point);
 
       currentIdx = nextIdx;
