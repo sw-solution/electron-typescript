@@ -46,6 +46,12 @@ import loadCameras from './camera';
 
 import loadDefaultNadir from './nadir';
 
+if (process.env.NODE_ENV === 'production') {
+  tokenStore.set('mapillary', null);
+  tokenStore.set('mtp', null);
+  tokenStore.set('strava', null);
+  tokenStore.set('google', null);
+}
 export default (mainWindow: BrowserWindow, app: App) => {
   const basepath = app.getAppPath();
 
@@ -321,6 +327,8 @@ export default (mainWindow: BrowserWindow, app: App) => {
       buildGPX(gpxData.toObject())
     );
 
+    console.log('settings.googlePlace: ', settings.googlePlace);
+
     const { result, error } = await integrateSequence(
       mainWindow,
       settings.destination,
@@ -463,6 +471,8 @@ export default (mainWindow: BrowserWindow, app: App) => {
       if (fs.existsSync(nadirPath)) {
         directoryPath = nadirPath;
       }
+
+      console.log('googlePlace: ', googlePlace);
 
       const { result, error } = await integrateSequence(
         mainWindow,

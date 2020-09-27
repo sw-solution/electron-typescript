@@ -42,6 +42,8 @@ export default async (
 
   const { mapillary, mtp, google, strava } = settings;
 
+  console.log('googlePlace: ', googlePlace);
+
   if (!mtp || !mtpwToken) return { result: resultjson };
 
   let mapillarySessionData = null;
@@ -173,7 +175,7 @@ export const loginUrls = {
   mapillary: `https://www.mapillary.com/connect?client_id=${process.env.MAPILLARY_APP_ID}&response_type=token&scope=user:email%20private:upload&redirect_uri=${process.env.MTP_WEB_URL}/accounts/check-mtpu-mapillary-oauth`,
   mtp: `${process.env.MTP_WEB_AUTH_URL}?client_id=${process.env.MTP_WEB_APP_ID}&response_type=token`,
   strava: `https://www.strava.com/oauth/authorize?client_id=${process.env.STRAVA_CLIENT_ID}&redirect_uri=${process.env.MTP_WEB_URL}/exchange_token&response_type=code&approval_prompt=auto&scope=activity:write,read`,
-  google: `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.MTP_WEB_URL}/accounts/check-mtpu-google-oauth&response_type=code&scope=https://www.googleapis.com/auth/streetviewpublish&prompt=consent&access_type=offline`,
+  google: `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.MTP_WEB_URL}/accounts/check-mtpu-google-oauth&response_type=code&scope=https://www.googleapis.com/auth/streetviewpublish`,
 };
 
 export async function loadIntegrations(app: App | null) {

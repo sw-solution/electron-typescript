@@ -44,8 +44,14 @@ export default function GooglePlace() {
   const confirmMode = () => {
     if (state.googlePlace) dispatch(setGooglePlace(state.googlePlace));
 
+    ipcRenderer.send('update_images', {
+      ...sequence,
+      steps: {
+        ...sequence.steps,
+        googlePlace: state.googlePlace,
+      },
+    });
     dispatch(setProcessStep('final'));
-    ipcRenderer.send('update_images', sequence);
   };
 
   return (
