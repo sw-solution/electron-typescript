@@ -152,7 +152,7 @@ export const checkIntegrationStatus = async (
         const { seqError } = await updateIntegrationStatusDataAPI(
           destination.mtp,
           {
-            strava: true,
+            strava: stravaActivity.data.activity_id,
           }
         );
 
