@@ -46,12 +46,6 @@ import loadCameras from './camera';
 
 import loadDefaultNadir from './nadir';
 
-if (process.env.NODE_ENV === 'production') {
-  tokenStore.set('mapillary', null);
-  tokenStore.set('mtp', null);
-  tokenStore.set('strava', null);
-  tokenStore.set('google', null);
-}
 export default (mainWindow: BrowserWindow, app: App) => {
   const basepath = app.getAppPath();
 
