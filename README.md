@@ -11,10 +11,11 @@ Map the Paths Desktop Uploader allows you to manage your street-level map imager
 * Works with 360 and standard (flat) photos
 * Add metadata to sequence for easy management and discovery (name, description, tags)
 * Convert video to photo frames
-* Geotag images using gpx track
+* Geotag images using `.gpx` track file
 * Define photo spacing
 * Modify photo GPS information (position and heading)
 * Add a nadir
+* Add copyright information
 * Upload to web platforms
 	- Map the Paths Web
 	- Mapillary
