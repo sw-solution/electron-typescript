@@ -1,4 +1,4 @@
-import React, { useState, ReactNode, createRef, useEffect } from 'react';
+import React, { useState, ReactNode, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 
 import mapboxgl, { Map } from 'mapbox-gl';
@@ -58,17 +58,15 @@ interface State {
   isopen: boolean;
   selected: number;
   showMessage: boolean;
-  // zoom: number;
 }
 
 mapboxgl.accessToken = process.env.MAPBOX_TOKEN;
 
 export default function MapBox(props: Props) {
   const { points, height, showPopup, onDelete, id } = props;
-  const name = useSelector(selSequenceName);
-  const mapId = id
-    ? `map_${id.replace(/\s/g, '_')}`
-    : `map_${name.replace(/\s/g, '_')}`;
+  const seqname = useSelector(selSequenceName);
+  const name = id || seqname;
+  const mapId = `map_${name.replace(/\s/g, '_')}`;
   const [state, setState] = useState<State>({
     isopen: false,
     selected: -1,
@@ -154,10 +152,8 @@ export default function MapBox(props: Props) {
     return path.replace(/\\/g, '/');
   };
 
-  let photos: ReactNode[] = [];
-
-  if (showPopup && name) {
-    photos = filteredpoints.map((point: IGeoPoint, idx: number) => {
+  const photos: ReactNode[] = filteredpoints.map(
+    (point: IGeoPoint, idx: number) => {
       let difftime = 0;
       if (idx < filteredpoints.length - 1) {
         difftime = dayjs(filteredpoints[idx + 1].GPSDateTime).diff(
@@ -210,8 +206,8 @@ export default function MapBox(props: Props) {
           )}
         </>
       );
-    });
-  }
+    }
+  );
 
   const modalBody = (
     <div className={classes.paper}>
@@ -326,21 +322,19 @@ export default function MapBox(props: Props) {
             'icon-rotate': ['get', 'rotate'],
           },
         });
-        if (showPopup && name) {
-          map.on('click', markerSymoblId, (e) => {
-            const bbox = [
-              [e.point.x - 5, e.point.y - 5],
-              [e.point.x + 5, e.point.y + 5],
-            ];
+        map.on('click', markerSymoblId, (e) => {
+          const bbox = [
+            [e.point.x - 5, e.point.y - 5],
+            [e.point.x + 5, e.point.y + 5],
+          ];
 
-            const features = map.queryRenderedFeatures(bbox, {
-              layers: [markerSymoblId],
-            });
-            if (features.length) {
-              showPhoto(features[0].properties.index);
-            }
+          const features = map.queryRenderedFeatures(bbox, {
+            layers: [markerSymoblId],
           });
-        }
+          if (features.length) {
+            showPhoto(features[0].properties.index);
+          }
+        });
       }
     }
   }, [filteredpoints, map, name, showPopup]);
@@ -372,24 +366,10 @@ export default function MapBox(props: Props) {
             id={mapId}
             style={{ width: '100%', height: `${height.toString()}px` }}
           />
-          {/* <MapBox
-            style="mapbox://styles/mapbox/streets-v9"
-            containerStyle={{
-              height: `${height.toString()}px`,
-              width: '100%',
-            }}
-            center={centerPoint()}
-            onStyleLoad={drawLines}
-            zoom={[22]}
-          >
-            <ZoomControl />
-            {markers}
-          </MapBox> */}
-          {state.selected >= 0 && showPopup && (
-            <Modal open={state.isopen} onClose={handleClose}>
-              {modalBody}
-            </Modal>
-          )}
+
+          <Modal open={state.isopen} onClose={handleClose}>
+            {modalBody}
+          </Modal>
         </>
       )}
     </div>

@@ -14,9 +14,11 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import {
   setDestination,
   selSequence,
+  selSequenceMethodConfig,
   setError,
   setProcessStep,
   setCurrentStep,
+  isRequiredNadir,
 } from './slice';
 
 import { selIntegrations } from '../base/slice';
@@ -32,6 +34,8 @@ export default function Destination() {
   const integrations = useSelector(selIntegrations);
   const sequence = useSelector(selSequence);
   const [state, setState] = useState<State>({});
+  const isrequirednadir = useSelector(isRequiredNadir);
+  const methodConfig = useSelector(selSequenceMethodConfig);
 
   const confirmMode = () => {
     const checked = Object.keys(state).filter(
@@ -42,55 +46,75 @@ export default function Destination() {
       dispatch(setCurrentStep('destination_login'));
     } else if (sequence.points.length) {
       dispatch(setDestination(state));
-      dispatch(setProcessStep('name'));
+      dispatch(setProcessStep('final'));
       ipcRenderer.send('update_images', sequence);
     } else {
       dispatch(setError('There is no photos.'));
     }
   };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setState({
+  const handleChange = (key: string) => (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newState = {
       ...state,
-      ...Object.keys(integrations).reduce(
-        (obj: { [key: string]: boolean }, integration: string) => {
-          obj[integration] = event.target.checked;
-          return obj;
-        },
-        {}
-      ),
-    });
+      [key]: event.target.checked,
+    };
+
+    if (key === 'mtp' || key === 'mapillary' || event.target.checked) {
+      newState.mtp = event.target.checked;
+      newState.mapillary = event.target.checked;
+    }
+
+    if ((key === 'mtp' || key === 'mapillary') && !event.target.checked) {
+      Object.keys(newState).forEach((k: string) => {
+        newState[k] = event.target.checked;
+      });
+    }
+
+    setState(newState);
   };
 
-  const items = Object.keys(integrations).map((key) => {
-    const checkNode = (
-      <Checkbox
-        checked={!!state[key]}
-        onChange={handleChange}
-        name={key}
-        color="primary"
-      />
-    );
-    const integrationLogo = (
-      <>
-        <img
-          src={`data:image/png;base64, ${integrations[key].logo}`}
-          alt={integrations[key].name}
-          width="70"
-          height="70"
+  const items = Object.keys(integrations)
+    .filter(
+      (key: string) => key !== 'google' || (key === 'google' && isrequirednadir)
+    )
+    .filter(
+      (key: string) =>
+        key !== 'strava' || (key === 'strava' && methodConfig.strava_activity)
+    )
+    .sort((a: string, b: string) =>
+      integrations[a].order > integrations[b].order ? 1 : -1
+    )
+    .map((key) => {
+      const checkNode = (
+        <Checkbox
+          checked={!!state[key]}
+          onChange={handleChange(key)}
+          name={key}
+          color="primary"
         />
-      </>
-    );
+      );
+      const integrationLogo = (
+        <>
+          <img
+            src={`data:image/png;base64, ${integrations[key].logo}`}
+            alt={integrations[key].name}
+            width="70"
+            height="70"
+          />
+        </>
+      );
 
-    return (
-      <FormControlLabel
-        color="primary"
-        control={checkNode}
-        label={integrationLogo}
-        key={key}
-      />
-    );
-  });
+      return (
+        <FormControlLabel
+          color="primary"
+          control={checkNode}
+          label={integrationLogo}
+          key={key}
+        />
+      );
+    });
 
   return (
     <>

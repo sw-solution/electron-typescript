@@ -5,6 +5,8 @@ import path from 'path';
 import Async from 'async';
 import { BrowserWindow } from 'electron';
 import fs from 'fs';
+import os from 'os';
+import { v4 as uuidv4 } from 'uuid';
 import mkdirp from 'mkdirp';
 
 import { VGeoPoint, VGeoPointModel } from '../types/VGeoPoint';
@@ -288,28 +290,33 @@ export async function splitVideos(
   callback: CallableFunction
 ) {
   // eslint-disable-next-line new-cap
-  const process = new ffmpeg(inputPath);
-  process.then(
-    (video) => {
-      video.fnExtractFrameToJPG(
-        outputPath,
-        {
-          number: Math.ceil(duration) + 1,
-          file_name: '',
-        },
-        (err: any, files: string[]) => {
-          if (!err) {
-            callback(null, files);
-          } else {
-            callback(err, []);
+
+  try {
+    const process = new ffmpeg(inputPath);
+    process.then(
+      (video) => {
+        video.fnExtractFrameToJPG(
+          outputPath,
+          {
+            number: Math.ceil(duration) + 1,
+            file_name: '',
+          },
+          (err: any, files: string[]) => {
+            if (!err) {
+              callback(null, files);
+            } else {
+              callback(err);
+            }
           }
-        }
-      );
-    },
-    (err) => {
-      console.log('Reading Video Error:', err);
-    }
-  );
+        );
+      },
+      (err) => {
+        callback(err);
+      }
+    );
+  } catch (e) {
+    callback(e);
+  }
 }
 
 export function splitVideoToImage(
@@ -326,8 +333,12 @@ export function splitVideoToImage(
     Async.waterfall(
       [
         (cb: CallableFunction) => {
+          const videopath = path.join(os.tmpdir(), `${uuidv4()}.mp4`);
+          fs.copyFile(videoPath, videopath, () => cb(null, videopath));
+        },
+        (videopath: string, cb: CallableFunction) => {
           splitVideos(
-            videoPath,
+            videopath,
             duration,
             outputPath,
             (err: any, filenames: string[]) => {

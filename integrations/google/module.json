@@ -1,0 +1,5 @@
+{
+  "name": "Google Street View",
+  "order": 4,
+  "envs": ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_API_KEY"]
+}

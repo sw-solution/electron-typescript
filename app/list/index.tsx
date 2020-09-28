@@ -29,20 +29,14 @@ import { useSelector, useDispatch } from 'react-redux';
 import Sequence from './Sequence';
 import Logo from '../components/Logo';
 import Wrapper from '../components/Wrapper';
-import {
-  selLoaded,
-  selSeqs,
-  setEndLoad,
-  setRemoveSeq,
-  updateSequence,
-} from './slice';
+import { selLoaded, selSeqs, setEndLoad, setRemoveSeq } from './slice';
 
 import routes from '../constants/routes.json';
 import { Summary, TransportType } from '../types/Result';
-import { selCameras } from '../base/slice';
+import { selCameras, selConfigLoaded } from '../base/slice';
 
 import { Camera } from '../types/Camera';
-import EditSequence from './EditSequence';
+import { setEdit } from '../edit/slice';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -76,6 +70,9 @@ const useStyles = makeStyles((theme) => ({
     left: '50%',
     transform: 'translate(-50%, -50%)',
   },
+  alertWrapper: {
+    textAlign: 'left',
+  },
 }));
 
 interface State {
@@ -86,12 +83,12 @@ interface State {
   capturedEndDate: string;
   deleteModalOpen: boolean;
   deleteSequenceName: string;
-  selected?: Summary;
 }
 
 export default function ListPageWrapper() {
   const classes = useStyles();
   const loaded = useSelector(selLoaded);
+  const configLoaded = useSelector(selConfigLoaded);
 
   const seqs = useSelector(selSeqs);
   const cameras = useSelector(selCameras);
@@ -117,17 +114,8 @@ export default function ListPageWrapper() {
         dispatch(setEndLoad(sequences));
       }
     );
-
-    ipcRenderer.on('update_sequence_finish', (_event, sequence: Summary) => {
-      dispatch(updateSequence(sequence));
-      setState({
-        ...state,
-        selected: undefined,
-      });
-    });
     return () => {
       ipcRenderer.removeAllListeners('loaded_sequences');
-      ipcRenderer.removeAllListeners('update_sequence_finish');
     };
   });
 
@@ -166,18 +154,9 @@ export default function ListPageWrapper() {
     });
   };
 
-  const selectSeq = (data: Summary) => {
-    setState({
-      ...state,
-      selected: data,
-    });
-  };
-
-  const unselectSeq = () => {
-    setState({
-      ...state,
-      selected: undefined,
-    });
+  const selectSeq = (key: string) => {
+    dispatch(setEdit(key));
+    dispatch(push(routes.EDIT));
   };
 
   const onDeleteModalClose = () => {
@@ -191,7 +170,7 @@ export default function ListPageWrapper() {
   const modalBody = (
     <div className={classes.modalWrapper}>
       <div>
-        <Alert severity="warning">
+        <Alert severity="warning" className={classes.alertWrapper}>
           <AlertTitle>WARNING!</AlertTitle>
           <span>
             All sequence data (including image files) will be deleted from your
@@ -334,7 +313,7 @@ export default function ListPageWrapper() {
       </Drawer>
       <Wrapper title="Browse Sequences">
         <Grid container className={classes.gridContainer}>
-          {loaded && (
+          {loaded && configLoaded && (
             <>
               <Grid item xs={12}>
                 <Box style={{ textAlign: 'right', marginBottom: '20px' }}>
@@ -359,14 +338,11 @@ export default function ListPageWrapper() {
               )}
             </>
           )}
-          {!loaded && <LinearProgress />}
+          {(!loaded || !configLoaded) && <LinearProgress />}
         </Grid>
         <Modal open={state.deleteModalOpen} onClose={onDeleteModalClose}>
           {modalBody}
         </Modal>
-        {state.selected && (
-          <EditSequence data={state.selected} onClose={unselectSeq} />
-        )}
       </Wrapper>
     </div>
   );

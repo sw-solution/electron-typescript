@@ -14,6 +14,7 @@ const initialState = {
     description: '',
     type: '',
     method: '',
+    methodConfig: {},
     camera: '',
     attachType: '',
     imagePath: '',
@@ -35,6 +36,11 @@ const initialState = {
     },
     processPage: '',
     azimuth: 0,
+    copyright: {
+      artist: '',
+      copyright: '',
+      comment: '',
+    },
     tags: [],
     nadirPath: '',
     previewnadir: {
@@ -44,6 +50,7 @@ const initialState = {
     },
     blur: false,
     destination: {},
+    googlePlace: null,
   },
   points: [],
   passedPoints: {},
@@ -109,7 +116,8 @@ const createSequenceSlice = createSlice({
       state.steps.type = payload;
     },
     setMethod: (state, { payload }) => {
-      state.steps.method = payload;
+      state.steps.method = payload.type;
+      state.steps.methodConfig = payload;
     },
     setCamera: (state, { payload }) => {
       state.steps.camera = payload;
@@ -243,6 +251,11 @@ const createSequenceSlice = createSlice({
     setBlur: (state, { payload }) => {
       state.steps.blur = payload;
     },
+    setCopyright: (state, { payload }) => {
+      state.steps.copyright = {
+        ...payload,
+      };
+    },
     updateDestination: (state, { payload }) => {
       state.steps.destination = {
         ...state.steps.destination,
@@ -277,6 +290,9 @@ const createSequenceSlice = createSlice({
     setError: (state, { payload }) => {
       if (!state.error && payload) state.error = payload;
       else if (!payload) state.error = null;
+    },
+    setGooglePlace: (state, { payload }) => {
+      state.steps.googlePlace = payload;
     },
   },
 });
@@ -317,6 +333,8 @@ export const {
   setBlur,
   updateDestination,
   setDestination,
+  setCopyright,
+  setGooglePlace,
 
   resetPoints,
 } = createSequenceSlice.actions;
@@ -342,7 +360,7 @@ export const setSequenceType = (type: string): AppThunk => {
   };
 };
 
-export const setSequenceMethod = (method: string): AppThunk => {
+export const setSequenceMethod = (method: any): AppThunk => {
   return (dispatch) => {
     dispatch(setMethod(method));
     dispatch(setCurrentStep('camera'));
@@ -483,6 +501,9 @@ export const selSequenceType = (state: RootState) => state.create.steps.type;
 export const selSequenceMethod = (state: RootState) =>
   state.create.steps.method;
 
+export const selSequenceMethodConfig = (state: RootState) =>
+  state.create.steps.methodConfig;
+
 export const selSequenceCamera = (state: RootState) =>
   state.create.steps.camera;
 
@@ -574,6 +595,18 @@ export const selBlur = (state: RootState) => state.create.steps.blur;
 export const selDestination = (state: RootState) =>
   state.create.steps.destination;
 
+export const selCopyright = (state: RootState) =>
+  state.create.steps.copyright.copyright;
+
+export const selArtist = (state: RootState) =>
+  state.create.steps.copyright.artist;
+
+export const selComment = (state: RootState) =>
+  state.create.steps.copyright.comment;
+
 export const isRequiredNadir = (state: RootState) =>
   state.create.points.filter((point: IGeoPoint) => !point.equirectangular)
     .length === 0 && state.create.points.length;
+
+export const selGooglePlace = (state: RootState) =>
+  state.create.steps.googlePlace;

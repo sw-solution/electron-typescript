@@ -23,8 +23,9 @@ export default class Store {
   constructor(opts: Options) {
     // Renderer process has to get `app` module via `remote`, whereas the main process can get it directly
     // app.getPath('userData') will return a string of the user's app data directory path.
-    const userDataPath = (electron.app || electron.remote.app).getPath(
-      'userData'
+    const userDataPath = path.join(
+      (electron.app || electron.remote.app).getAppPath(),
+      '../'
     );
 
     // We'll use the `configName` property to set the file name and path.join to bring it all together as a string
@@ -37,8 +38,15 @@ export default class Store {
     return this.data[key];
   }
 
-  getValue(key: string) {
-    if (this.data[key] && this.data[key].value) return this.data[key].value;
+  getToken(key: string) {
+    if (this.data[key] && this.data[key].token)
+      return this.data[key].token.access_token;
+    return null;
+  }
+
+  getRefreshToken(key: string) {
+    if (this.data[key] && this.data[key].token)
+      return this.data[key].token.refresh_token;
     return null;
   }
 

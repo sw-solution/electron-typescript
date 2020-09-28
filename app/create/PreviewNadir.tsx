@@ -64,7 +64,7 @@ export default function SequencePreviewNadir() {
 
   const confirmMode = () => {
     dispatch(setNadirPercentage(state.percentage));
-    dispatch(setCurrentStep('blur'));
+    dispatch(setCurrentStep('destination'));
   };
 
   const handlePercentageSliderChange = (

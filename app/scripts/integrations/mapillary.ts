@@ -6,9 +6,8 @@ import path from 'path';
 import Async from 'async';
 import { BrowserWindow } from 'electron';
 
-import dayjs from 'dayjs';
 import { Session } from '../../types/Session';
-import { Photos } from '../../types/Result';
+import { Sequence } from '../../types/Result';
 import { IGeoPoint } from '../../types/IGeoPoint';
 import axiosErrorHandler from '../utils/axios';
 import { sendToClient } from '../utils';
@@ -94,7 +93,6 @@ export const uploadImage = (
     });
 
     formData.getLength((err, length: number) => {
-      console.log(`getting length of ${filename}: ${length}`);
       if (err) return reject(err);
 
       const config = {
@@ -149,13 +147,17 @@ export const getUploadedSessions = async (
     }
   );
 
+  let error;
+
   sessionsRes.data.forEach((s: any) => {
     if (s.key === sessionKey) {
       if (s.error) {
-        return s.error.reason;
+        error = s.error.reason;
       }
     }
   });
+
+  if (error) return error;
 
   return null;
 };
@@ -163,19 +165,10 @@ export const getUploadedSessions = async (
 export const findSequences = async (
   token: string,
   sessionKey: string,
-  photos: Photos
+  sequence: Sequence
 ) => {
   try {
-    const points = Object.values(photos);
-    points.sort((a, b) => {
-      return dayjs(a.modified.GPSDateTime).isBefore(
-        dayjs(b.modified.GPSDateTime)
-      )
-        ? -1
-        : 1;
-    });
     const user = await getUser(token);
-
     const uploadeSessions = await getUploadedSessions(token, sessionKey);
 
     if (uploadeSessions) {
@@ -184,9 +177,10 @@ export const findSequences = async (
       };
     }
 
-    const startPoint = points[0];
-    const endPoint = points[points.length - 1];
-    const url = `https://a.mapillary.com/v3/sequences?userkeys=${user.key}&client_id=${process.env.MAPILLARY_APP_ID}&start_time=${startPoint.modified.GPSDateTime}&end_time=${endPoint.modified.GPSDateTime}`;
+    const url = `https://a.mapillary.com/v3/sequences?userkeys=${user.key}&client_id=${process.env.MAPILLARY_APP_ID}&start_time=${sequence.earliest_time}&end_time=${sequence.latest_time}`;
+
+    console.log('mapillary url: ', url);
+
     const mapillarySequenceRes = await axios.get(url, {
       timeout: 600000,
     });
@@ -196,19 +190,18 @@ export const findSequences = async (
         data: mapillarySequenceRes.data.features[0].properties.key,
       };
     }
-    return {};
   } catch (e) {
-    return {
-      error: axiosErrorHandler(e, 'MapillaryFindSequences'),
-    };
+    console.log(axiosErrorHandler(e, 'MapillaryFindSequences'));
   }
+  return {};
 };
 
 export const uploadImagesMapillary = (
   mainWindow: BrowserWindow,
   points: IGeoPoint[],
   directoryPath: string,
-  sessionData: any
+  sessionData: any,
+  messageChannelName = 'update_loaded_message'
 ) => {
   return new Promise((resolve, reject) => {
     Async.eachOfLimit(
@@ -217,23 +210,15 @@ export const uploadImagesMapillary = (
       (item: IGeoPoint, key: any, next: CallableFunction) => {
         sendToClient(
           mainWindow,
-          'update_loaded_message',
-          `Start uploading: ${item.Image}`
+          messageChannelName,
+          `${item.Image} is uploading to Mapillary`
         );
         const filepath = path.join(directoryPath, item.Image);
 
         uploadImage(filepath, item.Image, sessionData)
-          .then(() => {
-            sendToClient(
-              mainWindow,
-              'update_loaded_message',
-              `End uploading: ${item.Image}`
-            );
-            // eslint-disable-next-line promise/no-callback-in-promise
-            return next();
-          })
+          .then(() => next())
           .catch((e) => {
-            console.log('UploadImage issue: ', e);
+            console.log('UploadImage issue to Mapillary: ', e);
             // eslint-disable-next-line promise/no-callback-in-promise
             next(e);
           });

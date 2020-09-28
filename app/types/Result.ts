@@ -33,6 +33,7 @@ export interface Connection {
   distance_mtrs: number;
   heading_deg: number;
   pitch_deg: number;
+  adj_heading_deg: number;
   time_sec: number;
   speed_kmh: number;
 }
@@ -112,6 +113,7 @@ export interface Summary {
   description: string;
   type: TransportType;
   method: string;
+  time: number;
   points: IGeoPoint[];
   created: string;
   captured: string;

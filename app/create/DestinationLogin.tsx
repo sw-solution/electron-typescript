@@ -1,13 +1,33 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { shell } from 'electron';
 
 import { Typography, Grid, Button } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import { Alert } from '@material-ui/lab';
 
-import { selSequence, setProcessStep, selError, selDestination } from './slice';
+import {
+  selSequence,
+  setProcessStep,
+  selDestination,
+  setCurrentStep,
+} from './slice';
 import { setTokenWaiting, selIntegrations, selTokens } from '../base/slice';
 
 const { ipcRenderer } = window.require('electron');
+
+const useStyles = makeStyles((theme) => ({
+  loginButtonWrapper: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    '& > *': {
+      margin: theme.spacing(2),
+    },
+  },
+}));
 
 export default function DestinationLogin() {
   const dispatch = useDispatch();
@@ -15,22 +35,7 @@ export default function DestinationLogin() {
   const integrations = useSelector(selIntegrations);
   const sequence = useSelector(selSequence);
   const tokens = useSelector(selTokens);
-  const error = useSelector(selError);
-
-  useEffect(() => {
-    if (
-      Object.keys(destination)
-        .filter((key: string) => destination[key])
-        .filter(
-          (integration: string) =>
-            !(tokens[integration] && tokens[integration].value)
-        ).length === 0 &&
-      !error
-    ) {
-      dispatch(setProcessStep('name'));
-      ipcRenderer.send('update_images', sequence);
-    }
-  }, [dispatch, tokens, sequence, destination, error]);
+  const classes = useStyles();
 
   const gotoExternal = (url: string) => {
     shell.openExternal(url);
@@ -38,8 +43,31 @@ export default function DestinationLogin() {
 
   const login = (integration: string) => {
     dispatch(setTokenWaiting({ waiting: true, key: integration }));
-    ipcRenderer.send('set_token', integration, { value: null, waiting: true });
+    ipcRenderer.send('set_token', integration, { token: null, waiting: true });
     gotoExternal(integrations[integration].loginUrl);
+  };
+
+  const enabled =
+    Object.keys(destination)
+      .filter((key: string) => destination[key])
+      .filter(
+        (integration: string) =>
+          !(
+            tokens[integration] &&
+            tokens[integration].token &&
+            tokens[integration].token.access_token
+          )
+      ).length === 0;
+
+  const confirm = () => {
+    if (enabled) {
+      if (destination.google) {
+        dispatch(setCurrentStep('google_place'));
+      } else {
+        dispatch(setProcessStep('final'));
+        ipcRenderer.send('update_images', sequence);
+      }
+    }
   };
 
   const items = Object.keys(destination)
@@ -52,21 +80,49 @@ export default function DestinationLogin() {
         <img
           src={`data:image/png;base64, ${integrations[integration].logo}`}
           alt={integrations[integration].name}
-          width="70"
-          height="70"
+          width="35"
+          height="35"
         />
       );
+
+      let color = 'primary';
+      let buttonTitle =
+        tokens[integration] && tokens[integration].waiting
+          ? 'Logining to'
+          : 'Login to';
+
+      if (tokens[integration] && tokens[integration].token) {
+        buttonTitle = 'Logged In';
+        color = 'default';
+      }
+
       return (
         <Button
           onClick={() => login(integration)}
           endIcon={integrationLogo}
           size="large"
-          color="primary"
+          color={color}
           variant="contained"
           key={integration}
         >
-          {tokens[integration].waiting ? 'Logining to' : 'Login to'}
+          {buttonTitle}
         </Button>
+      );
+    });
+
+  const errorItems = Object.keys(destination)
+    .filter((integration: string) => destination[integration])
+    .filter(
+      (integration: string) =>
+        tokens[integration] &&
+        tokens[integration].token &&
+        !tokens[integration].token.access_token
+    )
+    .map((integration: string) => {
+      return (
+        <Alert severity="error" key={integration}>
+          {JSON.stringify(tokens[integration].token)}
+        </Alert>
       );
     });
 
@@ -75,9 +131,24 @@ export default function DestinationLogin() {
       <Grid item xs={12}>
         <Typography variant="h6">Authentications</Typography>
       </Grid>
-      <Grid item xs={12} />
+
       <Grid item xs={12}>
-        {items}
+        {errorItems}
+      </Grid>
+
+      <Grid item xs={12}>
+        <div className={classes.loginButtonWrapper}>{items}</div>
+      </Grid>
+      <Grid item xs={12}>
+        <Button
+          onClick={confirm}
+          endIcon={<ChevronRightIcon />}
+          color="primary"
+          variant="contained"
+          disabled={!enabled}
+        >
+          Confirm
+        </Button>
       </Grid>
     </>
   );

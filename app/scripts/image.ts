@@ -27,8 +27,6 @@ import {
   sendToClient,
 } from './utils';
 
-import { uploadImage } from './integrations/mapillary';
-
 const average = require('image-average-color');
 
 const { Tags, exiftool } = require('exiftool-vendored');
@@ -83,7 +81,6 @@ export function getPoint(
           }
         },
         (valid: boolean, cb: CallableFunction) => {
-          console.log(valid);
           if (valid) {
             exiftool
               .read(filepath)
@@ -409,19 +406,25 @@ export function writeExifTags(
       [
         (cb: CallableFunction) => {
           if (outputfile) {
-            mkdirp(path.dirname(outputfile))
-              // eslint-disable-next-line consistent-return
-              // eslint-disable-next-line promise/always-return
-              .then(() => {
+            try {
+              mkdirp(path.dirname(outputfile))
+                // eslint-disable-next-line consistent-return
                 // eslint-disable-next-line promise/always-return
-                fs.copyFile(input_file, outputfile, (err2: any) => {
-                  if (err2) return cb(err2);
-                  return cb(null, outputfile);
+                .then(() => {
+                  // eslint-disable-next-line promise/always-return
+                  fs.copyFile(input_file, outputfile, (err2: any) => {
+                    if (err2) return cb(err2);
+                    return cb(null, outputfile);
+                  });
+                })
+                .catch((err: any) => {
+                  cb(err);
                 });
-              })
-              .catch((err: any) => {
-                cb(err);
-              });
+            } catch (e) {
+              console.log('Making directory Issue:', e);
+
+              cb(e);
+            }
           } else {
             cb(null, input_file);
           }
@@ -456,7 +459,6 @@ export function writeExifTags(
             .write(inputFile, tags, options)
             .then(() => cb())
             .catch((error: any) => {
-              console.log('Writing Exif tags issue: ', error);
               cb();
             });
         },
@@ -530,76 +532,14 @@ export function writeNadirImages(
   });
 }
 
-export function writeBlurredImage(
-  item: IGeoPoint,
-  settings: any,
-  description: Description,
-  basepath: string
-) {
-  return new Promise((resolve, reject) => {
-    const filename = item.Image || '';
-    const inputfile = getSequenceImagePath(settings.name, filename, basepath);
-    const outputfile = getSequenceOutputFilePath(
-      settings.name,
-      filename,
-      OutputType.blur,
-      basepath
-    );
-
-    console.log(`Start Updating Jimp: filename ${inputfile}`);
-    const jimpAsync = jimp
-      .read(inputfile)
-      .then((image) => {
-        return image.blur(10).writeAsync(outputfile);
-      })
-      .catch((err) => {
-        console.log(`Read Error in Jimp: ${filename} - `, err);
-        return reject(err);
-      });
-    const writeExifAsync = jimpAsync
-      .then(() =>
-        writeExifTags(outputfile, item, {
-          ...description.photo,
-          MTPImageCopy: 'final_blurred',
-        })
-      )
-      .catch((err) => {
-        console.log(`Write Error in Jimp: ${filename} - `, err);
-        return reject(err);
-      });
-    writeExifAsync
-      .then(() => resolve())
-      .catch((err) => {
-        console.log(
-          `Writing ExifTags for Blurred Image: ${outputfile} - `,
-          err
-        );
-        reject(err);
-      });
-  });
-}
-
 export function updateImages(
   win: BrowserWindow,
-  points: IGeoPoint[],
+  updatedPoints: IGeoPoint[],
   settings: any,
   logo: any,
-  basepath: string,
-  mapillarySession: any
+  basepath: string
 ): Promise<Result> {
   return new Promise((resolve, reject) => {
-    const updatedPoints = points
-      .filter(
-        (p) =>
-          typeof p.MAPAltitude !== 'undefined' &&
-          typeof p.MAPLatitude !== 'undefined' &&
-          typeof p.MAPLongitude !== 'undefined'
-      )
-      .map((p) => {
-        const newP = new IGeoPoint(p);
-        return newP;
-      });
-
     const sequenceId = uuidv4();
 
     const totaldistance = updatedPoints.reduce(
@@ -635,7 +575,7 @@ export function updateImages(
         uploader_transport_type: settings.type,
         uploader_transport_method: settings.method,
         uploader_tags: settings.tags,
-        created: dayjs().format('YYYY-MM-DD'),
+        created: dayjs().format('YYYY-MM-DDTHH:mm:ss'),
         uploader_camera: settings.camera,
         destination: {},
       },
@@ -654,6 +594,7 @@ export function updateImages(
           distance_mtrs: distance,
           heading_deg: prevItem.Azimuth || 0,
           pitch_deg: prevItem.Pitch || 0,
+          adj_heading_deg: (p.Azimuth - prevItem.Azimuth + 360) % 360,
           time_sec: deltatime,
           speed_kmh:
             deltatime !== 0 ? (distance * 3600) / (deltatime * 1000) : 0,
@@ -666,6 +607,7 @@ export function updateImages(
         connections[nextItem.id] = {
           distance_mtrs: distance,
           heading_deg: p.Azimuth || 0,
+          adj_heading_deg: (nextItem.Azimuth - p.Azimuth + 360) % 360,
           pitch_deg: p.Pitch || 0,
           time_sec: deltatime,
           speed_kmh:
@@ -773,58 +715,10 @@ export function updateImages(
                   }
                 });
             },
-            (cb: CallableFunction) => {
-              if (settings.blur) {
-                writeBlurredImage(item, settings, desc, basepath)
-                  .then(() => cb())
-                  .catch((err) => cb(err));
-              } else {
-                cb();
-              }
-            },
           ],
           (err) => {
             if (err) {
               next(err);
-            } else if (mapillarySession) {
-              sendToClient(
-                win,
-                'loaded_message',
-                `End updating file: ${item.Image}`
-              );
-              let outputType = '';
-              if (settings.nadirPath !== '') {
-                outputType = OutputType.nadir;
-              } else {
-                outputType = OutputType.raw;
-              }
-              const filepath = getSequenceOutputFilePath(
-                settings.name,
-                item.Image,
-                outputType,
-                basepath
-              );
-              sendToClient(
-                win,
-                'loaded_message',
-                `Start uploading file: ${item.Image}`
-              );
-
-              // eslint-disable-next-line promise/no-promise-in-callback
-              uploadImage(filepath, item.Image, mapillarySession)
-                .then(() => {
-                  sendToClient(
-                    win,
-                    'loaded_message',
-                    `End uploading file: ${item.Image}`
-                  );
-                  // eslint-disable-next-line promise/no-callback-in-promise
-                  return next();
-                })
-                .catch((err: any) => {
-                  // eslint-disable-next-line promise/no-callback-in-promise
-                  next(err);
-                });
             } else {
               sendToClient(
                 win,
@@ -838,6 +732,7 @@ export function updateImages(
       },
       (err: any) => {
         if (err) {
+          console.log('Error: ', err);
           return typeof err === 'string'
             ? reject(new Error(err))
             : reject(new Error(err.message));

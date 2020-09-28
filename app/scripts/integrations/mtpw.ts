@@ -1,7 +1,12 @@
 import axios from 'axios';
 import qs from 'qs';
-import { Sequence } from '../../types/Result';
+import fs from 'fs';
+import { Sequence, Result, Summary } from '../../types/Result';
 import axiosErrorHandler from '../utils/axios';
+import { createdData2List, getSequenceLogPath } from '../utils';
+import { findSequences } from './mapillary';
+import tokenStore from '../tokens';
+import { findActivityAPI, getStravaToken, updateActivityAPI } from './strava';
 
 axios.interceptors.response.use(
   (res) => res,
@@ -10,7 +15,7 @@ axios.interceptors.response.use(
   }
 );
 
-export const postSequence = async (sequence: Sequence, token: string) => {
+export const postSequenceAPI = async (sequence: Sequence, token: string) => {
   const data = {
     name: sequence.uploader_sequence_name,
     description: sequence.uploader_sequence_description,
@@ -44,29 +49,24 @@ export const postSequence = async (sequence: Sequence, token: string) => {
   }
 };
 
-export const updateSequence = async (
+export const updateIntegrationStatusDataAPI = async (
   seqId: string,
-  mtpwToken: string,
-  seqKey: string,
-  mapillaryToken: string
+  data: any
 ) => {
-  const data = {
-    mapillary_user_token: mapillaryToken,
-    mapillary_sequence_key: seqKey,
-  };
-
+  const mtpwToken = tokenStore.getToken('mtp');
   const config = {
     method: 'put',
     url: `${process.env.MTP_WEB_URL}/api/v1/sequence/import/${seqId}/`,
     headers: {
       Authorization: `Bearer ${mtpwToken}`,
+      'Content-Type': 'application/json',
     },
-    data: qs.stringify(data),
+    data: JSON.stringify(data),
   };
 
   try {
     const res = await axios(config);
-    console.log('res.data: ', res.data);
+    console.log('updateIntegrationStatusDataAPI: ', res.data);
     if (res.data.error) {
       return {
         seqError: `MTPWImportSequence: ${res.data.error}`,
@@ -80,4 +80,117 @@ export const updateSequence = async (
   }
 };
 
-export default postSequence;
+export const checkIntegrationStatus = async (
+  s: Result,
+  basepath: string
+): Promise<Summary> => {
+  const mapillaryToken = tokenStore.getToken('mapillary');
+  const stravaToken = tokenStore.getToken('strava');
+  const summary = createdData2List(s);
+  const { destination } = s.sequence;
+  let updated = false;
+
+  if (
+    destination &&
+    typeof destination.mapillary === 'string' &&
+    destination.mapillary !== '' &&
+    !destination.mapillary.startsWith('Error') &&
+    mapillaryToken
+  ) {
+    console.log('destination.mapillary: ', destination.mapillary);
+    const { error, data } = await findSequences(
+      mapillaryToken,
+      destination.mapillary,
+      s.sequence
+    );
+
+    if (error) {
+      console.log('Mapillary findSequences Error: ', error);
+      updated = true;
+
+      summary.destination.mapillary = `Error: ${error}`;
+      s.sequence.destination.mapillary = `Error: ${error}`;
+    } else if (data && destination.mtp && typeof destination.mtp === 'string') {
+      const { seqError } = await updateIntegrationStatusDataAPI(
+        destination.mtp,
+        {
+          mapillary_user_token: mapillaryToken,
+          mapillary_sequence_key: data,
+        }
+      );
+      console.log('Mapillary updateIntegrationStatusDataAPI Error: ', seqError);
+      if (!seqError) {
+        updated = true;
+        summary.destination.mapillary = true;
+        s.sequence.destination.mapillary = true;
+      }
+    }
+  }
+
+  console.log('stravaToken: ', destination.strava, stravaToken);
+
+  if (destination && typeof destination.strava === 'number' && stravaToken) {
+    const newStravaToken = await getStravaToken(
+      tokenStore.getRefreshToken('strava')
+    );
+
+    console.log('newStravaToken:', newStravaToken);
+
+    if (newStravaToken.data) {
+      tokenStore.set('strava', { waiting: false, token: newStravaToken.data });
+
+      const stravaActivity = await findActivityAPI(
+        destination.strava,
+        newStravaToken.data.access_token
+      );
+
+      console.log('stravaActivity: ', stravaActivity.data);
+
+      if (
+        stravaActivity.data &&
+        stravaActivity.data.activity_id &&
+        typeof destination.mtp === 'string' &&
+        destination.mtp !== ''
+      ) {
+        updated = true;
+
+        const { seqError } = await updateIntegrationStatusDataAPI(
+          destination.mtp,
+          {
+            strava: stravaActivity.data.activity_id,
+          }
+        );
+
+        if (!seqError) {
+          summary.destination.strava = true;
+          s.sequence.destination.strava = true;
+        }
+      }
+    }
+  }
+
+  if (
+    ((typeof summary.destination.strava === 'boolean' &&
+      summary.destination.strava) ||
+      !summary.destination.strava) &&
+    typeof summary.destination.mapillary === 'boolean' &&
+    summary.destination.mapillary
+  ) {
+    updated = true;
+    summary.destination.mtp = true;
+    s.sequence.destination.mtp = true;
+  }
+
+  if (updated) {
+    fs.writeFileSync(
+      getSequenceLogPath(s.sequence.uploader_sequence_name, basepath),
+      JSON.stringify(s)
+    );
+  }
+
+  console.log('----------- end checkIntegrationStatus: -----------------');
+
+  return summary;
+};
+
+export default postSequenceAPI;

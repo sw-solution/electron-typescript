@@ -23,13 +23,23 @@ const listSlice = createSlice({
       state.seqs = [...payload];
       state.loaded = true;
     },
+    updateSeqs(state, { payload }) {
+      state.seqs = state.seqs.map((s: Summary) => {
+        if (s.id in payload) {
+          return {
+            ...payload[s.id],
+          };
+        }
+        return s;
+      });
+    },
     addSeq(state, { payload }) {
       state.seqs = [payload, ...state.seqs];
     },
     removeSeq(state, { payload }) {
       state.seqs = state.seqs.filter((s) => s.name !== payload);
     },
-    updateSequence(state, { payload }) {
+    updateIntegrationStatus(state, { payload }) {
       state.seqs = state.seqs.map((s) => {
         if (s.id === payload.id) {
           return { ...payload };
@@ -45,7 +55,8 @@ export const {
   endLoad,
   addSeq,
   removeSeq,
-  updateSequence,
+  updateIntegrationStatus,
+  updateSeqs,
 } = listSlice.actions;
 
 export default listSlice.reducer;

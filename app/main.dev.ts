@@ -8,8 +8,9 @@
  * When running `yarn build` or `yarn build-main`, this file is compiled to
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  */
-import { app, BrowserWindow, shell, Menu } from 'electron';
+import { app, BrowserWindow, shell, Menu, dialog } from 'electron';
 
+import path from 'path';
 import eventsLoader, { sendTokenFromUrl } from './scripts/events_loader';
 
 import { sendToClient } from './scripts/utils';
@@ -119,17 +120,20 @@ const createWindow = async () => {
 
   eventsLoader(mainWindow, app);
 
-  // const menuBuilder = new MenuBuilder(mainWindow);
-  // menuBuilder.buildMenu();
+  // await sendTokenFromUrl(mainWindow, 'app.mtp.desktop://test/#access_token=abc');
 };
 
 /**
  * Add event listeners...
  */
 
-app.on('open-url', function (event, protocolLink: string) {
+app.on('open-url', (event, protocolLink: string) => {
   event.preventDefault();
-  sendTokenFromUrl(mainWindow, protocolLink);
+  sendTokenFromUrl(
+    mainWindow,
+    protocolLink,
+    path.join(app.getAppPath(), '../')
+  );
 });
 
 app.setAsDefaultProtocolClient('app.mtp.desktop');
@@ -147,15 +151,15 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on('second-instance', (event, commandLine, workingDirectory) => {
+  app.on('second-instance', async (event, commandLine, workingDirectory) => {
     event.preventDefault();
     // Someone tried to run a second instance, we should focus our window.
     if (mainWindow) {
       commandLine.forEach((l: string) => {
-        if (l.indexOf('app.mtp.desktop:') >= 0) sendTokenFromUrl(mainWindow, l);
+        if (l.indexOf('app.mtp.desktop:') >= 0) {
+          sendTokenFromUrl(mainWindow, l);
+        }
       });
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.focus();
     }
   });
 

@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { push } from 'connected-react-router';
 import { IpcRendererEvent } from 'electron';
 import { useLocation } from 'react-router-dom';
+import ScriptTag from 'react-script-tag';
 
 import { Modal, Button } from '@material-ui/core';
 import { Alert, AlertTitle } from '@material-ui/lab';
@@ -14,9 +15,13 @@ import {
   setConfigLoadEnd,
   selToken,
   selIntegrations,
-  setTokens,
+  setToken,
 } from '../base/slice';
+
+import { selSeqs, updateSeqs } from '../list/slice';
+
 import routes from '../constants/routes.json';
+import { Summary } from '../types/Result';
 
 const { ipcRenderer } = window.require('electron');
 const useStyles = makeStyles((theme) => ({
@@ -49,6 +54,7 @@ export default function App(props: Props) {
   const sequence = useSelector(selSequence);
   const name = useSelector(selSequenceName);
   const configLoaded = useSelector(selConfigLoaded);
+  const loadedSequences = useSelector(selSeqs);
 
   const integrations = useSelector(selIntegrations);
 
@@ -64,6 +70,30 @@ export default function App(props: Props) {
     showModal: false,
     aboutPage: false,
   });
+  const checkNeeded = loadedSequences
+    .filter(
+      (s: Summary) =>
+        Object.keys(integrations).filter((key: string) => {
+          return (
+            integrations[key] &&
+            s.destination[key] &&
+            typeof s.destination[key] === 'string' &&
+            s.destination[key] !== '' &&
+            !s.destination[key].startsWith('Error')
+          );
+        }).length > 0
+    )
+    .map((s: Summary) => s.name);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (checkNeeded.length) {
+        console.log(checkNeeded);
+        ipcRenderer.send('check_sequences', checkNeeded);
+      }
+    }, 300000);
+    return () => clearInterval(interval);
+  }, [integrations, checkNeeded]);
 
   useEffect(() => {
     if (
@@ -112,8 +142,15 @@ export default function App(props: Props) {
 
     ipcRenderer.on(
       'loaded_token',
-      (_event: IpcRendererEvent, storedTokens: any) => {
-        dispatch(setTokens(storedTokens));
+      (_event: IpcRendererEvent, key: string, token: any) => {
+        dispatch(setToken({ key, token }));
+      }
+    );
+
+    ipcRenderer.on(
+      'updated_sequences',
+      (_event: IpcRendererEvent, seqs: { [key: string]: Summary }) => {
+        dispatch(updateSeqs(seqs));
       }
     );
 
@@ -122,6 +159,7 @@ export default function App(props: Props) {
       ipcRenderer.removeAllListeners('about_page');
       ipcRenderer.removeAllListeners('loaded_config');
       ipcRenderer.removeAllListeners('loaded_token');
+      ipcRenderer.removeAllListeners('updated_sequences');
     };
   });
 
@@ -177,6 +215,11 @@ export default function App(props: Props) {
       <Modal open={state.showModal} onClose={handleClose}>
         {modalBody}
       </Modal>
+      <ScriptTag
+        isHydrating
+        type="text/javascript"
+        src={`https://maps.googleapis.com/maps/api/js?key=${process.env.GOOGLE_API_KEY}&libraries=places`}
+      />
     </>
   );
 }

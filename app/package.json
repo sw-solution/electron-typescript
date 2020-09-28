@@ -17,7 +17,5 @@
   "dependencies": {
     "exiftool-vendored": "^11.5.0"
   },
-  "devDependencies": {
-    "@types/mkdirp": "^1.0.1"
-  }
+  "devDependencies": {}
 }

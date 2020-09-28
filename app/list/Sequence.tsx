@@ -25,7 +25,7 @@ import Map from '../components/Map';
 import transportType from '../../transports/transport-methods.json';
 
 import { selIntegrations, selBasePath } from '../base/slice';
-import { getSequenceLogPath } from '../scripts/utils';
+import { getSequenceBasePath } from '../scripts/utils';
 
 import { Summary } from '../types/Result';
 
@@ -56,7 +56,9 @@ const useStyles = makeStyles((theme) => ({
     top: 0,
   },
   destinationWrapper: {
-    textAlign: 'left',
+    display: 'flex',
+    alignItems: 'center',
+    flexWrap: 'wrap',
   },
 }));
 
@@ -93,8 +95,8 @@ export default function Sequence({ data, onDelete, onSelect }: Props) {
       icon = <ErrorIcon color="error" fontSize="small" />;
       message = destination[key].replace('Error:', '');
     } else if (
-      typeof destination[key] === 'string' &&
-      destination[key] !== ''
+      (typeof destination[key] === 'string' && destination[key] !== '') ||
+      typeof destination[key] === 'number'
     ) {
       icon = <PublishIcon color="action" fontSize="small" />;
       message = 'Uploading';
@@ -123,7 +125,7 @@ export default function Sequence({ data, onDelete, onSelect }: Props) {
     <Grid xs={12} item className={classes.container}>
       <div className={classes.buttonWrapper}>
         {Object.keys(destination).length === 0 && (
-          <IconButton onClick={() => onSelect(data)} color="primary">
+          <IconButton onClick={() => onSelect(data.id)} color="primary">
             <EditIcon />
           </IconButton>
         )}
@@ -135,7 +137,7 @@ export default function Sequence({ data, onDelete, onSelect }: Props) {
 
       <Grid container alignItems="center" spacing={3}>
         <Grid xs={4} item>
-          <Map points={points} height={200} showPopup={false} id={data.name} />
+          <Map points={points} height={220} id={data.name} />
         </Grid>
         <Grid xs={8} item>
           <Grid container className={classes.contentWrapper}>
@@ -175,6 +177,12 @@ export default function Sequence({ data, onDelete, onSelect }: Props) {
                     {points.length}
                   </Typography>
                 </div>
+                <div>
+                  <span className="fas fa-stopwatch" />
+                  <Typography color="primary" variant="caption" display="block">
+                    {data.time}
+                  </Typography>
+                </div>
               </Box>
             </Grid>
             <Grid xs={5} item>
@@ -197,7 +205,7 @@ export default function Sequence({ data, onDelete, onSelect }: Props) {
           <Grid container alignItems="center" spacing={3}>
             <Grid xs={12} item>
               <Typography variant="caption" color="secondary">
-                {basepath ? getSequenceLogPath(data.name, basepath) : ''}
+                {basepath ? getSequenceBasePath(data.name, basepath) : ''}
               </Typography>
             </Grid>
           </Grid>

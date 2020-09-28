@@ -1,6 +1,7 @@
 {
   "LIST": "/",
   "CREATE": "/create",
+  "EDIT": "/edit",
   "ABOUT": "/about",
   "LOGIN": "/login"
 }

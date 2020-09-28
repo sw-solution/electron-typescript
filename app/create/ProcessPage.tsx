@@ -38,7 +38,7 @@ export default function SequenceProcessPage() {
         ...state,
         message: null,
       });
-      if (nextStep !== 'name' && nextStep !== '') {
+      if (nextStep !== '') {
         dispatch(setCurrentStep(nextStep));
       }
     });
@@ -90,7 +90,7 @@ export default function SequenceProcessPage() {
         </Typography>
       </Grid>
       <Grid item xs={12}>
-        {nextStep === 'name' && (
+        {nextStep === 'final' && (
           <Typography align="center" color="textSecondary">
             {`Output can be viewed in [${getSequenceBasePath(
               name,

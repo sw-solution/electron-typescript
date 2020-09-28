@@ -68,7 +68,7 @@ export default function Login() {
   const websiteUrl = process.env.MTP_WEB_URL || '';
 
   useEffect(() => {
-    if (token && token !== '') {
+    if (token) {
       dispatch(push(routes.LIST));
     }
   }, [dispatch, token]);
@@ -81,7 +81,7 @@ export default function Login() {
 
   const login = () => {
     dispatch(setTokenWaiting({ waiting: true, key: tokenKey }));
-    ipcRenderer.send('set_token', tokenKey, { value: null, waiting: true });
+    ipcRenderer.send('set_token', tokenKey, { token: null, waiting: true });
     gotoExternal(integrations[tokenKey].loginUrl);
   };
 

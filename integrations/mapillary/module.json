@@ -1,10 +1,5 @@
 {
   "name": "Mapillary",
-  "oauth": {
-    "params": {
-      "client_id": "MAPILLARY_APP_ID",
-      "redirect_uri": "MAPILLARY_REDIRECT_URI"
-    },
-    "baseUrl": "https://www.mapillary.com/connect?response_type=token&scope=user:email%20private:upload"
-  }
+  "order": 2,
+  "envs": ["MAPILLARY_APP_ID", "MAPILLARY_SECRET"]
 }
