@@ -157,7 +157,7 @@ if (!gotTheLock) {
     if (mainWindow) {
       commandLine.forEach((l: string) => {
         if (l.indexOf('app.mtp.desktop:') >= 0) {
-          sendTokenFromUrl(mainWindow, l, path.join(app.getAppPath(), '../'));
+          sendTokenFromUrl(mainWindow, l);
         }
       });
     }

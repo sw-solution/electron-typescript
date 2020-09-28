@@ -66,6 +66,7 @@ export const updateIntegrationStatusDataAPI = async (
 
   try {
     const res = await axios(config);
+    console.log('updateIntegrationStatusDataAPI: ', res.data);
     if (res.data.error) {
       return {
         seqError: `MTPWImportSequence: ${res.data.error}`,
@@ -100,7 +101,7 @@ export const checkIntegrationStatus = async (
     const { error, data } = await findSequences(
       mapillaryToken,
       destination.mapillary,
-      s.photo
+      s.sequence
     );
 
     if (error) {
@@ -117,21 +118,23 @@ export const checkIntegrationStatus = async (
           mapillary_sequence_key: data,
         }
       );
-      console.log('Mapillary updateIntegrationStatusDataAPI Error: ', error);
-
+      console.log('Mapillary updateIntegrationStatusDataAPI Error: ', seqError);
       if (!seqError) {
         updated = true;
-
         summary.destination.mapillary = true;
         s.sequence.destination.mapillary = true;
       }
     }
   }
 
+  console.log('stravaToken: ', destination.strava, stravaToken);
+
   if (destination && typeof destination.strava === 'number' && stravaToken) {
     const newStravaToken = await getStravaToken(
       tokenStore.getRefreshToken('strava')
     );
+
+    console.log('newStravaToken:', newStravaToken);
 
     if (newStravaToken.data) {
       tokenStore.set('strava', { waiting: false, token: newStravaToken.data });
@@ -140,6 +143,8 @@ export const checkIntegrationStatus = async (
         destination.strava,
         newStravaToken.data.access_token
       );
+
+      console.log('stravaActivity: ', stravaActivity.data);
 
       if (
         stravaActivity.data &&

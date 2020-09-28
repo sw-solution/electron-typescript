@@ -70,31 +70,30 @@ export default function App(props: Props) {
     showModal: false,
     aboutPage: false,
   });
+  const checkNeeded = loadedSequences
+    .filter(
+      (s: Summary) =>
+        Object.keys(integrations).filter((key: string) => {
+          return (
+            integrations[key] &&
+            s.destination[key] &&
+            typeof s.destination[key] === 'string' &&
+            s.destination[key] !== '' &&
+            !s.destination[key].startsWith('Error')
+          );
+        }).length > 0
+    )
+    .map((s: Summary) => s.name);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const checkNeeded = loadedSequences
-        .filter(
-          (s: Summary) =>
-            Object.keys(integrations).filter((key: string) => {
-              return (
-                integrations[key] &&
-                s.destination[key] &&
-                typeof s.destination[key] === 'string' &&
-                s.destination[key] !== '' &&
-                !s.destination[key].startsWith('Error')
-              );
-            }).length > 0
-        )
-        .map((s: Summary) => s.name);
-
       if (checkNeeded.length) {
         console.log(checkNeeded);
         ipcRenderer.send('check_sequences', checkNeeded);
       }
     }, 300000);
     return () => clearInterval(interval);
-  }, [integrations, loadedSequences]);
+  }, [integrations, checkNeeded]);
 
   useEffect(() => {
     if (

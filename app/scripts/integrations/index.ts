@@ -124,11 +124,17 @@ export default async (
         tokenStore.getRefreshToken('strava')
       );
 
+      console.log('newStravaToken:', newStravaToken);
+
       if (newStravaToken.error) {
         return getError(newStravaToken.error);
       }
 
-      tokenStore.set('strava', newStravaToken.data);
+      if (!newStravaToken.data) {
+        return getError('Error: can not get the token');
+      }
+
+      tokenStore.set('strava', { waiting: false, token: newStravaToken.data });
       sendToClient(
         mainWindow,
         messageChannelName,

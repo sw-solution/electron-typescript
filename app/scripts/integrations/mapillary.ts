@@ -6,9 +6,8 @@ import path from 'path';
 import Async from 'async';
 import { BrowserWindow } from 'electron';
 
-import dayjs from 'dayjs';
 import { Session } from '../../types/Session';
-import { Photos } from '../../types/Result';
+import { Sequence } from '../../types/Result';
 import { IGeoPoint } from '../../types/IGeoPoint';
 import axiosErrorHandler from '../utils/axios';
 import { sendToClient } from '../utils';
@@ -166,19 +165,10 @@ export const getUploadedSessions = async (
 export const findSequences = async (
   token: string,
   sessionKey: string,
-  photos: Photos
+  sequence: Sequence
 ) => {
   try {
-    const points = Object.values(photos);
-    points.sort((a, b) => {
-      return dayjs(a.modified.GPSDateTime).isBefore(
-        dayjs(b.modified.GPSDateTime)
-      )
-        ? -1
-        : 1;
-    });
     const user = await getUser(token);
-
     const uploadeSessions = await getUploadedSessions(token, sessionKey);
 
     if (uploadeSessions) {
@@ -187,9 +177,9 @@ export const findSequences = async (
       };
     }
 
-    const startPoint = points[0];
-    const endPoint = points[points.length - 1];
-    const url = `https://a.mapillary.com/v3/sequences?userkeys=${user.key}&client_id=${process.env.MAPILLARY_APP_ID}&start_time=${startPoint.modified.GPSDateTime}&end_time=${endPoint.modified.GPSDateTime}`;
+    const url = `https://a.mapillary.com/v3/sequences?userkeys=${user.key}&client_id=${process.env.MAPILLARY_APP_ID}&start_time=${sequence.earliest_time}&end_time=${sequence.latest_time}`;
+
+    console.log('mapillary url: ', url);
 
     const mapillarySequenceRes = await axios.get(url, {
       timeout: 600000,

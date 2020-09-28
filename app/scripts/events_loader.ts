@@ -46,10 +46,6 @@ import loadCameras from './camera';
 
 import loadDefaultNadir from './nadir';
 
-if (process.env.NODE_ENV === 'production') {
-  tokenStore.set('mtp', null);
-}
-
 export default (mainWindow: BrowserWindow, app: App) => {
   const basepath = app.getAppPath();
 
@@ -65,24 +61,14 @@ export default (mainWindow: BrowserWindow, app: App) => {
     ]);
 
     const tokens = tokenStore.getAll();
+    console.log('tokens: ', tokens);
 
     sendToClient(mainWindow, 'loaded_config', {
       cameras,
       nadirs,
       integrations,
       basepath,
-      tokens: Object.keys(tokens).reduce((obj: any, key: string) => {
-        if (tokens[key] && tokens[key].token) {
-          obj[key] = tokens[key];
-        } else {
-          obj[key] = {
-            waiting: false,
-            token: null,
-          };
-          tokenStore.set(key, obj[key]);
-        }
-        return obj;
-      }, {}),
+      tokens,
     });
   });
 
