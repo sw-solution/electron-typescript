@@ -46,6 +46,10 @@ import loadCameras from './camera';
 
 import loadDefaultNadir from './nadir';
 
+if (process.env.NODE_ENV === 'production') {
+  tokenStore.set('mtp', null);
+}
+
 export default (mainWindow: BrowserWindow, app: App) => {
   const basepath = app.getAppPath();
 
