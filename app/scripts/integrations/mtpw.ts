@@ -165,10 +165,11 @@ export const checkIntegrationStatus = async (
   }
 
   if (
-    typeof summary.destination.strava === 'boolean' &&
+    ((typeof summary.destination.strava === 'boolean' &&
+      summary.destination.strava) ||
+      !summary.destination.strava) &&
     typeof summary.destination.mapillary === 'boolean' &&
-    summary.destination.strava &&
-    summary.destination.strava
+    summary.destination.mapillary
   ) {
     updated = true;
     summary.destination.mtp = true;
