@@ -151,13 +151,13 @@ export default async (
       const activityId = stravaUpload.data;
 
       resultjson.sequence.destination.strava = activityId;
-      updateIntegrationStatusData.strava = true;
     }
 
     if (Object.keys(updateIntegrationStatusData).length) {
-      const { seqError } = await updateIntegrationStatusDataAPI(mtpwId, {
-        google_street_view: true,
-      });
+      const { seqError } = await updateIntegrationStatusDataAPI(
+        mtpwId,
+        updateIntegrationStatusData
+      );
 
       if (seqError) {
         return getError(seqError);

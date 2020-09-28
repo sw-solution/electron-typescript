@@ -95,8 +95,8 @@ export default function Sequence({ data, onDelete, onSelect }: Props) {
       icon = <ErrorIcon color="error" fontSize="small" />;
       message = destination[key].replace('Error:', '');
     } else if (
-      typeof destination[key] === 'string' &&
-      destination[key] !== ''
+      (typeof destination[key] === 'string' && destination[key] !== '') ||
+      typeof destination[key] === 'number'
     ) {
       icon = <PublishIcon color="action" fontSize="small" />;
       message = 'Uploading';
