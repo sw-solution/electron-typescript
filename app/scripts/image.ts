@@ -594,6 +594,7 @@ export function updateImages(
           distance_mtrs: distance,
           heading_deg: prevItem.Azimuth || 0,
           pitch_deg: prevItem.Pitch || 0,
+          adj_heading_deg: (p.Azimuth - prevItem.Azimuth + 360) % 360,
           time_sec: deltatime,
           speed_kmh:
             deltatime !== 0 ? (distance * 3600) / (deltatime * 1000) : 0,
@@ -606,6 +607,7 @@ export function updateImages(
         connections[nextItem.id] = {
           distance_mtrs: distance,
           heading_deg: p.Azimuth || 0,
+          adj_heading_deg: (nextItem.Azimuth - p.Azimuth + 360) % 360,
           pitch_deg: p.Pitch || 0,
           time_sec: deltatime,
           speed_kmh:

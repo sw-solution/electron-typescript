@@ -23,6 +23,7 @@ export const uploadImage = async (
   item: IGeoPoint,
   baseDirectory: string,
   messageChannelName: string,
+  adAzimuth: number,
   googlePlace?: string
 ) => {
   sendToClient(
@@ -63,7 +64,7 @@ export const uploadImage = async (
   const metaData = {
     uploadReference,
     pose: {
-      heading: item.Azimuth,
+      heading: adAzimuth,
       altitude: item.MAPAltitude,
       pitch: item.Pitch,
       latLngPair: {
@@ -110,13 +111,20 @@ export const uploadImagesToGoogle = (
     Async.eachOfLimit(
       points,
       1,
-      (point: IGeoPoint, _key: any, cb: CallableFunction) => {
+      (point: IGeoPoint, key: any, cb: CallableFunction) => {
+        let adAzimuth = 0;
+        if (key !== 0) {
+          const prevPoint = points[key - 1];
+          adAzimuth = (point.Azimuth - prevPoint.Azimuth + 360) % 360;
+        }
+
         uploadImage(
           mainWindow,
           token,
           point,
           baseDirectory,
           messageChannelName,
+          adAzimuth,
           googlePlace
         )
           // eslint-disable-next-line promise/no-callback-in-promise
