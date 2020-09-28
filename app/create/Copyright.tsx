@@ -80,9 +80,11 @@ export default function Copyright() {
     <>
       <Grid item xs={12}>
         <Typography variant="h6" align="center" color="textSecondary">
-          Copywrite
+          Copyright
         </Typography>
-        <Typography paragraph />
+        <Typography paragraph>
+          The following values will be written into the EXIF fields of the image. It's a good place to put your name, should someone need to contact you about using the image. 
+        </Typography>
       </Grid>
       <Grid item xs={12} className={classes.wrapper}>
         <TextField
