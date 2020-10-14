@@ -28,12 +28,19 @@ export default function Final() {
       <Grid item xs={12}>
         <Typography paragraph>
           Good news, your upload completed successfully. Please be aware, it can
-          take varying amounts of time before you'll see the imagery online. It
+          take varying amounts of time before you'll see the imagery online. 
+        </Typography>
+        <Typography paragraph>
+          It
           can take up to 72 hours for images to be processed and published
           Mapillary. It can take up to 1 week for images to be processed and
           published Google Maps. You can see the status on the sequence list
           page. Keep the app open, and you'll be able to check the progress of
           uploads on each service.
+        </Typography>
+        <Typography paragraph>
+          You'll see a green tick icon on the sequence list page when the publishing
+          process completes.
         </Typography>
       </Grid>
       <Grid item xs={12}>
