@@ -321,5 +321,20 @@
         "strava_activity": false
       }
     ]
-  }
+  },
+  "Other": {
+    "type": "Other",
+    "icon": "fas fa-question-circle",
+    "description": "",
+    "children": [
+      {
+        "type": "Unlisted",
+        "icon": "fas fa-question-circle",
+        "description": "",
+        "secondary_parent": "",
+        "mtp_api": "Unlisted",
+        "strava_activity": false
+      }
+    ]
+  }     
 }
