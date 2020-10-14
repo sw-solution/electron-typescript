@@ -6,7 +6,7 @@ Map the Paths Desktop Uploader allows you to manage your street-level map imager
 
 ## Features
 
-![alt-text](https://raw.githubusercontent.com/wiki/trek-view/mtp-desktop-uploader/images/sequence-list.png "")
+![alt-text](mtpu-screenshot.png "")
 
 * Works with 360 and standard (flat) photos
 * Add metadata to sequence for easy management and discovery (name, description, tags)
@@ -41,4 +41,4 @@ Having problems? [Ask a question around the Campfire (our community forum)](http
 
 ## License
 
-[MIT](/LICENSE.txt).
+[GNU Affero General Public License v3.0](/LICENSE.txt).
