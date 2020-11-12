@@ -22,6 +22,7 @@ import {
   getSequenceImagePath,
   OutputType,
   getSequenceOutputFilePath,
+  getSequenceBasePath, 
   discardPointsBySeconds,
   parseExifDateTime,
   sendToClient,
@@ -143,6 +144,37 @@ export function getPoint(
                   height: tags.ImageHeight,
                   tags: itemTags,
                 });
+
+                if (item != undefined) {
+                  if (item.MAPLatitude != undefined) {
+                    if (item.MAPLatitude > 0) {
+                      tags = {
+                        ...tags, 
+                        GPSLatitudeRef: 'N'
+                      }
+                    } else {
+                      tags = {
+                        ...tags, 
+                        GPSLatitudeRef: 'S'
+                      }
+                    }
+                  }
+      
+                  if (item.MAPLongitude != undefined) {
+                    if (item.MAPLongitude > 0) {
+                      tags = {
+                        ...tags, 
+                        GPSLongitudeRef: 'E'
+                      }
+                    } else {
+                      tags = {
+                        ...tags, 
+                        GPSLongitudeRef: 'W'
+                      }
+                    }
+                  }
+                }
+                
                 return cb(null, item);
               })
               .catch((err: Error) => {
@@ -250,19 +282,20 @@ export const calculatePoints = (
   }
 };
 
-export function loadImages(
+
+export function loadImageFiles(
   dirPath: string,
+  files: string[],
   outputpath: string,
   corrupedCheck: boolean,
   callback: CallableFunction
 ) {
-  const files = fs.readdirSync(dirPath);
   Async.waterfall(
     [
       (cb1: CallableFunction) => {
         fs.exists(outputpath, (existed: boolean) => {
           if (!existed) {
-            fs.mkdir(outputpath, (err) => {
+            fs.mkdir(outputpath, {recursive: true}, (err) => {
               if (err) {
                 cb1(err);
               } else cb1(null);
@@ -287,7 +320,7 @@ export function loadImages(
       },
       (cb1: CallableFunction) => {
         const originalpath = path.join(outputpath, 'originals');
-        fs.mkdir(originalpath, (err) => {
+        fs.mkdir(originalpath, {recursive: true}, (err) => {
           if (err) {
             cb1(err);
           } else cb1(null, files, dirPath, originalpath, corrupedCheck);
@@ -455,6 +488,36 @@ export function writeExifTags(
             }),
           };
 
+          if (item != undefined) {
+            if (item.MAPLatitude != undefined) {
+              if (item.MAPLatitude > 0) {
+                tags = {
+                  ...tags, 
+                  GPSLatitudeRef: 'N'
+                }
+              } else {
+                tags = {
+                  ...tags, 
+                  GPSLatitudeRef: 'S'
+                }
+              }
+            }
+
+            if (item.MAPLongitude != undefined) {
+              if (item.MAPLongitude > 0) {
+                tags = {
+                  ...tags, 
+                  GPSLongitudeRef: 'E'
+                }
+              } else {
+                tags = {
+                  ...tags, 
+                  GPSLongitudeRef: 'W'
+                }
+              }
+            }
+          }
+
           exiftool
             .write(inputFile, tags, options)
             .then(() => cb())
@@ -474,6 +537,7 @@ export function writeExifTags(
 export function writeNadirImages(
   item: IGeoPoint,
   settings: any,
+  originalSequenceName: string,
   description: Description,
   basepath: string,
   logo: any
@@ -482,13 +546,13 @@ export function writeNadirImages(
     if (settings.nadirPath !== '' && logo) {
       const filename = item.Image || '';
       const existingfile = getSequenceImagePath(
-        settings.name,
+        originalSequenceName,
         filename,
         basepath
       );
       const outputfile = getSequenceOutputFilePath(
         settings.name,
-        filename,
+        settings.name.split(' ').join('_') + "_" + filename,
         OutputType.nadir,
         basepath
       );
@@ -536,6 +600,7 @@ export function updateImages(
   win: BrowserWindow,
   updatedPoints: IGeoPoint[],
   settings: any,
+  originalSequenceName: string,
   logo: any,
   basepath: string
 ): Promise<Result> {
@@ -676,6 +741,9 @@ export function updateImages(
       };
     });
 
+    let beautifiedName = settings.name.split('_').join(' ');
+    beautifiedName = beautifiedName.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
     Async.eachOfLimit(
       updatedPoints,
       1,
@@ -683,7 +751,7 @@ export function updateImages(
         sendToClient(
           win,
           'loaded_message',
-          `Start updating file: ${item.Image}`
+          `[${beautifiedName}] Updating file: ${item.Image}`
         );
 
         const desc: Description = descriptions[item.id];
@@ -692,13 +760,34 @@ export function updateImages(
             (cb: CallableFunction) => {
               const filename = item.Image || '';
               const inputfile = getSequenceImagePath(
-                settings.name,
+                originalSequenceName,
                 filename,
                 basepath
               );
+              if (settings.name != originalSequenceName) {
+                const outputOriginalFile = getSequenceImagePath(
+                  settings.name,
+                  settings.name.split(' ').join('_') + "_" + filename,
+                  basepath
+                );
+                const outputOriginalSeqPath = path.join(getSequenceBasePath(settings.name, basepath), 'originals');
+                fs.exists(outputOriginalSeqPath, (existed: boolean) => {
+                  if (!existed) {
+                    fs.mkdir(outputOriginalSeqPath, {recursive: true}, (err) => {
+                      if (err) {
+                        console.log(err);
+                      }
+                    });
+                  }
+                });
+                fs.copyFile(inputfile, outputOriginalFile, (err: any) => {
+                  if (err) console.log(err);
+                });
+              }
+              
               const outputfile = getSequenceOutputFilePath(
                 settings.name,
-                filename,
+                settings.name.split(' ').join('_') + "_" + filename,
                 OutputType.raw,
                 basepath
               );
@@ -707,7 +796,7 @@ export function updateImages(
                 .catch((err) => cb(err));
             },
             (cb: CallableFunction) => {
-              writeNadirImages(item, settings, desc, basepath, logo)
+              writeNadirImages(item, settings, originalSequenceName, desc, basepath, logo)
                 .then(() => cb())
                 .catch((err) => {
                   if (err) {
@@ -723,7 +812,7 @@ export function updateImages(
               sendToClient(
                 win,
                 'loaded_message',
-                `End updating file: ${item.Image}`
+                `[${beautifiedName}] Updating file: ${item.Image}`
               );
               next();
             }

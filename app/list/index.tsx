@@ -38,6 +38,10 @@ import { selCameras, selConfigLoaded } from '../base/slice';
 import { Camera } from '../types/Camera';
 import { setEdit } from '../edit/slice';
 
+import '../app.global.css';
+
+import Pager from 'react-pager';
+
 const { ipcRenderer } = window.require('electron');
 
 const drawerWidth = 300;
@@ -83,6 +87,9 @@ interface State {
   capturedEndDate: string;
   deleteModalOpen: boolean;
   deleteSequenceName: string;
+  totalPages: number;
+  currentPage: number;
+  visiblePage: number;
 }
 
 export default function ListPageWrapper() {
@@ -101,18 +108,23 @@ export default function ListPageWrapper() {
     capturedEndDate: '',
     deleteModalOpen: false,
     deleteSequenceName: '',
+    totalPages: 1,
+    currentPage: 0,
+    visiblePage: 3,
   });
 
   if (!loaded) {
+    console.log("loadsent");
     ipcRenderer.send('sequences');
   }
 
+  const items: JSX.Element[] = [];
+
   useEffect(() => {
-    ipcRenderer.once(
-      'loaded_sequences',
-      (_event: IpcRendererEvent, sequences: Summary[]) => {
+    ipcRenderer.once( 'loaded_sequences', (_event: IpcRendererEvent, sequences: Summary[]) => {
         dispatch(setEndLoad(sequences));
       }
+      
     );
     return () => {
       ipcRenderer.removeAllListeners('loaded_sequences');
@@ -181,8 +193,9 @@ export default function ListPageWrapper() {
       <div style={{ textAlign: 'right' }}>
         <Button
           onClick={() => {
-            dispatch(setRemoveSeq(state.deleteSequenceName));
+            console.log("removed sequence sended");
             ipcRenderer.send('remove_sequence', state.deleteSequenceName);
+            dispatch(setRemoveSeq(state.deleteSequenceName));
             onDeleteModalClose();
           }}
           color="secondary"
@@ -196,8 +209,19 @@ export default function ListPageWrapper() {
     </div>
   );
 
-  const items: JSX.Element[] = [];
-  seqs.forEach((item: Summary) => {
+  const handlePageChanged = (newPage: number) => {
+    setState({
+      ...state,
+      currentPage: newPage,
+    });
+  };
+
+  state.totalPages = Math.ceil(seqs.length / 10);
+  let startIndex = state.currentPage * 10;
+  let endIndex = state.currentPage * 10 + 10;
+
+  endIndex = endIndex > seqs.length ? seqs.length : endIndex;
+  seqs.slice(startIndex, endIndex).map((item: Summary) => {
     if (
       item.name.toLowerCase().indexOf(state.name.toLowerCase()) >= 0 &&
       (state.transporttype === '' || item.type === state.transporttype) &&
@@ -207,8 +231,11 @@ export default function ListPageWrapper() {
       (state.capturedEndDate === '' ||
         dayjs(state.capturedEndDate).isAfter(dayjs(item.captured)))
     ) {
+      let beautifiedName = item.name.split('_').join(' ');
+      beautifiedName = beautifiedName.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
       items.push(
         <Sequence
+          displayName={beautifiedName}
           data={item}
           key={item.id}
           onDelete={removeSeq}
@@ -331,11 +358,21 @@ export default function ListPageWrapper() {
               {items.length ? (
                 items
               ) : (
-                <Typography>
-                  No sequences exist that match the search criteria. Why not
-                  create one? As if you needed an excuse for an adventure!
-                </Typography>
-              )}
+                  <Typography>
+                    No sequences exist that match the search criteria. Why not
+                    create one? As if you needed an excuse for an adventure!
+                  </Typography>
+                )}
+              {seqs.length > 10 ?
+                <Pager
+                  total={state.totalPages}
+                  current={state.currentPage}
+                  visiblePages={state.visiblePage}
+                  titles={{ first: 'First', last: 'Last' }}
+                  className="pagination-sm pull-right"
+                  onPageChanged={handlePageChanged}
+                /> : null
+              }
             </>
           )}
           {(!loaded || !configLoaded) && <LinearProgress />}

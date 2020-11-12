@@ -19,7 +19,7 @@ import { IGeoPoint } from '../types/IGeoPoint';
 import { checkIntegrationStatus } from './integrations/mtpw';
 import integrateSequence, { loadIntegrations } from './integrations';
 
-import { loadImages, updateImages, addLogo, modifyLogo } from './image';
+import { updateImages, addLogo, modifyLogo, loadImageFiles } from './image';
 import tokenStore from './tokens';
 
 import {
@@ -47,7 +47,13 @@ import loadCameras from './camera';
 import loadDefaultNadir from './nadir';
 
 export default (mainWindow: BrowserWindow, app: App) => {
-  const basepath = app.getAppPath();
+  let basepath = app.getPath('home');
+  const mtpPath = path.join(basepath, 'MTP');
+  if (!fs.existsSync(mtpPath)) {
+    fs.mkdirSync(mtpPath, {recursive: true});
+  }
+  basepath = path.resolve(basepath, 'MTP', 'app');
+  // const basepath = app.getAppPath();
 
   ipcMain.on('set_token', (_event: IpcMainEvent, key: string, token: any) => {
     tokenStore.set(key, token);
@@ -81,18 +87,21 @@ export default (mainWindow: BrowserWindow, app: App) => {
       corrupted: boolean
     ) => {
       if (!fs.existsSync(resultdirectorypath(app))) {
-        fs.mkdirSync(resultdirectorypath(app));
+        fs.mkdirSync(resultdirectorypath(app), {recursive: true});
       }
       const sequencebasepath = getSequenceBasePath(seqname, basepath);
       if (fs.existsSync(sequencebasepath)) {
         await rimraf.sync(sequencebasepath);
       }
-      fs.mkdirSync(sequencebasepath);
+      fs.mkdirSync(sequencebasepath, {recursive: true});
+
+      let outputPath = getOriginalBasePath(seqname, basepath);
+      //outputPath = outputPath.replace(/ /g, '%20');
 
       processVideo(
         mainWindow,
         videoPath,
-        getOriginalBasePath(seqname, basepath),
+        outputPath,
         corrupted
       );
     }
@@ -108,36 +117,33 @@ export default (mainWindow: BrowserWindow, app: App) => {
     ) => {
       if (!fs.existsSync(resultdirectorypath(app))) {
         try {
-          fs.mkdirSync(resultdirectorypath(app));
+          fs.mkdirSync(resultdirectorypath(app), {recursive: true});
         } catch (e) {
           errorHandler(mainWindow, e);
           return;
         }
       }
 
-      const imageLength = fs
-        .readdirSync(dirPath)
-        .filter(
-          (name: string) =>
-            !name.toLowerCase().endsWith('.png') &&
-            !name.toLowerCase().endsWith('.jpeg') &&
-            !name.toLowerCase().endsWith('.jpg')
-        ).length;
+      let fileNames = fs
+        .readdirSync(dirPath, { withFileTypes: true })
+        .filter(dirent => dirent.isFile())
+        .map(dirent => dirent.name);
 
-      if (imageLength) {
-        errorHandler(mainWindow, 'The images should be jpeg or jpg');
+      fileNames = fileNames.filter((file: string) => {
+        return file.toLowerCase().endsWith('.png') ||
+          file.toLowerCase().endsWith('.jpeg') ||
+          file.toLowerCase().endsWith('.jpg')
+      });
+
+      const imageLength = fileNames.length;
+
+      if (imageLength == 0) {
+        errorHandler(mainWindow, 'No images exist in the specified folder.');
         return;
       }
 
       if (
-        fs
-          .readdirSync(dirPath)
-          .filter(
-            (name: string) =>
-              name.toLowerCase().endsWith('.png') ||
-              name.toLowerCase().endsWith('.jpeg') ||
-              name.toLowerCase().endsWith('.jpg')
-          ).length === 1
+        imageLength == 1
       ) {
         errorHandler(
           mainWindow,
@@ -146,8 +152,59 @@ export default (mainWindow: BrowserWindow, app: App) => {
         return;
       }
 
-      loadImages(
+    loadImageFiles(
         dirPath,
+        fileNames,
+        getSequenceBasePath(seqname, basepath),
+        corrupedCheck,
+        (error: any, result: any) => {
+          if (error) {
+            errorHandler(mainWindow, error);
+          } else {
+            const { points, removedfiles } = result;
+            sendPoints(mainWindow, points);
+
+            if (removedfiles.length) {
+              sendToClient(mainWindow, 'removed_files', removedfiles);
+            }
+            if (points.length) sendToClient(mainWindow, 'finish');
+          }
+        }
+      );
+    }
+  );
+
+  ipcMain.on(
+    'load_image_files',
+    async (
+      _event: IpcMainEvent,
+      dirPath: string,
+      files: string[],
+      seqname: string,
+      corrupedCheck: boolean
+    ) => {
+      if (!fs.existsSync(resultdirectorypath(app))) {
+        try {
+          fs.mkdirSync(resultdirectorypath(app), {recursive: true});
+        } catch (e) {
+          errorHandler(mainWindow, e);
+          return;
+        }
+      }
+
+      if (files.length == 0) {
+        errorHandler(mainWindow, 'No image files selected.');
+        return;
+      }
+
+      if (files.length === 1) {
+        errorHandler(mainWindow, 'More than one image is required to create a sequence.');
+        return;
+      }
+
+      loadImageFiles(
+        dirPath,
+        files,
         getSequenceBasePath(seqname, basepath),
         corrupedCheck,
         (error: any, result: any) => {
@@ -241,7 +298,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
     }
   );
 
-  ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any) => {
+  ipcMain.on('update_images', async (_event: IpcMainEvent, sequence: any, originalSequenceName: string) => {
     // eslint-disable-next-line global-require
     const { buildGPX, GarminBuilder } = require('gpx-builder');
     const { Point } = GarminBuilder.MODELS;
@@ -281,6 +338,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
       mainWindow,
       points,
       settings,
+      originalSequenceName,
       logo,
       basepath
     );
@@ -332,55 +390,57 @@ export default (mainWindow: BrowserWindow, app: App) => {
 
       await removeTempFiles(app);
 
-      return sendToClient(mainWindow, 'add-seq', createdData2List(result));
+      return sendToClient(mainWindow, 'add-seq', createdData2List(result), originalSequenceName, basepath);
     }
     if (error) {
       return errorHandler(mainWindow, error);
     }
   });
 
-  ipcMain.on('sequences', async (_event: IpcMainEvent) => {
-    if (!fs.existsSync(resultdirectorypath(app))) {
-      fs.mkdirSync(resultdirectorypath(app));
-    }
-    const sequencesDirectories = fs
-      .readdirSync(resultdirectorypath(app))
-      .filter(
-        (name) =>
-          fs.lstatSync(getSequenceBasePath(name, basepath)).isDirectory() &&
-          fs.existsSync(getSequenceLogPath(name, basepath))
+  ipcMain.on(
+    'sequences', 
+    async (_event: IpcMainEvent) => {
+
+      if (!fs.existsSync(resultdirectorypath(app))) {
+        fs.mkdirSync(resultdirectorypath(app), {recursive: true});
+      }
+      const sequencesDirectories = fs
+        .readdirSync(resultdirectorypath(app))
+        .filter(
+          (name) =>
+            fs.lstatSync(getSequenceBasePath(name, basepath)).isDirectory() &&
+            fs.existsSync(getSequenceLogPath(name, basepath))
+        );
+
+      fs.readdirSync(resultdirectorypath(app))
+        .filter(
+          (name) =>
+            fs.lstatSync(getSequenceBasePath(name, basepath)).isDirectory() &&
+            !fs.existsSync(getSequenceLogPath(name, basepath))
+        )
+        .forEach((d: string) => {
+          rimraf.sync(getSequenceBasePath(d, basepath));
+        });
+
+      const sequences: Result[] = await Promise.all(
+        sequencesDirectories.map(async (name: string) => {
+          return JSON.parse(
+            fs.readFileSync(getSequenceLogPath(name, basepath)).toString()
+          );
+        })
       );
 
-    fs.readdirSync(resultdirectorypath(app))
-      .filter(
-        (name) =>
-          fs.lstatSync(getSequenceBasePath(name, basepath)).isDirectory() &&
-          !fs.existsSync(getSequenceLogPath(name, basepath))
-      )
-      .forEach((d: string) => {
-        rimraf.sync(getSequenceBasePath(d, basepath));
+      const summaries: Summary[] = await Promise.all(
+        sequences.map(async (s: Result) => {
+          const summary = await checkIntegrationStatus(s, basepath);
+          return summary;
+        })
+      );
+
+      summaries.sort((a: any, b: any) => {
+        return dayjs(a.created).isBefore(dayjs(b.created)) ? 1 : -1;
       });
-
-    const sequences: Result[] = await Promise.all(
-      sequencesDirectories.map(async (name: string) => {
-        return JSON.parse(
-          fs.readFileSync(getSequenceLogPath(name, basepath)).toString()
-        );
-      })
-    );
-
-    const summaries: Summary[] = await Promise.all(
-      sequences.map(async (s: Result) => {
-        const summary = await checkIntegrationStatus(s, basepath);
-        return summary;
-      })
-    );
-
-    summaries.sort((a: any, b: any) => {
-      return dayjs(a.created).isBefore(dayjs(b.created)) ? 1 : -1;
-    });
-
-    sendToClient(mainWindow, 'loaded_sequences', summaries);
+      sendToClient(mainWindow, 'loaded_sequences', summaries);
   });
 
   ipcMain.on(
@@ -415,6 +475,7 @@ export default (mainWindow: BrowserWindow, app: App) => {
   ipcMain.on('remove_sequence', async (_event: IpcMainEvent, name: string) => {
     if (fs.existsSync(getSequenceBasePath(name, basepath))) {
       rimraf.sync(getSequenceBasePath(name, basepath));
+      // fs.unlinkSync(getSequenceBasePath(name, basepath));
     }
   });
 
@@ -429,9 +490,9 @@ export default (mainWindow: BrowserWindow, app: App) => {
     }
     await removeTempFiles(app);
     mainWindow?.destroy();
-    if (process.platform !== 'darwin') {
-      app.quit();
-    }
+    // if (process.platform !== 'darwin') {
+    app.quit();
+    // }
   });
 
   ipcMain.on(
@@ -548,6 +609,8 @@ export const sendTokenFromUrl = async (
         'redirect_uri',
         `${process.env.MTP_WEB_URL}/accounts/check-mtpu-google-oauth`
       );
+      data.append('access_type', 'offline')
+      data.append('prompt', 'consent');
 
       try {
         const tokenData = await axios({

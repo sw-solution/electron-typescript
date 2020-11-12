@@ -26,6 +26,7 @@ import { selSequenceName } from '../create/slice';
 import { selBasePath } from '../base/slice';
 
 import markerImg from '../assets/images/marker.svg';
+import { select } from 'async';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -76,6 +77,11 @@ export default function MapBox(props: Props) {
 
   const [map, setMap] = useState<Map | null>(null);
 
+  map?.addControl(new mapboxgl.NavigationControl({
+    showCompass: false,
+    showZoom: true
+  }), 'bottom-right');
+
   const classes = useStyles();
   const filteredpoints = points.filter(
     (point: IGeoPoint) => point.MAPLatitude && point.MAPLongitude
@@ -125,12 +131,21 @@ export default function MapBox(props: Props) {
     });
   };
 
-  const getpath = (idx: number) => {
-    return getSequenceImagePath(
+  // const getpath = (idx: number) => {
+  //   return getSequenceImagePath(
+  //     name,
+  //     filteredpoints[idx.toString()].Image,
+  //     basepath
+  //   );
+  // };
+
+  const getpath = (point: IGeoPoint) => {
+    var stringImage = getSequenceImagePath(
       name,
-      filteredpoints[idx.toString()].Image,
+      point.Image,
       basepath
     );
+    return stringImage;
   };
 
   const removePhoto = () => {
@@ -171,14 +186,12 @@ export default function MapBox(props: Props) {
               {`GPS Time: ${point.GPSDateTime}`}
             </Typography>
             <Typography variant="caption" display="block">
-              {`Heading / Azimuth (degrees): ${
-                point.Azimuth ? point.Azimuth.toFixed(2) : 0
-              }`}
+              {`Heading / Azimuth (degrees): ${point.Azimuth ? point.Azimuth.toFixed(2) : 0
+                }`}
             </Typography>
             <Typography variant="caption" display="block">
-              {`Distance to next photo (meters): ${
-                point.Distance ? point.Distance.toFixed(2) : 0
-              }`}
+              {`Distance to next photo (meters): ${point.Distance ? point.Distance.toFixed(2) : 0
+                }`}
             </Typography>
             <Typography variant="caption" display="block">
               {`Time to next photo (seconds): ${difftime}`}
@@ -186,11 +199,11 @@ export default function MapBox(props: Props) {
           </div>
           {point.equirectangular && (
             <ReactPannellum
-              key={idx}
+              key={point.Image}
               style={{ width: '100%', height: 250 }}
-              imageSource={getpath(idx)}
-              id={`image_${idx.toString()}`}
-              sceneId={idx.toString()}
+              imageSource={getpath(point)}
+              id={`image_${point.Image}`}
+              sceneId={point.Image}
               config={{
                 autoLoad: true,
               }}

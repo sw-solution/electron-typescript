@@ -4,7 +4,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import path from 'path';
 import Async from 'async';
 import { BrowserWindow } from 'electron';
-import fs from 'fs';
+var fs = require('fs');
 import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
 import mkdirp from 'mkdirp';
@@ -91,13 +91,40 @@ export function getGPSVideoData(tags: typeof Tags) {
         dataList.filter((s: VGeoPointModel) => s.SampleTime === sampleTime)
           .length === 0
       ) {
+        const mlat = parseDms(tags[`${k}:GPSLatitude`]);
+        const mlong = parseDms(tags[`${k}:GPSLongitude`]);
         const item = new VGeoPoint({
           GPSDateTime: parseExifDateTime(tags[`${k}:GPSDateTime`]),
-          MAPLatitude: parseDms(tags[`${k}:GPSLatitude`]),
-          MAPLongitude: parseDms(tags[`${k}:GPSLongitude`]),
+          MAPLatitude: mlat,
+          MAPLongitude: mlong,
           MAPAltitude: getAltudeMeters(tags[`${k}:GPSAltitude`]),
           SampleTime: sampleTime,
         });
+
+        if (mlat > 0) {
+          tags = {
+            ...tags, 
+            GPSLatitudeRef: 'N'
+          }
+        } else {
+          tags = {
+            ...tags, 
+            GPSLatitudeRef: 'S'
+          }
+        }
+        
+        if (mlong > 0) {
+          tags = {
+            ...tags, 
+            GPSLongitudeRef: 'E'
+          }
+        } else {
+          tags = {
+            ...tags, 
+            GPSLongitudeRef: 'W'
+          }
+        }
+
         dataList.push(item);
       }
     } catch (e) {
@@ -115,6 +142,33 @@ export function getGPSVideoData(tags: typeof Tags) {
       obj[key] = tags[key];
       return obj;
     }, {});
+
+    commonData['Main:CroppedAreaImageWidthPixels'] = commonData['Main:SourceImageWidth'];
+    commonData['Main:CroppedAreaImageHeightPixels'] = commonData['Main:SourceImageHeight'];
+  
+    commonData['Main:FullPanoWidthPixels'] = commonData['Main:SourceImageWidth'];
+    commonData['Main:FullPanoHeightPixels'] = commonData['Main:SourceImageHeight'];
+    commonData['Main:CroppedAreaLeftPixels'] = 0;
+    commonData['Main:CroppedAreaTopPixels'] = 0;
+
+    commonData['Main:InitialViewHeadingDegrees'] = 0;
+    commonData['Main:InitialViewPitchDegrees'] = 0;
+    commonData['Main:InitialViewRollDegrees'] = 0;
+    commonData['Main:InitialHorizontalFOVDegrees'] = 0;
+    commonData['Main:InitialCameraDolly'] = 0;
+    commonData['Main:PoseRollDegrees'] = 0;
+    commonData['Main:SourcePhotosCount'] = 0;
+    commonData['Main:FirstPhotoDate'] = parseExifDateTime(commonData['Main:CreateDate']);
+    commonData['Main:LastPhotoDate'] = parseExifDateTime(commonData['Main:CreateDate']);
+
+    commonData['Main:UsePanoramaViewer'] = 0.0;
+    commonData['Main:ExposureLockUsed'] = 0.0;
+
+  const resultObj = {
+    dataList, 
+    commonData
+  };
+  console.log(resultObj);
 
   return {
     dataList,
@@ -152,7 +206,7 @@ export async function writeTags2Image(
 
   Object.keys(commonData).forEach((key: string) => {
     const convertedKey = key.replace(/.+:/, '');
-    if (
+ if (
       deleteTagKeys.indexOf(convertedKey) < 0 &&
       convertedKey.indexOf('File') < 0 &&
       convertedKey.indexOf('GPS') < 0 &&
@@ -169,9 +223,10 @@ export async function writeTags2Image(
       convertedKey.indexOf('Source') < 0 &&
       convertedKey.indexOf('Track') < 0 &&
       convertedKey.indexOf('Color') < 0 &&
-      convertedKey.indexOf('Image') < 0
+      (convertedKey.indexOf('Image') < 0 || convertedKey.indexOf('CroppedAreaImage') >= 0)
     )
       tags[convertedKey] = commonData[key];
+
   });
 
   let starttime: Dayjs;
@@ -290,11 +345,9 @@ export async function splitVideos(
   callback: CallableFunction
 ) {
   // eslint-disable-next-line new-cap
-
   try {
     const process = new ffmpeg(inputPath);
-    process.then(
-      (video) => {
+    process.then((video: { fnExtractFrameToJPG: (arg0: string, arg1: { number: number; file_name: string; }, arg2: (err: any, files: string[]) => void) => void; }) => {
         video.fnExtractFrameToJPG(
           outputPath,
           {
@@ -310,7 +363,7 @@ export async function splitVideos(
           }
         );
       },
-      (err) => {
+      (err: any) => {
         callback(err);
       }
     );
@@ -335,6 +388,7 @@ export function splitVideoToImage(
         (cb: CallableFunction) => {
           const videopath = path.join(os.tmpdir(), `${uuidv4()}.mp4`);
           fs.copyFile(videoPath, videopath, () => cb(null, videopath));
+          console.log('copy file completed');
         },
         (videopath: string, cb: CallableFunction) => {
           splitVideos(
@@ -342,6 +396,8 @@ export function splitVideoToImage(
             duration,
             outputPath,
             (err: any, filenames: string[]) => {
+              console.log(filenames);
+              console.log(err);
               if (err) {
                 cb(err);
               } else {

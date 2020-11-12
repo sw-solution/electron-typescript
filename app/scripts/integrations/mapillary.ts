@@ -4,7 +4,7 @@ import FormData from 'form-data';
 import fs from 'fs';
 import path from 'path';
 import Async from 'async';
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, Debugger } from 'electron';
 
 import { Session } from '../../types/Session';
 import { Sequence } from '../../types/Result';
@@ -203,6 +203,14 @@ export const uploadImagesMapillary = (
   sessionData: any,
   messageChannelName = 'update_loaded_message'
 ) => {
+  let p;
+  if (process.platform === 'win32')
+    p = directoryPath.split('\\');
+  else
+    p = directoryPath.split('/');
+  const sn = p[p.length - 2];
+  let beautifiedName = sn.split('_').join(' ');
+  beautifiedName = beautifiedName.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   return new Promise((resolve, reject) => {
     Async.eachOfLimit(
       points,
@@ -211,11 +219,19 @@ export const uploadImagesMapillary = (
         sendToClient(
           mainWindow,
           messageChannelName,
-          `${item.Image} is uploading to Mapillary`
+          `[${beautifiedName}] ${item.Image} is uploading to Mapillary`
         );
-        const filepath = path.join(directoryPath, item.Image);
+        console.log("upload to mapiliary - item.Image: " + item.Image);
+        console.log("directoryPath: " + directoryPath);
+        let parts;
+        if (process.platform === 'win32')
+          parts = directoryPath.split('\\');
+        else
+          parts = directoryPath.split('/');
+        const seqName = parts[parts.length - 2];
+        const filepath = path.join(directoryPath, seqName.split(' ').join('_') + "_" + item.Image);
 
-        uploadImage(filepath, item.Image, sessionData)
+        uploadImage(filepath, seqName.split(' ').join('_') + "_" + item.Image, sessionData)
           .then(() => next())
           .catch((e) => {
             console.log('UploadImage issue to Mapillary: ', e);

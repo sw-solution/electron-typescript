@@ -50,6 +50,8 @@ import Final from './Final';
 
 import routes from '../constants/routes.json';
 import {
+  selNumberOfDivisions,
+  selCompletedDivisions,
   selSequenceName,
   selPrevStep,
   selCurrentStep,
@@ -62,6 +64,7 @@ import {
   setError,
   setInit,
   selSequence,
+  setCompletedDivisions,
 } from './slice';
 
 import { setAddSeq } from '../list/slice';
@@ -69,6 +72,7 @@ import Logo from '../components/Logo';
 import Wrapper from '../components/Wrapper';
 import RequireModify from './RequireModify';
 import GooglePlace from './GooglePlace';
+import { getSequenceBasePath, removeDirectory } from '../scripts/utils';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -113,6 +117,8 @@ export default function CreatePageWrapper() {
   const currentStep = useSelector(selCurrentStep);
   const name = useSelector(selSequenceName);
   const sequence = useSelector(selSequence);
+  const numberOfDivisions = useSelector(selNumberOfDivisions);
+  const completedDivisions = useSelector(selCompletedDivisions);
   const error = useSelector(selError);
   const dispatch = useDispatch();
   const [state, setState] = useState<State>({
@@ -129,13 +135,21 @@ export default function CreatePageWrapper() {
       if (points.length) {
         dispatch(setSequencePoints(points));
       } else {
-        dispatch(setSequenceError('There are no images.'));
+        dispatch(setSequenceError('Cannot read points data from the files.'));
       }
     });
 
-    ipcRenderer.on('add-seq', (_event: IpcRendererEvent, seq) => {
+    ipcRenderer.on('add-seq', (_event: IpcRendererEvent, seq, originalSequenceName, basepath) => {
       dispatch(setAddSeq(seq));
-      dispatch(setCurrentStep('final'));
+      let completed = completedDivisions + 1;
+      console.log("Completed " + completed + " out of " + numberOfDivisions);
+      if (completed >= numberOfDivisions) {
+        if (numberOfDivisions > 1) {
+          removeDirectory(getSequenceBasePath(originalSequenceName, basepath));
+        }
+        dispatch(setCurrentStep('final'));
+      }
+      dispatch(setCompletedDivisions(completed));
     });
 
     ipcRenderer.on('loaded_gpx', (_event: IpcRendererEvent, points) => {

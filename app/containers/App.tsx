@@ -117,6 +117,10 @@ export default function App(props: Props) {
       dispatch(setConfigLoadEnd(config));
     });
 
+    ipcRenderer.on('home_page', (_event: IpcRendererEvent) => {
+      dispatch(push(routes.LIST));
+    });
+
     ipcRenderer.on('about_page', (_event: IpcRendererEvent) => {
       if (name !== '') {
         setState({
@@ -196,6 +200,7 @@ export default function App(props: Props) {
       <div style={{ textAlign: 'right' }}>
         <Button
           onClick={() => {
+            console.log("DELETED APP")
             dispatch(setInit());
             closeApp();
           }}
