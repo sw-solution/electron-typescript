@@ -351,6 +351,7 @@ export async function splitVideos(
         video.fnExtractFrameToJPG(
           outputPath,
           {
+            frame_rate: 1, 
             number: Math.ceil(duration) + 1,
             file_name: '',
           },
