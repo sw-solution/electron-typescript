@@ -16,6 +16,7 @@ Map the Paths Desktop Uploader allows you to manage your street-level map imager
 * Modify photo GPS information (position and heading)
 * Add a nadir
 * Add copyright information
+* Turn video files into geo-tagged `.jpg` images
 * Upload to web platforms
 	- Map the Paths Web
 	- Mapillary
