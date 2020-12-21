@@ -13,12 +13,14 @@ export interface Destination {
 }
 
 export interface Sequence {
+  [x: string]: string;
   id: string;
   distance_km: number;
   earliest_time?: string;
   latest_time?: string;
   durationsec: number;
   average_speed_kmh: number;
+  sharelink: string;
   uploader_sequence_name: string;
   uploader_sequence_description: string;
   uploader_transport_type: TransportType;
@@ -27,6 +29,12 @@ export interface Sequence {
   uploader_tags: string[];
   created: string;
   destination: Destination;
+}
+
+export interface GooglePhotoRes {
+  photoId: string;
+  filename: string;
+  shareLink: string;
 }
 
 export interface Connection {
@@ -79,6 +87,8 @@ export interface Export {
 }
 
 export interface ExportPhoto {
+  photoId: string;
+  shareLink: string;
   original: Export;
   modified: Export;
   connections?: Connections;

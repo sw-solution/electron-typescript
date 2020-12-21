@@ -55,3 +55,6 @@ yarn.lock
 .env
 
 sequences
+#/tokens.js
+
+#settings.json

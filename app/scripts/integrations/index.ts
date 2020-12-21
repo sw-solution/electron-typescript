@@ -8,7 +8,7 @@ import { Result } from '../../types/Result';
 import { Session } from '../../types/Session';
 import tokenStore from '../tokens';
 import axiosErrorHandler from '../utils/axios';
-import { sendToClient } from '../utils';
+import { getLogFilePath, sendToClient } from '../utils';
 import { updateIntegrationStatusDataAPI, postSequenceAPI } from './mtpw';
 
 import {
@@ -41,8 +41,6 @@ export default async (
   const stravaToken = tokenStore.getToken('strava');
 
   const { mapillary, mtp, google, strava } = settings;
-
-  console.log('googlePlace: ', googlePlace);
 
   // if (!mtp || !mtpwToken) return { result: resultjson };
 
@@ -85,16 +83,30 @@ export default async (
 
   if (google && googleToken) {
     try {
-      await uploadImagesToGoogle(
+      let gsvRes = await uploadImagesToGoogle(
         mainWindow,
         points,
         baseDirectory,
         messageChannelName,
         googlePlace
       );
+
       resultjson.sequence.destination.google = true;
+      if (googlePlace)
+        resultjson.sequence.placeid = googlePlace;
+      if (gsvRes.length > 0)
+        resultjson.sequence.sharelink = gsvRes[0].shareLink;
+      gsvRes.map((gsvRow) => {
+        Object.keys(resultjson.photo).map((pid) => {
+          if (resultjson.photo[pid].original.filename === gsvRow.filename) {
+            resultjson.photo[pid].photoId = gsvRow.photoId
+            resultjson.photo[pid].shareLink = gsvRow.shareLink
+          }
+        })
+      });
+
     } catch (error) {
-      return getError(axiosErrorHandler(error, 'GoolgeUploadImages'));
+      return getError(axiosErrorHandler(error, 'GoogleUploadImages'));
     }
   }
 
@@ -113,18 +125,16 @@ export default async (
 
     const mtpwId = mtpwSequence.unique_id;
 
-    const updateIntegrationStatusData: { [key: string]: boolean } = {};
+    const updateIntegrationStatusData: { [key: string]: string } = {};
 
     if (google && googleToken) {
-      updateIntegrationStatusData.google_street_view = true;
+      updateIntegrationStatusData.google_street_view = resultjson.sequence.sharelink;
     }
 
     if (strava && stravaToken) {
       const newStravaToken = await getStravaToken(
         tokenStore.getRefreshToken('strava')
       );
-
-      console.log('newStravaToken:', newStravaToken);
 
       if (newStravaToken.error) {
         return getError(newStravaToken.error);
@@ -162,7 +172,9 @@ export default async (
     if (mtp) {
       if (Object.keys(updateIntegrationStatusData).length) {
         const { seqError } = await updateIntegrationStatusDataAPI(
+          resultjson.sequence,
           mtpwId,
+          basepath,
           updateIntegrationStatusData
         );
 

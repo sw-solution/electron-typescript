@@ -44,7 +44,7 @@ const useStyles = makeStyles((theme) => ({
     width: '100%',
     height: 250,
     backgroundSize: '100%',
-  },
+  }
 }));
 
 interface Props {
@@ -70,10 +70,11 @@ export default function MapBox(props: Props) {
   const mapId = `map_${name.replace(/\s/g, '_')}`;
   const [state, setState] = useState<State>({
     isopen: false,
-    selected: -1,
+    selected: 0,
     showMessage: false,
     // zoom: 22,
   });
+  const [selectedCount, setSelectedCount] = useState(1);
 
   const [map, setMap] = useState<Map | null>(null);
 
@@ -104,6 +105,7 @@ export default function MapBox(props: Props) {
       selected: idx,
       showMessage: false,
     });
+    changeSelectedCount();
   };
 
   const nextImage = () => {
@@ -112,6 +114,7 @@ export default function MapBox(props: Props) {
       showMessage: false,
       selected: (state.selected + 1) % filteredpoints.length,
     });
+    changeSelectedCount();
   };
 
   const prevImage = () => {
@@ -121,12 +124,17 @@ export default function MapBox(props: Props) {
       selected:
         (filteredpoints.length + state.selected - 1) % filteredpoints.length,
     });
+    changeSelectedCount();
   };
+
+  const changeSelectedCount = () => {
+    setSelectedCount((selectedCount + 1) % 15);
+  }
 
   const handleClose = () => {
     setState({
+      ...state,
       isopen: false,
-      selected: -1,
       showMessage: false,
     });
   };
@@ -183,7 +191,7 @@ export default function MapBox(props: Props) {
               {`File Name: ${point.Image}`}
             </Typography>
             <Typography variant="caption" display="block">
-              {`GPS Time: ${point.GPSDateTime}`}
+              {`GPS Time: ${point.GPSDateTime ? point.GPSDateTime : point.DateTimeOriginal}`}
             </Typography>
             <Typography variant="caption" display="block">
               {`Heading / Azimuth (degrees): ${point.Azimuth ? point.Azimuth.toFixed(2) : 0
@@ -353,12 +361,13 @@ export default function MapBox(props: Props) {
   }, [filteredpoints, map, name, showPopup]);
 
   useEffect(() => {
-    if (!map) {
+    console.log(selectedCount)
+    if (selectedCount === 14 || !map) {
       const newMap = new mapboxgl.Map({
         container: mapId,
         style: 'mapbox://styles/mapbox/streets-v9',
-        center: centerPoint(),
-        zoom: [16],
+        center: map ? map.getCenter() : centerPoint(),
+        zoom: map ? [map.getZoom()] : [16],
       });
 
       newMap.scrollZoom.enable();
@@ -369,7 +378,7 @@ export default function MapBox(props: Props) {
         setMap(newMap);
       });
     }
-  });
+  }, [selectedCount]);
 
   return (
     <div>
@@ -379,7 +388,6 @@ export default function MapBox(props: Props) {
             id={mapId}
             style={{ width: '100%', height: `${height.toString()}px` }}
           />
-
           <Modal open={state.isopen} onClose={handleClose}>
             {modalBody}
           </Modal>

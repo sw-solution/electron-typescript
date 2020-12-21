@@ -2,12 +2,14 @@ import axios from 'axios';
 
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import { BrowserWindow } from 'electron';
 import dayjs from 'dayjs';
 import Async from 'async';
 import tokenStore from '../tokens';
 import { IGeoPoint } from '../../types/IGeoPoint';
-import { sendToClient } from '../utils';
+import { GooglePhotoRes } from '../../types/Result';
+import { sendToClient, getLogFilePath } from '../utils';
 
 const electron = require('electron');
 
@@ -102,7 +104,7 @@ export const uploadImage = async (
 
   console.log('metaData: ', metaData);
 
-  await axios({
+  return axios({
     method: 'post',
     url: `https://streetviewpublish.googleapis.com/v1/photo?key=${process.env.GOOGLE_API_KEY}`,
     headers: {
@@ -110,25 +112,44 @@ export const uploadImage = async (
       'Content-Type': 'application/json',
     },
     data: metaData,
-  });
+  })
 };
 
-export const uploadImagesToGoogle = (
+export const uploadImagesToGoogle = async (
   mainWindow: BrowserWindow,
   points: IGeoPoint[],
   baseDirectory: string,
   messageChannelName: string,
   googlePlace?: string
-) => {
+): Promise<GooglePhotoRes[]> => {
   let token = tokenStore.getToken('google');
 
   let index = 30;
+  /////////////////////
+  const upload_status_file = path.join(baseDirectory, 'upload_google.json');
+  let logPoints: { idx: number; filename: string | undefined; status: string; }[] = [];
+  if (fs.existsSync(upload_status_file)) {
+    logPoints = JSON.parse(fs.readFileSync(upload_status_file).toString());
+  } else {
+    points.map((point, idx) => {
+      logPoints.push({ idx: idx + 1, filename: point.Image, status: 'PENDING' });
+    });
+    fs.writeFileSync(upload_status_file, JSON.stringify(logPoints));
+  }
+  fs.writeFileSync(path.join(baseDirectory, 'upload_images.json'),
+    JSON.stringify(logPoints)
+  );
+  let gsvRes: { shareLink: string; filename: string | undefined; photoId: string }[] = [];
+  //////////////////////
 
   return new Promise((resolve, reject) => {
     Async.eachOfLimit(
       points,
       1,
       async (point: IGeoPoint, key: any, cb: CallableFunction) => {
+        if (logPoints[key].status === "TRUE") {
+          cb(null);
+        }
         let adAzimuth = 0;
         if (key !== 0) {
           const prevPoint = points[key - 1];
@@ -154,12 +175,18 @@ export const uploadImagesToGoogle = (
           googlePlace
         )
           // eslint-disable-next-line promise/no-callback-in-promise
-          .then(() => cb(null))
+          .then((res) => {
+            const photoRes = res.data;
+            gsvRes.push({ photoId: photoRes.photoId, filename: point.Image, shareLink: photoRes.shareLink });
+            logPoints[key].status = "TRUE";
+            fs.writeFileSync(upload_status_file, JSON.stringify(logPoints));
+            cb(null);
+          })
           // eslint-disable-next-line promise/no-callback-in-promise
           .catch((err) => cb(err));
       },
       (err) => {
-        if (!err) resolve();
+        if (!err) resolve(gsvRes);
         else reject(err);
       }
     );
@@ -195,7 +222,7 @@ export const getGoogleRefreshToken = async (refreshToken: string) => {
         refresh_token: refreshToken,
         client_id: process.env.GOOGLE_CLIENT_ID,
         client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        grant_type: 'refresh_token', 
+        grant_type: 'refresh_token',
         access_type: 'offline',
         // prompt: 'consent',
       })
@@ -214,6 +241,6 @@ export const getGoogleRefreshToken = async (refreshToken: string) => {
     //   error
     // );
   }
-  
+
   return newAccessToken;
 };

@@ -168,8 +168,7 @@ export function getGPSVideoData(tags: typeof Tags) {
     dataList, 
     commonData
   };
-  console.log(resultObj);
-
+  
   return {
     dataList,
     commonData,
@@ -184,8 +183,7 @@ export async function writeTags2Image(
   callback: CallableFunction
 ) {
   const strStartTime = commonData['Main:GPSDateTime'];
-  const duration = Math.ceil(commonData['Main:Duration']);
-
+  const duration = Math.ceil(commonData['Main:Duration']) ? Math.ceil(commonData['Main:Duration']) : Math.ceil(commonData['Main:MediaDuration']);
   const deleteTagKeys = [
     'Orientation',
     'tz',
@@ -203,28 +201,28 @@ export async function writeTags2Image(
   const tags: {
     [key: string]: any;
   } = {};
-
+  
   Object.keys(commonData).forEach((key: string) => {
     const convertedKey = key.replace(/.+:/, '');
- if (
-      deleteTagKeys.indexOf(convertedKey) < 0 &&
-      convertedKey.indexOf('File') < 0 &&
-      convertedKey.indexOf('GPS') < 0 &&
-      convertedKey.indexOf('Date') < 0 &&
-      convertedKey.indexOf('Version') < 0 &&
-      convertedKey.indexOf('Thumbnail') < 0 &&
-      convertedKey.indexOf('Duration') < 0 &&
-      convertedKey.indexOf('Audio') < 0 &&
-      convertedKey.indexOf('Media') < 0 &&
-      convertedKey.indexOf('Time') < 0 &&
-      convertedKey.indexOf('Rotation') < 0 &&
-      convertedKey.indexOf('Text') < 0 &&
-      convertedKey.indexOf('Video') < 0 &&
-      convertedKey.indexOf('Source') < 0 &&
-      convertedKey.indexOf('Track') < 0 &&
-      convertedKey.indexOf('Color') < 0 &&
-      (convertedKey.indexOf('Image') < 0 || convertedKey.indexOf('CroppedAreaImage') >= 0)
-    )
+    if (
+          deleteTagKeys.indexOf(convertedKey) < 0 &&
+          convertedKey.indexOf('File') < 0 &&
+          convertedKey.indexOf('GPS') < 0 &&
+          convertedKey.indexOf('Date') < 0 &&
+          convertedKey.indexOf('Version') < 0 &&
+          convertedKey.indexOf('Thumbnail') < 0 &&
+          convertedKey.indexOf('Duration') < 0 &&
+          convertedKey.indexOf('Audio') < 0 &&
+          convertedKey.indexOf('Media') < 0 &&
+          convertedKey.indexOf('Time') < 0 &&
+          convertedKey.indexOf('Rotation') < 0 &&
+          convertedKey.indexOf('Text') < 0 &&
+          convertedKey.indexOf('Video') < 0 &&
+          convertedKey.indexOf('Source') < 0 &&
+          convertedKey.indexOf('Track') < 0 &&
+          convertedKey.indexOf('Color') < 0 &&
+          (convertedKey.indexOf('Image') < 0 || convertedKey.indexOf('CroppedAreaImage') >= 0)
+        )
       tags[convertedKey] = commonData[key];
 
   });
@@ -238,7 +236,6 @@ export async function writeTags2Image(
     starttime = dayjs(parseExifDateTime(commonData['Main:CreateDate']));
   }
   const result: IGeoPoint[] = [];
-
   Async.each(
     Array.from({ length: duration }, (_, index) => index),
     (seconds: number, cb: any) => {
@@ -331,6 +328,7 @@ export async function writeTags2Image(
       }
     },
     (err) => {
+      
       if (!err) {
         callback(result, starttime);
       }
@@ -359,16 +357,20 @@ export async function splitVideos(
             if (!err) {
               callback(null, files);
             } else {
-              callback(err);
+              console.log('fnExtractFrameToJPG_1:  ', err);
+              callback(null, files);
+              //callback(err);
             }
           }
         );
       },
       (err: any) => {
+        console.log('fnExtractFrameToJPG_2:  ', err);
         callback(err);
       }
     );
   } catch (e) {
+    console.log('fnExtractFrameToJPG_3:  ', e);
     callback(e);
   }
 }
@@ -381,24 +383,26 @@ export function splitVideoToImage(
   corrupted: boolean
 ) {
   const { dataList, commonData } = getGPSVideoData(tags);
-  const duration = Math.floor(commonData['Main:Duration']);
-
+  // Math.floor(commonData['Main:Duration']
+  const duration = Math.floor(commonData['Main:Duration']) ? Math.floor(commonData['Main:Duration']) : Math.floor(commonData['Main:MediaDuration']);
+  
   if (dataList) {
     Async.waterfall(
       [
         (cb: CallableFunction) => {
           const videopath = path.join(os.tmpdir(), `${uuidv4()}.mp4`);
-          fs.copyFile(videoPath, videopath, () => cb(null, videopath));
-          console.log('copy file completed');
+          console.log('videoPath:  ', videoPath);
+          console.log('videopath:  ', videopath);
+          cb(null, videoPath);
+          // fs.copyFile(videoPath, videopath, () => cb(null, videopath));
         },
         (videopath: string, cb: CallableFunction) => {
+          console.log('splitvideos');
           splitVideos(
             videopath,
             duration,
             outputPath,
             (err: any, filenames: string[]) => {
-              console.log(filenames);
-              console.log(err);
               if (err) {
                 cb(err);
               } else {
@@ -408,16 +412,20 @@ export function splitVideoToImage(
           );
         },
         (cb: CallableFunction) => {
-          fs.copyFile(
+          console.log('after_splitvideos');
+          /* fs.copyFile(
             videoPath,
             path.join(outputPath, path.basename(videoPath)),
             (err) => {
+              console.log('error really is here!!!', err);
               if (err) cb(err);
               else cb(null);
             }
-          );
+          ); */
+          cb(null);
         },
         (cb: CallableFunction) => {
+          console.log('writeTags2Image');
           writeTags2Image(
             commonData,
             dataList,
@@ -429,6 +437,7 @@ export function splitVideoToImage(
       ],
       function (err, datalist: IGeoPoint[]) {
         if (!err) {
+          
           calculatePoints(datalist, [], function (error: any, result: any) {
             if (!error) {
               sendPoints(win, result.points);
@@ -479,7 +488,6 @@ export function loadVideo(
     .catch((err: Error) => {
       exif.end();
 
-      console.log('Loading Video: ', err);
       callback(err);
     });
 }

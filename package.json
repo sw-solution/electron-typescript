@@ -1,7 +1,7 @@
 {
   "name": "mtp",
   "productName": "Map the Paths Desktop Uploader",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Share your street-level imagery with the world and help improve the map.",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\"",
@@ -274,7 +274,7 @@
     "electron-download-manager": "^2.1.2",
     "electron-log": "^4.2.2",
     "electron-updater": "^4.3.1",
-    "ffmpeg": "https://github.com/stevemetzger/node-ffmpeg",
+    "ffmpeg": "https://github.com/trek-view/node-ffmpeg",
     "form-data": "^3.0.0",
     "gm": "^1.23.1",
     "gpx-builder": "^3.6.0",
