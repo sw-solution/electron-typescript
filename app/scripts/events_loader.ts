@@ -8,6 +8,7 @@ import Async from 'async';
 import url from 'url';
 import axios from 'axios';
 import FormData from 'form-data';
+import {spawn} from 'cross-spawn'
 
 import { App, ipcMain, BrowserWindow, IpcMainEvent, dialog } from 'electron';
 
@@ -37,6 +38,7 @@ import {
   removeTempFiles,
   getSequenceOutputPath,
   OutputType,
+  getSequenceImagePath,
 } from './utils';
 
 import axiosErrorHandler from './utils/axios';
@@ -242,60 +244,69 @@ export default (mainWindow: BrowserWindow, app: App) => {
         [key: string]: any;
       } = {};
       const templogofile = path.resolve(basepath, `../${uuidv4()}.png`);
+      const tempOutPut4 = path.resolve(basepath, `../${uuidv4()}output4.png`)
+      const tempOutPut5 = path.resolve(basepath, `../${uuidv4()}output5.png`)
 
-      const modifyLogoAsync = modifyLogo(nadirpath, templogofile)
-        .then(() => {
-          return jimp.read(templogofile);
-        })
-        .catch((err) => errorHandler(mainWindow, err));
+      //ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv="s=x:p=0" s.jpg
+      const getResoultion_Async = modifyLogo(nadirpath, tempOutPut4)
+            .then(()=>{
+              return spawn.sync('ffprobe',['-v','error','-select_streams','v:0','-show_entries','stream=width,height','-of','csv=s=x:p=0',`${imagepath}`])
+            })
+            .catch((err)=> {
+              console.log("probeError");
+              errorHandler(mainWindow,err)
+            });
+      getResoultion_Async
+      .then((result:any)=>{
 
-      modifyLogoAsync
-        .then((logo: any) => {
-          return Async.eachOfLimit(
-            Array(16),
-            1,
-            (_item: unknown, key: any, cb: CallableFunction) => {
-              const outputfile = path.resolve(basepath, `../${uuidv4()}.png`);
-              const percentage = (10 + key) / 100;
-              // const percentage = 0.15;
-              const logoHeight = Math.round(height * percentage);
+        //console.log("da:",da)
+        let resultoutput = result.output[1].toString('utf8');
+        let res = resultoutput.split('x');
 
-              logo.resize(width, logoHeight);
-              // eslint-disable-next-line promise/no-nesting
-              const addLogoAsync = addLogo(
-                imagepath,
-                logo,
-                0,
-                height - logoHeight
-              )
-                .then((image: any) => image.writeAsync(outputfile))
-                .catch((err: any) => {
-                  errorHandler(mainWindow, err);
-                  cb(err);
-                });
+        let width = parseInt(res[0]);
+        let height = parseInt(res[1]);
 
-              // eslint-disable-next-line promise/no-nesting
-              addLogoAsync
-                .then(() => {
-                  results[percentage.toString()] = outputfile;
-                  return cb();
-                })
-                .catch((err: any) => cb(err));
-            },
-            (err) => {
-              if (err) {
-                errorHandler(mainWindow, err);
-              } else {
-                sendToClient(mainWindow, 'loaded_preview_nadir', {
-                  logofile: templogofile,
-                  items: results,
-                });
-              }
+
+        return Async.eachOfLimit(
+          //Array(16),
+          Array(9),
+          1,
+          (_item: unknown, key: any, cb: CallableFunction) => {
+            const outputfile = path.resolve(basepath, `../${uuidv4()}.png`);
+            let percent = (12 + key) / 100;
+            let overlay_scale = Math.ceil(height * percent - 0.5);
+            let overlay_position = height - overlay_scale;
+            //"ffmpeg -y -i {} -vf scale={} {}".format(temp_output4,overlay_scale,temp_output5)
+            const over_scale_spawn = sPromise()
+            .then(()=>{
+              return spawn.sync('ffmpeg',['-y','-i',`${tempOutPut4}`,'-vf',`scale=${width}:${overlay_scale}`,`${tempOutPut5}`]);
+            })
+            let magickOut = over_scale_spawn
+            .then((overlayerr:any)=>{
+              return spawn.sync('magick',[`${imagepath}`,`${tempOutPut5}`,'-geometry',`+0+${overlay_position}`,'-composite',`${outputfile}`]);
+            })
+            magickOut
+            .then((magicerr:any)=>{
+              results[percent.toString()] = outputfile;
+                return cb();
+            })
+
+
+          },
+          (err) => {
+            if (err) {
+              errorHandler(mainWindow, err);
+            } else {
+              sendToClient(mainWindow, 'loaded_preview_nadir', {
+                logofile: tempOutPut4,
+                items: results,
+              });
             }
-          );
-          // return addLogo(imagepath, logo, 0, height - logoHeight);
-        })
-        .catch((err) => errorHandler(mainWindow, err));
+          }
+        );
+      })
+      .catch((err)=>errorHandler(mainWindow, err))
+
     }
   );
 
@@ -307,6 +318,54 @@ export default (mainWindow: BrowserWindow, app: App) => {
     const settings = sequence.steps;
 
     const { logofile, percentage } = sequence.steps.previewnadir;
+    let newlogofile = logofile;
+    let logoOverlayPosition = -1;
+
+
+    if(logofile !== '')
+    {
+     // console.log("point:",sequence.points[0])
+      let extension = logofile.split(".");
+
+      newlogofile = `${logofile}_new.${extension[extension.length-1]}`;
+      console.log("logofile:",logofile)
+      console.log("extension:",extension)
+      console.log("newlogofile:",newlogofile)
+
+      const originalOnefile = getSequenceImagePath(
+        originalSequenceName,
+        sequence.points[0].Image,
+        basepath
+      );
+      console.log(sPromise)
+      const getResoultion_Async = sPromise()
+        .then(()=>{
+          return spawn.sync('ffprobe',['-v','error','-select_streams','v:0','-show_entries','stream=width,height','-of','csv=s=x:p=0',`${originalOnefile}`])
+        })
+        .catch((err)=>{
+          console.log("probeError");
+        });
+      const getLogo_Async = getResoultion_Async
+        .then((result:any)=>{
+          console.log("ffprobeReslt:",result.output[1].toString("utf8"))
+          console.log("ffprobeReslt:",result.output[2].toString("utf8"))
+
+          let resultoutput = result.output[1].toString('utf8');
+          let res = resultoutput.split('x');
+          let width = parseInt(res[0]);
+          let height = parseInt(res[1]);
+
+          let overlay_scale = Math.ceil(height * percentage - 0.5);
+          logoOverlayPosition = height - overlay_scale;
+          return spawn.sync('ffmpeg',['-y','-i',`${logofile}`,'-vf',`scale=${width}:${overlay_scale}`,`${newlogofile}`]);
+        })
+      getLogo_Async
+      .then((result)=>{
+        console.log("getLogo_Async:",result.output[1].toString("utf8"))
+        console.log("getLogo_Async:",result.output[2].toString("utf8"))
+      })
+    }
+
     const logo = logofile !== '' ? await jimp.read(logofile) : null;
 
     if (logofile !== '' && logo) {
@@ -342,7 +401,9 @@ export default (mainWindow: BrowserWindow, app: App) => {
       settings,
       originalSequenceName,
       logo,
-      basepath
+      basepath,
+      newlogofile,
+      logoOverlayPosition
     );
     let outputType = OutputType.raw;
     if (settings.nadirPath !== '') {
@@ -697,3 +758,10 @@ export const sendTokenFromUrl = async (
     sendToken(mainWindow, key, token, basepath);
   }
 };
+function sPromise(){
+  return new Promise((resolve,reject)=>{
+    setTimeout(()=>{
+      return resolve();
+    },1)
+  })
+}

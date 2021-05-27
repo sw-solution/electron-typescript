@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import jimp from 'jimp';
 import rimraf from 'rimraf';
 import mkdirp from 'mkdirp';
+import {spawn} from 'cross-spawn'
 
 import { BrowserWindow } from 'electron';
 import { IGeoPoint } from '../types/IGeoPoint';
@@ -337,8 +338,8 @@ export function loadImageFiles(
 }
 
 export function modifyLogo(logourl: string, outputfile: string) {
-  return new Promise((resolve, reject) => {
-    const rotateAsync = jimp
+  return new Promise((resolve,reject)=>{
+    const valid_RotateAsync = jimp
       .read(logourl)
       .then((logo: any) => {
         if (
@@ -349,62 +350,61 @@ export function modifyLogo(logourl: string, outputfile: string) {
             'Allowed filetypes for nadir cap are: jpg, png, tif file only. Must be at least 500px x 500px and square.'
           );
         }
-        return logo.rotate(270).flip(false, true);
+        //magick "n.png" -rotate 180 -strip nadir_patcher_temp_s\temp_result1.png
+        return spawn.sync('magick', [`${logourl}`, '-rotate', '180', '-strip',`${outputfile}_temp_1.png`]);
       })
-      .catch((err) => {
+      .catch((err)=>{
+        console.log("validateErr:",err)
         reject(err);
-      });
-
-    rotateAsync
-      // eslint-disable-next-line promise/always-return
-      .then((logo: any) => {
-        const outputheight = logo.bitmap.height / 2;
-        const outputwidth = logo.bitmap.width;
-        const radius = logo.bitmap.height / 2;
-        const cx = logo.bitmap.width / 2;
-        const cy = logo.bitmap.height / 2;
-        // eslint-disable-next-line no-new
-        new jimp(
-          outputwidth,
-          outputheight,
-          0x000000ff,
-          (err: any, outputlogo: any) => {
-            if (err) {
-              return reject(err);
-            }
-            for (let y = 0; y < outputheight; y += 1) {
-              for (let x = 0; x < outputwidth; x += 1) {
-                const thetadeg = 180 - (x * 360.0) / outputwidth;
-                const phideg = 90 - (y * 90.0) / outputheight;
-                const r = Math.sin((phideg * Math.PI) / 180);
-                const dx = Math.cos((thetadeg * Math.PI) / 180) * r;
-                const dy = Math.sin((thetadeg * Math.PI) / 180) * r;
-                const inputx = Math.round(dx * radius + cx);
-                const inputy = Math.round(dy * radius + cy);
-                outputlogo.setPixelColor(
-                  logo.getPixelColor(inputx, inputy),
-                  x,
-                  y
-                );
-              }
-            }
-
-            outputlogo
-              .crop(0, 25, outputwidth, outputheight - 25)
-              .writeAsync(outputfile)
-              .then(() => {
-                return resolve();
-              })
-              .catch((err: any) => {
-                reject(err);
-              });
-          }
-        );
       })
-      .catch((err) => {
-        reject(err);
-      });
-  });
+    const distort_Async = valid_RotateAsync
+    .then((result:any)=>{
+
+      /**
+       *
+       * magick "nadir_patcher_temp_s\temp_result1.png" -distort DePolar 0  nadir_patcher_temp_s\temp_result2.png
+
+        magick "nadir_patcher_temp_s\temp_result2.png" -flip  nadir_patcher_temp_s\temp_result3.png
+
+        magick "nadir_patcher_temp_s\temp_result3.png" -flop  nadir_patcher_temp_s\temp_result4.png
+
+        ffmpeg -y -i nadir_patcher_temp_s\temp_result4.png -vf scale=4096:245 nadir_patcher_temp_s\temp_result5.png
+       */
+      return spawn.sync('magick',[`${outputfile}_temp_1.png`, '-distort', 'DePolar','0',`${outputfile}_temp_2.png`])
+    })
+    .catch((err)=>{
+      console.log("spwanError:",err)
+      reject(err);
+    })
+    const flip_Async = distort_Async
+    .then((result:any)=>{
+
+      return spawn.sync('magick',[`${outputfile}_temp_2.png`, '-flip',`${outputfile}_temp_3.png`])
+
+    })
+    .catch((err)=>{
+      console.log("DistortError:",err);
+      reject(err);
+    })
+
+    const flop_Async = flip_Async
+    .then((result:any)=>{
+      return spawn.sync('magick',[`${outputfile}_temp_3.png`, '-flop',`${outputfile}`])
+    })
+    .catch((err)=>{
+      reject(err)
+    })
+
+    flop_Async
+    .then((result:any)=>{
+      return resolve();
+    })
+    .catch((err)=>{
+      reject(err)
+    })
+  })
+
+
 }
 
 export async function addLogo(
@@ -536,7 +536,9 @@ export function writeNadirImages(
   originalSequenceName: string,
   description: Description,
   basepath: string,
-  logo: any
+  logo: any,
+  newlogofile: string,
+  logoOverlayPosition:number
 ) {
   return new Promise((resolve, reject) => {
     if (settings.nadirPath !== '' && logo) {
@@ -553,25 +555,29 @@ export function writeNadirImages(
         basepath
       );
 
-      const addLogoAsync = addLogo(
-        existingfile,
-        logo,
-        0,
-        item.height - settings.previewnadir.percentage * item.height
-      )
-        .then((image) => {
-          return image.writeAsync(outputfile);
+
+      const addLogoAsync = sPromise()
+        .then(()=>{
+          console.log("ImageSaving:",outputfile);
+          console.log("ImageSaving_ExistingFile:",existingfile);
+
+          return spawn.sync('magick',[`${existingfile}`,`${newlogofile}`,'-geometry',`+0+${logoOverlayPosition}`,'-composite',`${outputfile}`]);
         })
         .catch((err) => {
+          console.log('saveError:',err)
           return reject();
         });
       const writeExifAsync = addLogoAsync
-        .then(() =>
+        .then((result) =>{
+          console.log("ImageSaved",result.output[1].toString("utf8"));
+          console.log("ImageSaved",result.output[2].toString("utf8"));
+
+
           writeExifTags(outputfile, item, {
             ...description.photo,
             MTPImageCopy: 'final_nadir',
           })
-        )
+        })
         .catch((err) => {
           return reject();
         });
@@ -592,7 +598,9 @@ export function updateImages(
   settings: any,
   originalSequenceName: string,
   logo: any,
-  basepath: string
+  basepath: string,
+  newlogofile: string,
+  logoOverlayPosition: number
 ): Promise<Result> {
   return new Promise((resolve, reject) => {
     const sequenceId = uuidv4();
@@ -734,6 +742,22 @@ export function updateImages(
     let beautifiedName = settings.name.split('_').join(' ');
     beautifiedName = beautifiedName.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
+    if (settings.nadirPath !== '' && newlogofile !== '') {
+      const outputNadirSeqPath = path.join(getSequenceBasePath(settings.name, basepath), 'final_nadir');
+
+      fs.access(outputNadirSeqPath, (error)=>{
+        if(error){
+          fs.mkdir(outputNadirSeqPath, {recursive: true}, (err) => {
+            if (err) {
+              console.log(err);
+            }
+            console.log("NadirFileMade");
+          });
+        }
+      })
+    }
+
+
     Async.eachOfLimit(
       updatedPoints,
       1,
@@ -781,8 +805,10 @@ export function updateImages(
                 OutputType.raw,
                 basepath
               );
-              if (settings.nadirPath !== '' && logo) {
-                writeNadirImages(item, settings, originalSequenceName, desc, basepath, logo)
+
+              if (settings.nadirPath !== '' && newlogofile !== '') {
+                console.log('currentSequence:',originalSequenceName)
+                writeNadirImages(item, settings, originalSequenceName, desc, basepath, logo,newlogofile,logoOverlayPosition)
                 .then(() => cb())
                 .catch((err) => cb(err));
               }
@@ -817,4 +843,11 @@ export function updateImages(
       }
     );
   });
+}
+function sPromise(){
+  return new Promise((resolve,reject)=>{
+    setTimeout(()=>{
+      return resolve();
+    },1)
+  })
 }
